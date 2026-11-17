@@ -7,18 +7,21 @@ const LOVE_STORY = {
     {
       title: "La fouille de zone",
       label: "La fouille",
-      subtitle: "Quatre petites lumières se sont cachées dans notre jardin étoilé. Retrouve-les.",
+      subtitle: "La chambre garde quatre objets précieux. Observe les détails et retrouve-les.",
       game: {
         type: "hunt",
-        fragments: ["Depuis que tu es là,", "les jours ont un peu plus de soleil,", "les nuits un peu plus d'étoiles,", "et mon cœur un endroit où rentrer."],
-        positions: [
-          { left: "21%", top: "48%" },
-          { left: "46%", top: "70%" },
-          { left: "69%", top: "39%" },
-          { left: "83%", top: "65%" }
+        items: [
+          { id: "rose", label: "Une rose", icon: "🌹", left: "25%", top: "63%", kind: "memory", foundText: "Une rose, délicatement posée là… elle est à toi." },
+          { id: "bracelet", label: "Un bracelet", icon: "◎", left: "69%", top: "58%", kind: "memory", foundText: "Un bracelet retrouvé, comme un petit lien entre nous." },
+          { id: "plush", label: "Une peluche", icon: "🧸", left: "53%", top: "70%", kind: "memory", foundText: "Une peluche toute douce, gardienne de nos nuits." },
+          { id: "sweater", label: "Un pull", icon: "👕", left: "79%", top: "73%", kind: "memory", foundText: "Un pull tout chaud, avec un peu de toi dedans." },
+          { id: "book", label: "Un livre", icon: "📖", left: "42%", top: "57%", kind: "decoy", foundText: "Juste un livre entrouvert… le trésor se cache ailleurs." },
+          { id: "mug", label: "Une tasse", icon: "☕", left: "18%", top: "76%", kind: "decoy", foundText: "Une tasse oubliée sur la table de nuit. Continue à chercher." },
+          { id: "perfume", label: "Un flacon", icon: "🧴", left: "88%", top: "53%", kind: "decoy", foundText: "Un petit flacon, mais pas encore le bon souvenir." },
+          { id: "sock", label: "Une chaussette", icon: "🧦", left: "36%", top: "80%", kind: "decoy", foundText: "Une chaussette esseulée… les objets précieux sont encore là." }
         ]
       },
-      personalMessage: "Depuis que tu es là, les jours ont un peu plus de soleil, les nuits un peu plus d'étoiles, et mon cœur un endroit où rentrer.\n\nMerci pour cette première année, et pour toutes celles qui nous attendent."
+      personalMessage: "À venir."
     },
     {
       title: "L'énigme souvenir",
@@ -31,7 +34,7 @@ const LOVE_STORY = {
         hintAfter: 2,
         hint: "Indice : c'est un endroit où l'on commande souvent un cappuccino."
       },
-      personalMessage: "Je me souviens de ce premier rendez-vous comme si le temps avait ralenti juste pour nous.\n\nCe jour-là, je ne savais pas encore à quel point tu deviendrais mon endroit préféré."
+      personalMessage: "À venir."
     },
     {
       title: "Le labyrinthe des souvenirs",
@@ -44,7 +47,7 @@ const LOVE_STORY = {
           "#.#####.#.#", "#.....#.#.#", "#####...#.#", "#.....#...#", "#.#######E#", "###########"
         ]
       },
-      personalMessage: "Même quand le chemin fait quelques détours, j'aime avancer à tes côtés.\n\nTu rends chaque trajet plus beau que la destination."
+      personalMessage: "À venir."
     },
     {
       title: "Correspondance de moments",
@@ -59,63 +62,63 @@ const LOVE_STORY = {
           { left: "Notre chanson", right: "Celle que l'on chante ensemble" }
         ]
       },
-      personalMessage: "Les souvenirs n'ont pas besoin d'être grands pour compter.\n\nLes plus précieux sont souvent faits de petits riens — et de nous deux."
+      personalMessage: "À venir."
     },
     {
       title: "Mois 5 — À écrire ensemble",
       label: "À venir",
       subtitle: "Un nouveau souvenir attend son chapitre.",
       game: { type: "placeholder" },
-      personalMessage: "Écris ici le texte personnel du mois 5."
+      personalMessage: "À venir."
     },
     {
       title: "Mois 6 — À écrire ensemble",
       label: "À venir",
       subtitle: "Un nouveau souvenir attend son chapitre.",
       game: { type: "placeholder" },
-      personalMessage: "Écris ici le texte personnel du mois 6."
+      personalMessage: "À venir."
     },
     {
       title: "Mois 7 — À écrire ensemble",
       label: "À venir",
       subtitle: "Un nouveau souvenir attend son chapitre.",
       game: { type: "placeholder" },
-      personalMessage: "Écris ici le texte personnel du mois 7."
+      personalMessage: "À venir."
     },
     {
       title: "Mois 8 — À écrire ensemble",
       label: "À venir",
       subtitle: "Un nouveau souvenir attend son chapitre.",
       game: { type: "placeholder" },
-      personalMessage: "Écris ici le texte personnel du mois 8."
+      personalMessage: "À venir."
     },
     {
       title: "Mois 9 — À écrire ensemble",
       label: "À venir",
       subtitle: "Un nouveau souvenir attend son chapitre.",
       game: { type: "placeholder" },
-      personalMessage: "Écris ici le texte personnel du mois 9."
+      personalMessage: "À venir."
     },
     {
       title: "Mois 10 — À écrire ensemble",
       label: "À venir",
       subtitle: "Un nouveau souvenir attend son chapitre.",
       game: { type: "placeholder" },
-      personalMessage: "Écris ici le texte personnel du mois 10."
+      personalMessage: "À venir."
     },
     {
       title: "Mois 11 — À écrire ensemble",
       label: "À venir",
       subtitle: "Un nouveau souvenir attend son chapitre.",
       game: { type: "placeholder" },
-      personalMessage: "Écris ici le texte personnel du mois 11."
+      personalMessage: "À venir."
     },
     {
       title: "Mois 12 — À écrire ensemble",
       label: "À venir",
       subtitle: "Un nouveau souvenir attend son chapitre.",
       game: { type: "placeholder" },
-      personalMessage: "Écris ici le texte personnel du mois 12."
+      personalMessage: "À venir."
     }
   ]
 };
@@ -244,29 +247,49 @@ const LOVE_STORY = {
   }
 
   function renderHunt(config) {
-    gameContent.innerHTML = `<div class="game-panel"><div class="hunt-scene" role="group" aria-label="Jardin nocturne"><span class="moon" aria-hidden="true"></span><span class="tree tree-left" aria-hidden="true"></span><span class="tree tree-right" aria-hidden="true"></span><span class="hill" aria-hidden="true"></span><p class="hunt-hint">Cherche les quatre lumières cachées dans le jardin</p></div><div class="fragment-list" aria-label="Fragments retrouvés"></div><p class="fragment-copy" aria-live="polite">Le jardin murmure… clique sur une lumière.</p></div>`;
+    gameContent.innerHTML = `<div class="game-panel hunt-panel"><div class="hunt-scene bedroom-scene" role="group" aria-label="Chambre nocturne : explore la pièce pour retrouver quatre objets précieux"><div class="room-window" aria-hidden="true"><span class="window-moon"></span><i class="window-star window-star-one">✦</i><i class="window-star window-star-two">✧</i><i class="window-star window-star-three">·</i></div><div class="room-picture" aria-hidden="true"><span>☾</span></div><div class="room-shelf" aria-hidden="true"><i></i><i></i><i></i></div><div class="nightstand" aria-hidden="true"><span class="nightstand-drawer"></span><span class="lamp"><i></i></span></div><div class="bed" aria-hidden="true"><span class="bed-headboard"></span><span class="bed-pillow"></span><span class="bed-cover"></span><span class="bed-throw"></span></div><div class="room-rug" aria-hidden="true"></div><div class="room-plant" aria-hidden="true"><i></i><i></i><i></i><span></span></div><div class="room-floor" aria-hidden="true"></div><div class="room-glow" aria-hidden="true"></div><p class="hunt-hint">La chambre dort… fouille les recoins pour retrouver quatre objets précieux.</p></div><div class="hunt-inventory" aria-label="Objets précieux retrouvés"></div><p class="hunt-feedback" aria-live="polite">Clique sur les objets de la chambre pour les examiner.</p></div>`;
     const scene = $(".hunt-scene");
-    const list = $(".fragment-list");
-    config.fragments.forEach((fragment, index) => {
-      const pip = document.createElement("span");
-      pip.className = "fragment-pip";
-      pip.setAttribute("aria-hidden", "true");
-      list.append(pip);
+    const inventory = $(".hunt-inventory");
+    const memories = config.items.filter((item) => item.kind === "memory");
+    const feedback = $(".hunt-feedback");
+    memories.forEach((item) => {
+      const entry = document.createElement("span");
+      entry.className = "inventory-item";
+      entry.setAttribute("aria-label", item.label);
+      entry.innerHTML = `<span class="inventory-icon" aria-hidden="true"></span><span class="inventory-label"></span>`;
+      entry.querySelector(".inventory-icon").textContent = item.icon;
+      entry.querySelector(".inventory-label").textContent = item.label;
+      inventory.append(entry);
+    });
+    config.items.forEach((item) => {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "fragment";
-      button.style.left = config.positions[index].left;
-      button.style.top = config.positions[index].top;
-      button.setAttribute("aria-label", `Découvrir la lumière ${index + 1}`);
-      button.textContent = "✦";
+      button.className = `room-object ${item.kind === "memory" ? "is-memory" : "is-decoy"} object-${item.id}`;
+      button.style.left = item.left;
+      button.style.top = item.top;
+      button.setAttribute("aria-label", `Examiner : ${item.label}`);
+      button.innerHTML = `<span class="object-glyph"></span>`;
+      button.querySelector(".object-glyph").textContent = item.icon;
       button.addEventListener("click", () => {
-        if (foundFragments.has(index)) return;
-        foundFragments.add(index);
-        button.classList.add("found");
-        list.children[index].classList.add("is-found");
-        $(".fragment-copy").textContent = fragment;
-        playTone(foundFragments.size === 4 ? "success" : "tap");
-        if (foundFragments.size === config.fragments.length) completeMonth();
+        if (button.disabled) return;
+        if (item.kind === "decoy") {
+          feedback.textContent = item.foundText;
+          button.classList.remove("is-trap");
+          requestAnimationFrame(() => button.classList.add("is-trap"));
+          playTone();
+          return;
+        }
+        if (foundFragments.has(item.id)) return;
+        foundFragments.add(item.id);
+        button.classList.add("is-found");
+        button.disabled = true;
+        inventory.querySelectorAll(".inventory-item")[memories.indexOf(item)].classList.add("is-found");
+        feedback.textContent = item.foundText;
+        playTone(foundFragments.size === memories.length ? "success" : "tap");
+        if (foundFragments.size === memories.length) {
+          feedback.textContent = "Tout est retrouvé… il ne reste qu'à découvrir la lettre.";
+          completeMonth();
+        }
       });
       scene.append(button);
     });
