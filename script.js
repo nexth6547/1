@@ -3,7 +3,7 @@
 const LOVE_STORY = {
   title: "Notre Première Année",
   subtitle: "Douze mois, mille souvenirs, et encore tant d'étoiles à découvrir ensemble.",
-  finalMessage: "À venir.",
+  finalMessage: "À venir.\n\nÉcris ici ta déclaration finale.",
   months: [
     {
       title: "La fouille de zone",
@@ -66,59 +66,124 @@ const LOVE_STORY = {
       personalMessage: "À venir."
     },
     {
-      title: "Mois 5 — À écrire ensemble",
-      label: "À venir",
-      subtitle: "Un nouveau souvenir attend son chapitre.",
-      game: { type: "placeholder" },
+      title: "La chasse aux étoiles",
+      label: "Les étoiles",
+      subtitle: "Les étoiles filantes cachent un poème. Clique-les dans le bon ordre.",
+      game: {
+        type: "stars",
+        sequence: ["rose", "gold", "blue", "rose"],
+        stars: [
+          { id: "rose", glyph: "✦", color: "rose" },
+          { id: "gold", glyph: "✧", color: "gold" },
+          { id: "blue", glyph: "✶", color: "blue" }
+        ],
+        poem: ["Une étoile pour notre rencontre,", "une autre pour chacun de nos rires,", "et toutes celles du ciel", "pour les rêves qu'il nous reste à vivre."]
+      },
       personalMessage: "À venir."
     },
     {
-      title: "Mois 6 — À écrire ensemble",
-      label: "À venir",
-      subtitle: "Un nouveau souvenir attend son chapitre.",
-      game: { type: "placeholder" },
+      title: "Le cap de la moitié",
+      label: "La boîte à musique",
+      subtitle: "Quelques notes se sont échappées de notre boîte à musique. Rejoue la mélodie.",
+      game: {
+        type: "music",
+        notes: [
+          { id: "do", label: "Do", frequency: 261.63 },
+          { id: "mi", label: "Mi", frequency: 329.63 },
+          { id: "sol", label: "Sol", frequency: 392 },
+          { id: "la", label: "La", frequency: 440 }
+        ],
+        sequence: ["do", "mi", "sol", "mi", "la"],
+        prompt: "Écoute la mélodie, puis rejoue-la note après note.",
+        message: "Six mois déjà, et pourtant j'ai encore l'impression de découvrir chaque jour une nouvelle petite chose à aimer chez toi.\n\nMerci d'être ma mélodie préférée."
+      },
       personalMessage: "À venir."
     },
     {
-      title: "Mois 7 — À écrire ensemble",
-      label: "À venir",
-      subtitle: "Un nouveau souvenir attend son chapitre.",
-      game: { type: "placeholder" },
+      title: "Le cherche et trouve",
+      label: "Le petit chat",
+      subtitle: "Cette chambre est pleine de petits détails… mais un invité s'y est caché.",
+      game: {
+        type: "seek",
+        target: "chat",
+        targetGlyph: "🐈",
+        targetLabel: "le petit chat",
+        objects: [
+          { glyph: "🪴", left: "12%", top: "27%" }, { glyph: "📚", left: "28%", top: "20%" },
+          { glyph: "🧸", left: "47%", top: "25%" }, { glyph: "🕯️", left: "72%", top: "18%" },
+          { glyph: "🪟", left: "88%", top: "32%" }, { glyph: "🌷", left: "18%", top: "55%" },
+          { glyph: "🧦", left: "37%", top: "74%" }, { glyph: "☕", left: "63%", top: "72%" },
+          { glyph: "🪴", left: "82%", top: "61%" }, { glyph: "💌", left: "92%", top: "79%" },
+          { glyph: "🌙", left: "52%", top: "43%" }, { glyph: "🐈", left: "31%", top: "48%", id: "chat" },
+          { glyph: "🧶", left: "75%", top: "43%" }, { glyph: "🪻", left: "10%", top: "83%" }
+        ]
+      },
       personalMessage: "À venir."
     },
     {
-      title: "Mois 8 — À écrire ensemble",
-      label: "À venir",
-      subtitle: "Un nouveau souvenir attend son chapitre.",
-      game: { type: "placeholder" },
+      title: "Le déchiffrage de code",
+      label: "Le message secret",
+      subtitle: "Les lettres ont avancé de trois places. Ramène-les chez elles pour lire le message.",
+      game: {
+        type: "cipher",
+        cipher: "QRXV VRPPHV SOXV EHDXA D GHXA",
+        shift: 3,
+        answer: "nous sommes plus beaux a deux",
+        hint: "Indice : pour décoder, recule chaque lettre de trois places dans l'alphabet."
+      },
       personalMessage: "À venir."
     },
     {
-      title: "Mois 9 — À écrire ensemble",
-      label: "À venir",
-      subtitle: "Un nouveau souvenir attend son chapitre.",
-      game: { type: "placeholder" },
+      title: "La balade dans nos souvenirs",
+      label: "Les polaroids",
+      subtitle: "Retourne chaque polaroid pour revoir un petit instant de notre histoire.",
+      game: {
+        type: "polaroids",
+        cards: [
+          { front: "Le premier regard", back: "Le début de notre plus belle aventure." },
+          { front: "Notre endroit préféré", back: "Même un lieu ordinaire devient spécial avec toi." },
+          { front: "Un fou rire", back: "J'aimerais garder le son de ton rire dans une petite boîte." },
+          { front: "Juste nous deux", back: "Mon souvenir préféré, c'est celui où tu es là." }
+        ]
+      },
       personalMessage: "À venir."
     },
     {
-      title: "Mois 10 — À écrire ensemble",
-      label: "À venir",
-      subtitle: "Un nouveau souvenir attend son chapitre.",
-      game: { type: "placeholder" },
+      title: "Le quiz complice",
+      label: "Le quiz",
+      subtitle: "Trois petites questions sur nous deux. Voyons si tu te souviens de tout !",
+      game: {
+        type: "quiz",
+        questions: [
+          { question: "Quelle est notre petite boisson préférée à partager ?", answers: ["un chocolat chaud", "chocolat chaud", "un chocolat chaud à deux"] },
+          { question: "Qu'est-ce qui me fait toujours sourire chez toi ?", answers: ["ton rire", "son rire", "ton sourire"] },
+          { question: "Quel serait mon programme parfait avec toi ?", answers: ["une soirée ensemble", "rester avec toi", "une balade à deux"] }
+        ]
+      },
       personalMessage: "À venir."
     },
     {
-      title: "Mois 11 — À écrire ensemble",
-      label: "À venir",
-      subtitle: "Un nouveau souvenir attend son chapitre.",
-      game: { type: "placeholder" },
+      title: "La traînée de lumière",
+      label: "Le cœur lumineux",
+      subtitle: "Trace un cœur d'un seul geste pour laisser une petite lumière dans la nuit.",
+      game: { type: "trace", shape: "heart" },
       personalMessage: "À venir."
     },
     {
-      title: "Mois 12 — À écrire ensemble",
-      label: "À venir",
-      subtitle: "Un nouveau souvenir attend son chapitre.",
-      game: { type: "placeholder" },
+      title: "Le bouquet final",
+      label: "Le bouquet",
+      subtitle: "Douze mois, douze petites fleurs. Compose notre bouquet pour ouvrir la dernière lettre.",
+      game: {
+        type: "bouquet",
+        flowers: [
+          { glyph: "🌷", label: "fleur 1" }, { glyph: "🌼", label: "fleur 2" },
+          { glyph: "🌹", label: "fleur 3" }, { glyph: "🌸", label: "fleur 4" },
+          { glyph: "💮", label: "fleur 5" }, { glyph: "🌻", label: "fleur 6" },
+          { glyph: "🪻", label: "fleur 7" }, { glyph: "🌺", label: "fleur 8" },
+          { glyph: "🌼", label: "fleur 9" }, { glyph: "🌹", label: "fleur 10" },
+          { glyph: "🌷", label: "fleur 11" }, { glyph: "💐", label: "fleur 12" }
+        ]
+      },
       personalMessage: "À venir."
     }
   ]
@@ -151,7 +216,7 @@ const LOVE_STORY = {
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
       if (!Array.isArray(saved)) return [];
-      return [...new Set(saved.filter((month) => Number.isInteger(month) && month >= 0 && month < 4))].sort((a, b) => a - b);
+      return [...new Set(saved.filter((month) => Number.isInteger(month) && month >= 0 && month < LOVE_STORY.months.length))].sort((a, b) => a - b);
     } catch (error) {
       console.warn("La progression sauvegardée n'a pas pu être lue.", error);
       return [];
@@ -212,8 +277,8 @@ const LOVE_STORY = {
     const nextMonth = completed.length;
     LOVE_STORY.months.forEach((month, index) => {
       const isComplete = completed.includes(index);
-      const isCurrent = index === nextMonth && index < 4;
-      const isUnlocked = index <= nextMonth && index < 4;
+      const isCurrent = index === nextMonth && nextMonth < LOVE_STORY.months.length;
+      const isUnlocked = index <= nextMonth && index < LOVE_STORY.months.length;
       const node = document.createElement("button");
       node.type = "button";
       node.className = `month-node${isComplete ? " is-complete" : ""}${isCurrent ? " is-current" : ""}`;
@@ -236,7 +301,11 @@ const LOVE_STORY = {
   function openFinalMessage() {
     if (completed.length !== LOVE_STORY.months.length) return;
     $("#reveal-title").textContent = "Le grand mot final";
-    $("#reveal-copy").textContent = LOVE_STORY.finalMessage;
+    const recap = LOVE_STORY.months
+      .map((month, index) => `Mois ${index + 1} · ${month.title}\n${month.personalMessage}`)
+      .join("\n\n");
+    $("#reveal-copy").textContent = `${LOVE_STORY.finalMessage}\n\n✦ Notre année en quelques mots ✦\n\n${recap}`;
+    dialog.classList.add("is-final");
     $("#continue-button").textContent = "Fermer cette lettre";
     $("#continue-button").onclick = () => {
       dialog.close();
@@ -246,7 +315,7 @@ const LOVE_STORY = {
   }
 
   function openMonth(index) {
-    if (index > completed.length || index >= 4) return;
+    if (index > completed.length || index >= LOVE_STORY.months.length) return;
     activeMonth = index;
     foundFragments = new Set();
     attempts = 0;
@@ -261,6 +330,14 @@ const LOVE_STORY = {
     else if (month.game.type === "riddle") renderRiddle(month.game);
     else if (month.game.type === "maze") renderMaze(month.game);
     else if (month.game.type === "matches") renderMatches(month.game);
+    else if (month.game.type === "stars") renderStars(month.game);
+    else if (month.game.type === "music") renderMusic(month.game);
+    else if (month.game.type === "seek") renderSeek(month.game);
+    else if (month.game.type === "cipher") renderCipher(month.game);
+    else if (month.game.type === "polaroids") renderPolaroids(month.game);
+    else if (month.game.type === "quiz") renderQuiz(month.game);
+    else if (month.game.type === "trace") renderTrace(month.game);
+    else if (month.game.type === "bouquet") renderBouquet(month.game);
     showScreen("game");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -460,6 +537,394 @@ const LOVE_STORY = {
     });
   }
 
+  function renderStars(config) {
+    gameContent.innerHTML = `<div class="game-panel stars-panel"><p class="activity-kicker">La constellation attend son poème</p><p class="star-order-label">L'ordre à suivre</p><div class="star-order" aria-label="Séquence de couleurs"></div><div class="shooting-star-field" aria-label="Étoiles filantes à cliquer dans l'ordre"><span class="star-trail star-trail-one" aria-hidden="true"></span><span class="star-trail star-trail-two" aria-hidden="true"></span></div><p class="activity-feedback" aria-live="polite">Observe les couleurs et suis l'ordre de la constellation.</p><div class="star-progress" aria-label="Progression du poème"></div><div class="revealed-poem" hidden></div><button class="button button-primary star-finish" type="button" hidden>Garder ce poème ↗</button></div>`;
+    const field = $(".shooting-star-field");
+    const progress = $(".star-progress");
+    const order = $(".star-order");
+    const feedback = $(".activity-feedback");
+    config.sequence.forEach((starId, index) => {
+      const starConfig = config.stars.find((star) => star.id === starId);
+      if (!starConfig) return;
+      const orderDot = document.createElement("span");
+      orderDot.className = `star-order-dot star-${starConfig.color}`;
+      orderDot.textContent = starConfig.glyph;
+      orderDot.setAttribute("aria-label", `${index + 1} : ${starConfig.color}`);
+      order.append(orderDot);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `shooting-target star-${starConfig.color}`;
+      button.style.setProperty("--star-lane", `${18 + (index * 19) % 66}%`);
+      button.style.setProperty("--star-delay", `${-index * 1.25}s`);
+      button.setAttribute("aria-label", `Étoile ${starConfig.color}, étape ${index + 1}`);
+      button.textContent = starConfig.glyph;
+      button.addEventListener("click", () => {
+        if (button.disabled) return;
+        if (index !== foundFragments.size) {
+          feedback.textContent = "Pas encore celle-ci… suis l'ordre des étoiles.";
+          button.classList.remove("is-wrong");
+          requestAnimationFrame(() => button.classList.add("is-wrong"));
+          playTone();
+          return;
+        }
+        foundFragments.add(index);
+        button.disabled = true;
+        button.classList.add("is-caught");
+        order.children[index].classList.add("is-lit");
+        const pip = document.createElement("span");
+        pip.className = "star-progress-dot is-lit";
+        pip.textContent = "✦";
+        progress.append(pip);
+        feedback.textContent = `Une étoile retrouvée… ${foundFragments.size} sur ${config.sequence.length}.`;
+        playTone(foundFragments.size === config.sequence.length ? "success" : "tap");
+        if (foundFragments.size === config.sequence.length) {
+          const poem = $(".revealed-poem");
+          config.poem.forEach((line) => {
+            const paragraph = document.createElement("p");
+            paragraph.textContent = line;
+            poem.append(paragraph);
+          });
+          poem.hidden = false;
+          $(".star-finish").hidden = false;
+          feedback.textContent = "Le poème est apparu. Prends le temps de le lire.";
+        }
+      });
+      field.append(button);
+    });
+    $(".star-finish").addEventListener("click", completeMonth);
+  }
+
+  function playNote(frequency) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) {
+      playTone();
+      return;
+    }
+    try {
+      const context = new AudioContextClass();
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.value = frequency;
+      gain.gain.setValueAtTime(.0001, context.currentTime);
+      gain.gain.exponentialRampToValueAtTime(.09, context.currentTime + .025);
+      gain.gain.exponentialRampToValueAtTime(.0001, context.currentTime + .42);
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start();
+      oscillator.stop(context.currentTime + .45);
+      oscillator.addEventListener("ended", () => context.close(), { once: true });
+    } catch (error) {
+      console.warn("La boîte à musique n'a pas pu jouer cette note.", error);
+    }
+  }
+
+  function renderMusic(config) {
+    gameContent.innerHTML = `<div class="game-panel music-panel"><div class="music-box-art" aria-hidden="true">♫</div><p class="activity-kicker"></p><button class="text-button music-listen" type="button">Écouter la mélodie ♫</button><div class="music-notes"></div><div class="music-sequence" aria-label="Notes jouées"></div><p class="activity-feedback" aria-live="polite"></p><div class="music-message" hidden></div><button class="button button-primary music-finish" type="button" hidden>Garder ce morceau ↗</button></div>`;
+    $(".activity-kicker").textContent = config.prompt;
+    const notes = $(".music-notes");
+    const sequenceDisplay = $(".music-sequence");
+    const feedback = $(".activity-feedback");
+    let position = 0;
+    config.notes.forEach((note) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "music-note";
+      button.dataset.note = note.id;
+      button.setAttribute("aria-label", `Jouer la note ${note.label}`);
+      button.innerHTML = `<span class="music-note-orb"></span><span class="music-note-label"></span>`;
+      button.querySelector(".music-note-label").textContent = note.label;
+      button.addEventListener("click", () => {
+        if (position >= config.sequence.length) return;
+        playNote(note.frequency);
+        const pip = document.createElement("span");
+        pip.className = "music-note-pip";
+        pip.textContent = note.label;
+        sequenceDisplay.append(pip);
+        if (config.sequence[position] !== note.id) {
+          position = 0;
+          sequenceDisplay.replaceChildren();
+          feedback.textContent = "La mélodie s'est envolée… recommence doucement.";
+          playTone();
+          return;
+        }
+        position += 1;
+        feedback.textContent = `${position} sur ${config.sequence.length} notes retrouvées.`;
+        if (position === config.sequence.length) {
+          $(".music-message").textContent = config.message;
+          $(".music-message").hidden = false;
+          $(".music-finish").hidden = false;
+          feedback.textContent = "La boîte s'ouvre et livre son message.";
+          playTone("success");
+        }
+      });
+      notes.append(button);
+    });
+    $(".music-listen").addEventListener("click", () => {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) {
+        config.sequence.forEach((noteId, index) => {
+          const note = config.notes.find((item) => item.id === noteId);
+          if (note) setTimeout(() => playNote(note.frequency), index * 480);
+        });
+        return;
+      }
+      try {
+        const context = new AudioContextClass();
+        config.sequence.forEach((noteId, index) => {
+          const note = config.notes.find((item) => item.id === noteId);
+          if (!note) return;
+          const start = context.currentTime + index * .48;
+          const oscillator = context.createOscillator();
+          const gain = context.createGain();
+          oscillator.type = "sine";
+          oscillator.frequency.value = note.frequency;
+          gain.gain.setValueAtTime(.0001, start);
+          gain.gain.exponentialRampToValueAtTime(.08, start + .025);
+          gain.gain.exponentialRampToValueAtTime(.0001, start + .38);
+          oscillator.connect(gain);
+          gain.connect(context.destination);
+          oscillator.start(start);
+          oscillator.stop(start + .4);
+        });
+        setTimeout(() => context.close(), config.sequence.length * 480 + 500);
+      } catch (error) {
+        console.warn("La mélodie ne peut pas être jouée dans ce navigateur.", error);
+        showToast("La mélodie audio est indisponible. Tu peux tout de même jouer les notes.");
+      }
+    });
+    $(".music-finish").addEventListener("click", completeMonth);
+  }
+
+  function renderSeek(config) {
+    gameContent.innerHTML = `<div class="game-panel seek-panel"><p class="activity-kicker">Un petit intrus s'est caché dans le décor…</p><div class="seek-scene" role="group" aria-label="Illustration cherche et trouve"></div><p class="activity-feedback" aria-live="polite">Retrouve ${config.targetLabel} parmi tous ces petits détails.</p></div>`;
+    const scene = $(".seek-scene");
+    config.objects.forEach((item, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `seek-object${item.id === config.target ? " seek-target" : ""}`;
+      button.style.left = item.left;
+      button.style.top = item.top;
+      button.style.setProperty("--float-delay", `${-(index % 5) * .45}s`);
+      button.setAttribute("aria-label", item.id === config.target ? `Trouver ${config.targetLabel}` : "Détail du décor");
+      button.textContent = item.glyph;
+      button.addEventListener("click", () => {
+        if (item.id === config.target) {
+          button.classList.add("is-found");
+          $(".activity-feedback").textContent = `Trouvé ! ${config.targetLabel} était bien là.`;
+          playTone("success");
+          completeMonth();
+        } else {
+          button.classList.remove("is-bump");
+          requestAnimationFrame(() => button.classList.add("is-bump"));
+          $(".activity-feedback").textContent = "Un joli détail, mais ce n'est pas celui que l'on cherche.";
+          playTone();
+        }
+      });
+      scene.append(button);
+    });
+  }
+
+  function renderCipher(config) {
+    gameContent.innerHTML = `<div class="game-panel cipher-panel"><div class="cipher-seal" aria-hidden="true">⌘</div><p class="activity-kicker">Le message intercepté</p><p class="cipher-text"></p><p class="cipher-instructions">Décale les lettres dans l'alphabet pour retrouver le message.</p><form class="answer-form"><input class="answer-input" type="text" autocomplete="off" placeholder="Le message secret…" aria-label="Message décodé"><button class="button button-primary" type="submit">Déchiffrer ↗</button></form><p class="feedback" aria-live="polite"></p><p class="hint-copy" aria-live="polite"></p></div>`;
+    $(".cipher-text").textContent = config.cipher;
+    $(".answer-form").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const answer = normalizeAnswer($(".answer-input").value);
+      if (answer === normalizeAnswer(config.answer)) {
+        $(".feedback").textContent = "Le message est déchiffré.";
+        $(".feedback").classList.add("is-correct");
+        playTone("success");
+        completeMonth();
+        return;
+      }
+      attempts += 1;
+      $(".feedback").textContent = "Les lettres ne sont pas encore à leur place.";
+      if (attempts >= 2) $(".hint-copy").textContent = config.hint;
+      playTone();
+      $(".answer-input").select();
+    });
+  }
+
+  function renderPolaroids(config) {
+    gameContent.innerHTML = `<div class="game-panel polaroid-panel"><p class="activity-kicker">Un album de petits instants</p><div class="polaroid-grid"></div><p class="activity-feedback" aria-live="polite">Retourne les photos pour découvrir ce qui se cache au dos.</p><button class="button button-primary polaroid-finish" type="button" hidden>Refermer l'album ↗</button></div>`;
+    const grid = $(".polaroid-grid");
+    config.cards.forEach((card, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `polaroid-card polaroid-${index + 1}`;
+      button.setAttribute("aria-pressed", "false");
+      button.innerHTML = `<span class="polaroid-inner"><span class="polaroid-face polaroid-front"><span class="polaroid-photo"></span><span class="polaroid-caption"></span></span><span class="polaroid-face polaroid-back"><span class="polaroid-back-star" aria-hidden="true">✦</span><span class="polaroid-message"></span></span></span>`;
+      button.querySelector(".polaroid-photo").textContent = ["☕", "🌙", "☀", "♥"][index % 4];
+      button.querySelector(".polaroid-caption").textContent = card.front;
+      button.querySelector(".polaroid-message").textContent = card.back;
+      button.addEventListener("click", () => {
+        if (button.classList.contains("is-flipped")) return;
+        button.classList.add("is-flipped");
+        button.setAttribute("aria-pressed", "true");
+        matchedPairs.add(index);
+        $(".activity-feedback").textContent = `${matchedPairs.size} sur ${config.cards.length} souvenirs retournés.`;
+        playTone();
+        if (matchedPairs.size === config.cards.length) {
+          $(".activity-feedback").textContent = "Tous les petits instants sont retrouvés.";
+          $(".polaroid-finish").hidden = false;
+          playTone("success");
+        }
+      });
+      grid.append(button);
+    });
+    $(".polaroid-finish").addEventListener("click", completeMonth);
+  }
+
+  function renderQuiz(config) {
+    gameContent.innerHTML = `<div class="game-panel quiz-panel"><div class="quiz-counter"></div><h3 class="quiz-question"></h3><form class="answer-form"><input class="answer-input" type="text" autocomplete="off" placeholder="Ta réponse…" aria-label="Ta réponse"><button class="button button-primary" type="submit">Valider ↗</button></form><p class="feedback" aria-live="polite"></p></div>`;
+    let questionIndex = 0;
+    const showQuestion = () => {
+      const question = config.questions[questionIndex];
+      $(".quiz-counter").textContent = `QUESTION ${questionIndex + 1} / ${config.questions.length}`;
+      $(".quiz-question").textContent = question.question;
+      $(".answer-input").value = "";
+      $(".feedback").textContent = "";
+      $(".answer-input").focus();
+    };
+    $(".answer-form").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const answer = normalizeAnswer($(".answer-input").value);
+      const question = config.questions[questionIndex];
+      if (!question.answers.map(normalizeAnswer).includes(answer)) {
+        $(".feedback").textContent = "Pas tout à fait… pense à nos petits moments.";
+        playTone();
+        return;
+      }
+      questionIndex += 1;
+      if (questionIndex === config.questions.length) {
+        $(".feedback").textContent = "Trois sur trois ! Tu connais bien notre petite histoire.";
+        $(".feedback").classList.add("is-correct");
+        playTone("success");
+        completeMonth();
+      } else {
+        $(".feedback").textContent = "Bien joué ! Question suivante…";
+        playTone("success");
+        showQuestion();
+      }
+    });
+    showQuestion();
+  }
+
+  function renderTrace() {
+    gameContent.innerHTML = `<div class="game-panel trace-panel"><p class="activity-kicker">Suis la lumière et dessine le cœur</p><canvas class="trace-canvas" width="620" height="390" aria-label="Zone de dessin : trace un cœur avec la souris ou le doigt"></canvas><div class="trace-actions"><p class="activity-feedback" aria-live="polite">Trace le cœur d'un seul geste, en suivant la ligne dorée.</p><button class="text-button trace-reset" type="button">Recommencer</button></div></div>`;
+    const canvas = $(".trace-canvas");
+    const context = canvas.getContext("2d");
+    if (!context) {
+      showToast("Le dessin n'est pas disponible dans ce navigateur.");
+      return;
+    }
+    let points = [];
+    let isDrawing = false;
+    const heartPoint = (t) => ({
+      x: .5 + (16 * Math.sin(t) ** 3) / 42,
+      y: .5 - (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) / 42
+    });
+    const samples = Array.from({ length: 120 }, (_, index) => heartPoint((index / 120) * Math.PI * 2));
+    const draw = () => {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.beginPath();
+      samples.forEach((point, index) => {
+        const x = point.x * canvas.width;
+        const y = point.y * canvas.height;
+        if (index === 0) context.moveTo(x, y); else context.lineTo(x, y);
+      });
+      context.closePath();
+      context.setLineDash([6, 9]);
+      context.lineWidth = 2;
+      context.strokeStyle = "rgba(232,198,111,.55)";
+      context.stroke();
+      context.setLineDash([]);
+      if (points.length > 1) {
+        context.beginPath();
+        points.forEach((point, index) => {
+          const x = point.x * canvas.width;
+          const y = point.y * canvas.height;
+          if (index === 0) context.moveTo(x, y); else context.lineTo(x, y);
+        });
+        context.lineWidth = 7;
+        context.lineCap = "round";
+        context.lineJoin = "round";
+        context.strokeStyle = "#f4d77e";
+        context.shadowColor = "rgba(244,215,126,.75)";
+        context.shadowBlur = 13;
+        context.stroke();
+        context.shadowBlur = 0;
+      }
+    };
+    const getPoint = (event) => {
+      const rect = canvas.getBoundingClientRect();
+      return { x: (event.clientX - rect.left) / rect.width, y: (event.clientY - rect.top) / rect.height };
+    };
+    canvas.addEventListener("pointerdown", (event) => {
+      isDrawing = true;
+      points = [getPoint(event)];
+      canvas.setPointerCapture(event.pointerId);
+      $(".activity-feedback").textContent = "Continue ton tracé sans lever le doigt…";
+      draw();
+    });
+    canvas.addEventListener("pointermove", (event) => {
+      if (!isDrawing) return;
+      points.push(getPoint(event));
+      draw();
+    });
+    const finish = () => {
+      if (!isDrawing) return;
+      isDrawing = false;
+      const coverage = samples.filter((sample) => points.some((point) => Math.hypot(point.x - sample.x, point.y - sample.y) < .055)).length / samples.length;
+      if (points.length > 35 && coverage >= .38) {
+        $(".activity-feedback").textContent = "Un cœur lumineux, rien que pour nous.";
+        playTone("success");
+        completeMonth();
+      } else {
+        $(".activity-feedback").textContent = "Le cœur n'est pas encore complet. Essaie de suivre la ligne dorée d'un seul geste.";
+        playTone();
+      }
+    };
+    canvas.addEventListener("pointerup", finish);
+    canvas.addEventListener("pointercancel", finish);
+    $(".trace-reset").addEventListener("click", () => {
+      points = [];
+      isDrawing = false;
+      $(".activity-feedback").textContent = "Trace le cœur d'un seul geste, en suivant la ligne dorée.";
+      draw();
+    });
+    draw();
+  }
+
+  function renderBouquet(config) {
+    gameContent.innerHTML = `<div class="game-panel bouquet-panel"><div class="bouquet-illustration" aria-hidden="true"><span>✿</span><span>✿</span><span>✿</span><span class="bouquet-ribbon">♥</span></div><p class="activity-kicker">Un bouquet pour nos douze mois</p><p class="activity-feedback" aria-live="polite">Choisis les fleurs une à une pour composer le bouquet final.</p><div class="bouquet-flowers"></div><button class="button button-primary bouquet-finish" type="button" hidden>Ouvrir la dernière lettre ↗</button></div>`;
+    const flowers = $(".bouquet-flowers");
+    config.flowers.forEach((flower, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "bouquet-flower";
+      button.setAttribute("aria-label", `Ajouter ${flower.label}`);
+      button.innerHTML = `<span class="bouquet-flower-glyph"></span><span class="bouquet-flower-label"></span>`;
+      button.querySelector(".bouquet-flower-glyph").textContent = flower.glyph;
+      button.querySelector(".bouquet-flower-label").textContent = flower.label;
+      button.addEventListener("click", () => {
+        if (button.disabled) return;
+        button.disabled = true;
+        button.classList.add("is-picked");
+        matchedPairs.add(index);
+        $(".activity-feedback").textContent = `${matchedPairs.size} sur ${config.flowers.length} fleurs dans le bouquet.`;
+        playTone(matchedPairs.size === config.flowers.length ? "success" : "tap");
+        if (matchedPairs.size === config.flowers.length) {
+          $(".activity-feedback").textContent = "Le bouquet est prêt. La dernière lettre peut s'ouvrir.";
+          $(".bouquet-finish").hidden = false;
+        }
+      });
+      flowers.append(button);
+    });
+    $(".bouquet-finish").addEventListener("click", completeMonth);
+  }
+
   function completeMonth() {
     if (!completed.includes(activeMonth)) {
       completed.push(activeMonth);
@@ -467,14 +932,22 @@ const LOVE_STORY = {
       saveProgress();
     }
     renderHub();
+    dialog.classList.remove("is-final");
     $("#reveal-title").textContent = `Mois ${activeMonth + 1} · ${LOVE_STORY.months[activeMonth].title}`;
     $("#reveal-copy").textContent = LOVE_STORY.months[activeMonth].personalMessage;
-    $("#continue-button").textContent = activeMonth < 3 ? "Continuer vers le mois suivant ↗" : "Retourner à la constellation ↗";
+    $("#continue-button").textContent = activeMonth < LOVE_STORY.months.length - 1
+      ? "Continuer vers le mois suivant ↗"
+      : activeMonth === LOVE_STORY.months.length - 1
+        ? "Ouvrir le grand mot final ✦"
+        : "Retourner à la constellation ↗";
     $("#continue-button").onclick = () => {
       dialog.close();
       document.onkeydown = null;
-      if (activeMonth < 3) openMonth(activeMonth + 1);
-      else showScreen("hub");
+      if (activeMonth < LOVE_STORY.months.length - 1) openMonth(activeMonth + 1);
+      else {
+        showScreen("hub");
+        if (activeMonth === LOVE_STORY.months.length - 1) setTimeout(openFinalMessage, 0);
+      }
     };
     dialog.showModal();
   }
@@ -509,7 +982,10 @@ const LOVE_STORY = {
     playTone();
   });
   $("#read-final-button").addEventListener("click", openFinalMessage);
-  dialog.addEventListener("close", () => { document.onkeydown = null; });
+  dialog.addEventListener("close", () => {
+    document.onkeydown = null;
+    dialog.classList.remove("is-final");
+  });
 
   function drawStars() {
     const canvas = $("#stars");
