@@ -50,7 +50,25 @@
           <p>Chaque étoile garde un morceau de notre histoire.</p>
         </div>
         <div class="timeline-wrap">
-          <div id="timeline" class="timeline" aria-label="Chronologie des douze mois"></div>
+          <div class="timeline-grid-wrap">
+            <svg class="timeline-path timeline-path-desktop" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M125 167 H875 V500 H125 V833 H875 C875 900 650 965 500 1000"></path>
+            </svg>
+            <svg class="timeline-path timeline-path-mobile" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M167 125 H833 V375 H167 V625 H833 V875 H167 C167 930 370 975 500 1000"></path>
+            </svg>
+            <div id="timeline" class="timeline" aria-label="Chronologie des douze mois"></div>
+          </div>
+          <div class="final-destination">
+            <span class="final-destination-star" aria-hidden="true">✦</span>
+            <span class="final-destination-label">Au bout du chemin</span>
+            <h3>Le grand mot final</h3>
+            <p>Une dernière lettre vous attend après les douze souvenirs.</p>
+            <button id="read-final-button" class="button button-primary" type="button" disabled>
+              <span class="final-lock" aria-hidden="true">⌑</span>
+              <span class="final-button-label">À découvrir après le mois 12</span>
+            </button>
+          </div>
         </div>
         <footer class="hub-footer">
           <span><i class="legend-dot legend-done"></i> Souvenir retrouvé</span>

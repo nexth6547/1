@@ -3,6 +3,7 @@
 const LOVE_STORY = {
   title: "Notre Première Année",
   subtitle: "Douze mois, mille souvenirs, et encore tant d'étoiles à découvrir ensemble.",
+  finalMessage: "À venir.",
   months: [
     {
       title: "La fouille de zone",
@@ -224,6 +225,24 @@ const LOVE_STORY = {
       timeline.append(node);
     });
     $("#progress-label").textContent = `${completed.length} / 12 souvenirs`;
+    const finalUnlocked = completed.length === LOVE_STORY.months.length;
+    const finalButton = $("#read-final-button");
+    finalButton.disabled = !finalUnlocked;
+    finalButton.querySelector(".final-lock").textContent = finalUnlocked ? "✦" : "⌑";
+    finalButton.querySelector(".final-button-label").textContent = finalUnlocked ? "Lire notre dernière lettre" : "À découvrir après le mois 12";
+    $(".final-destination").classList.toggle("is-unlocked", finalUnlocked);
+  }
+
+  function openFinalMessage() {
+    if (completed.length !== LOVE_STORY.months.length) return;
+    $("#reveal-title").textContent = "Le grand mot final";
+    $("#reveal-copy").textContent = LOVE_STORY.finalMessage;
+    $("#continue-button").textContent = "Fermer cette lettre";
+    $("#continue-button").onclick = () => {
+      dialog.close();
+      showScreen("hub");
+    };
+    dialog.showModal();
   }
 
   function openMonth(index) {
@@ -489,6 +508,7 @@ const LOVE_STORY = {
     showToast("La constellation est prête pour un nouveau voyage.");
     playTone();
   });
+  $("#read-final-button").addEventListener("click", openFinalMessage);
   dialog.addEventListener("close", () => { document.onkeydown = null; });
 
   function drawStars() {
