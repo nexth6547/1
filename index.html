@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="description" content="Une année de souvenirs, à redécouvrir ensemble.">
+    <title>Notre première année — Une aventure à deux</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+
+    <main>
+      <section id="welcome-screen" class="screen welcome-screen is-visible" aria-labelledby="welcome-title">
+        <div class="welcome-content">
+          <span class="eyebrow"><span class="eyebrow-star">✦</span> Un petit voyage rien qu'à nous</span>
+          <h1 id="welcome-title">Notre première<br><em>année</em></h1>
+          <p id="welcome-copy" class="welcome-copy">Douze mois, mille souvenirs, et encore tant d'étoiles à découvrir ensemble.</p>
+          <button id="start-button" class="button button-primary">Commencer le voyage <span aria-hidden="true">↗</span></button>
+          <div class="welcome-footnote"><span></span> Une aventure à deux <span></span></div>
+        </div>
+        <div class="welcome-orbit" aria-hidden="true">
+          <div class="orbit-ring orbit-ring-one"></div>
+          <div class="orbit-ring orbit-ring-two"></div>
+          <span class="orbit-heart">♥</span>
+          <span class="orbit-star star-one">✦</span>
+          <span class="orbit-star star-two">✧</span>
+          <span class="orbit-star star-three">✦</span>
+        </div>
+      </section>
+
+      <section id="hub-screen" class="screen hub-screen" aria-labelledby="hub-title" hidden>
+        <header class="topbar">
+          <a class="brand" href="#" aria-label="Retour à l'accueil">
+            <span class="brand-mark">✦</span>
+            <span>à nous deux</span>
+          </a>
+          <div class="topbar-right">
+            <span id="progress-label" class="progress-label">0 / 12 souvenirs</span>
+            <button id="reset-button" class="text-button">Réinitialiser</button>
+          </div>
+        </header>
+        <div class="hub-heading">
+          <span class="eyebrow">Notre constellation</span>
+          <h2 id="hub-title">Une année <em>à nous</em></h2>
+          <p>Chaque étoile garde un morceau de notre histoire.</p>
+        </div>
+        <div class="timeline-wrap">
+          <div id="timeline" class="timeline" aria-label="Chronologie des douze mois"></div>
+        </div>
+        <footer class="hub-footer">
+          <span><i class="legend-dot legend-done"></i> Souvenir retrouvé</span>
+          <span><i class="legend-dot legend-current"></i> À découvrir</span>
+          <span><i class="legend-lock">⌑</i> Bientôt à nous</span>
+        </footer>
+      </section>
+
+      <section id="game-screen" class="screen game-screen" aria-labelledby="game-title" hidden>
+        <header class="topbar game-topbar">
+          <button id="back-button" class="back-button"><span aria-hidden="true">←</span> La constellation</button>
+          <span id="game-counter" class="game-counter">SOUVENIR 01 / 12</span>
+        </header>
+        <div class="game-heading">
+          <span id="game-eyebrow" class="eyebrow">Mois 1 · À découvrir</span>
+          <h2 id="game-title"></h2>
+          <p id="game-description"></p>
+        </div>
+        <div id="game-content" class="game-content"></div>
+      </section>
+    </main>
+
+    <dialog id="reveal-dialog" class="reveal-dialog" aria-labelledby="reveal-title">
+      <div class="reveal-card">
+        <div class="letter-seal" aria-hidden="true">♥</div>
+        <span class="eyebrow">Un souvenir à garder</span>
+        <h2 id="reveal-title"></h2>
+        <div class="letter-divider"><span>✦</span></div>
+        <p id="reveal-copy" class="reveal-copy"></p>
+        <button id="continue-button" class="button button-primary">Continuer vers le mois suivant <span aria-hidden="true">↗</span></button>
+        <button id="close-reveal-button" class="text-button close-reveal">Retour à notre constellation</button>
+      </div>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="script.js"></script>
+  </body>
+</html>
