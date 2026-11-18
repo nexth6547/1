@@ -1028,7 +1028,7 @@ const LOVE_STORY = {
           y: Math.random() * height,
           radius: randomBetween(...settings.radius),
           baseAlpha: randomBetween(...settings.alpha),
-          amplitude: randomBetween(.05, .17),
+          amplitude: randomBetween(.12, .28),
           phase: Math.random() * Math.PI * 2,
           speed: randomBetween(...settings.speed),
           color: settings.color
@@ -1060,68 +1060,10 @@ const LOVE_STORY = {
       context.fillRect(0, 0, width, height);
     };
 
-    const drawMoon = (time) => {
-      const x = width * .79;
-      const y = height * .19;
-      const radius = Math.min(62, Math.max(32, width * .045));
-      const glowPulse = reducedMotion ? 1 : .96 + Math.sin(time * .00012) * .04;
-      const glow = context.createRadialGradient(x, y, radius * .55, x, y, radius * 3.1);
-      glow.addColorStop(0, `rgba(255, 235, 190, ${.11 * glowPulse})`);
-      glow.addColorStop(.35, `rgba(209, 195, 164, ${.045 * glowPulse})`);
-      glow.addColorStop(1, "rgba(150, 145, 130, 0)");
-      context.fillStyle = glow;
-      context.fillRect(x - radius * 3.1, y - radius * 3.1, radius * 6.2, radius * 6.2);
-
-      context.save();
-      context.beginPath();
-      context.arc(x, y, radius, 0, Math.PI * 2);
-      context.clip();
-      const surface = context.createRadialGradient(x - radius * .35, y - radius * .4, radius * .08, x, y, radius * 1.2);
-      surface.addColorStop(0, "#f7f1df");
-      surface.addColorStop(.58, "#d8d0bb");
-      surface.addColorStop(1, "#777365");
-      context.fillStyle = surface;
-      context.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-
-      [
-        [.34, .35, .13],
-        [.66, .62, .2],
-        [.56, .22, .09],
-        [.27, .7, .07],
-        [.77, .39, .055]
-      ].forEach(([offsetX, offsetY, size]) => {
-        const craterX = x + (offsetX - .5) * radius * 1.75;
-        const craterY = y + (offsetY - .5) * radius * 1.75;
-        const craterRadius = radius * size;
-        const crater = context.createRadialGradient(craterX - craterRadius * .25, craterY - craterRadius * .25, craterRadius * .1, craterX, craterY, craterRadius);
-        crater.addColorStop(0, "rgba(91, 87, 76, .2)");
-        crater.addColorStop(.72, "rgba(101, 96, 83, .14)");
-        crater.addColorStop(1, "rgba(255, 249, 229, .09)");
-        context.beginPath();
-        context.arc(craterX, craterY, craterRadius, 0, Math.PI * 2);
-        context.fillStyle = crater;
-        context.fill();
-      });
-
-      const shade = context.createLinearGradient(x - radius, y, x + radius, y);
-      shade.addColorStop(0, "rgba(255,255,255,.04)");
-      shade.addColorStop(.62, "rgba(16,18,24,0)");
-      shade.addColorStop(1, "rgba(9,11,17,.3)");
-      context.fillStyle = shade;
-      context.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-      context.restore();
-
-      context.beginPath();
-      context.arc(x, y, radius, 0, Math.PI * 2);
-      context.strokeStyle = "rgba(255, 246, 222, .16)";
-      context.lineWidth = 1;
-      context.stroke();
-    };
-
     const drawStarsAt = (stars, time) => {
       stars.forEach((star) => {
-        const shimmer = (Math.sin(time * star.speed + star.phase) + 1) * .5;
-        const alpha = Math.min(.95, star.baseAlpha + shimmer * star.amplitude);
+        const shimmer = Math.sin(time * star.speed + star.phase);
+        const alpha = Math.max(.08, Math.min(.95, star.baseAlpha + shimmer * star.amplitude));
         const [red, green, blue] = star.color;
         const { x, y } = star;
         if (star.radius > 1) {
@@ -1192,7 +1134,6 @@ const LOVE_STORY = {
     const drawFrame = (time) => {
       context.clearRect(0, 0, width, height);
       drawBackground();
-      drawMoon(time);
       layers.forEach((stars) => drawStarsAt(stars, time));
       dust.forEach((particle) => {
         const alpha = .08 + (Math.sin(time * .00016 + particle.phase) + 1) * .045;
