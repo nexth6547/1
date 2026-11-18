@@ -1,8 +1,8 @@
 // CONFIGURATION PERSONNALISABLE
 // Modifiez title, subtitle, game et surtout personalMessage pour chaque mois.
 const LOVE_STORY = {
-  title: "Notre Première Année",
-  subtitle: "Douze mois, mille souvenirs, et encore tant d'étoiles à découvrir ensemble.",
+  title: "Pour nos 1 ans",
+  subtitle: "Une année entière qui m'a éclairé.",
   finalMessage: "À venir.\n\nÉcris ici ta déclaration finale.",
   months: [
     {
@@ -202,7 +202,7 @@ const LOVE_STORY = {
   const timeline = $("#timeline");
   const gameContent = $("#game-content");
   const dialog = $("#reveal-dialog");
-  document.title = `${LOVE_STORY.title} — Une aventure à deux`;
+  document.title = LOVE_STORY.title;
   $("#welcome-copy").textContent = LOVE_STORY.subtitle;
   let completed = loadProgress();
   let activeMonth = 0;
@@ -211,6 +211,7 @@ const LOVE_STORY = {
   let selectedLeft = null;
   let matchedPairs = new Set();
   let toastTimer;
+  let stopBackgroundAnimation = () => {};
 
   function loadProgress() {
     try {
@@ -265,6 +266,7 @@ const LOVE_STORY = {
   }
 
   function showScreen(name) {
+    if (name !== "welcome") stopBackgroundAnimation();
     Object.entries(screens).forEach(([key, screen]) => {
       const visible = key === name;
       screen.hidden = !visible;
@@ -992,34 +994,217 @@ const LOVE_STORY = {
     const context = canvas.getContext("2d");
     if (!context) return;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const stars = [];
+    const welcomeScreen = screens.welcome;
+    const layers = [];
+    const dust = [];
+    const meteors = [];
     let width = 0;
     let height = 0;
+    let frameHandle = 0;
+    let isRunning = false;
+    let nextMeteorAt = 0;
+
+    const randomBetween = (min, max) => min + Math.random() * (max - min);
+
     const resize = () => {
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
-      width = window.innerWidth;
-      height = window.innerHeight;
+      if (welcomeScreen.hidden) return;
+      const bounds = welcomeScreen.getBoundingClientRect();
+      const ratio = Math.min(window.devicePixelRatio || 1, 1.75);
+      width = Math.max(1, bounds.width);
+      height = Math.max(1, bounds.height);
       canvas.width = width * ratio;
       canvas.height = height * ratio;
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
-      stars.length = 0;
-      for (let i = 0; i < Math.min(95, Math.floor(width * height / 11000)); i++) {
-        stars.push({ x: Math.random() * width, y: Math.random() * height, radius: Math.random() * 1.3 + .3, phase: Math.random() * Math.PI * 2 });
+      const area = width * height;
+      const layerSettings = [
+        { count: Math.min(500, Math.floor(area / 4500)), radius: [.22, .62], alpha: [.2, .48], speed: [.00025, .0008], color: [184, 199, 224] },
+        { count: Math.min(150, Math.floor(area / 14500)), radius: [.55, 1.05], alpha: [.26, .62], speed: [.00035, .0011], color: [238, 224, 192] },
+        { count: Math.min(26, Math.max(7, Math.floor(area / 82000))), radius: [1, 1.65], alpha: [.48, .82], speed: [.00025, .00065], color: [255, 235, 190] }
+      ];
+      layers.length = 0;
+      layerSettings.forEach((settings) => {
+        const stars = Array.from({ length: settings.count }, () => ({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          radius: randomBetween(...settings.radius),
+          baseAlpha: randomBetween(...settings.alpha),
+          amplitude: randomBetween(.06, .23),
+          phase: Math.random() * Math.PI * 2,
+          speed: randomBetween(...settings.speed),
+          color: settings.color
+        }));
+        layers.push(stars);
+      });
+      dust.length = 0;
+      for (let i = 0; i < Math.min(36, Math.floor(area / 36000)); i++) {
+        dust.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          radius: randomBetween(.35, .9),
+          phase: Math.random() * Math.PI * 2
+        });
       }
-      paint(0);
+      meteors.length = 0;
+      nextMeteorAt = performance.now() + randomBetween(2800, 6200);
+      drawFrame(0);
+      startBackgroundAnimation();
     };
-    const paint = (time) => {
-      context.clearRect(0, 0, width, height);
+
+    const drawBackground = () => {
+      const gradient = context.createLinearGradient(0, 0, 0, height);
+      gradient.addColorStop(0, "rgba(5, 8, 17, .18)");
+      gradient.addColorStop(.58, "rgba(14, 17, 33, .08)");
+      gradient.addColorStop(1, "rgba(106, 73, 86, .12)");
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, width, height);
+      const nebula = context.createRadialGradient(width * .53, height * .9, 0, width * .53, height * .9, Math.max(width, height) * .78);
+      nebula.addColorStop(0, "rgba(172, 119, 112, .055)");
+      nebula.addColorStop(.4, "rgba(93, 88, 132, .035)");
+      nebula.addColorStop(1, "rgba(12, 16, 31, 0)");
+      context.fillStyle = nebula;
+      context.fillRect(0, 0, width, height);
+    };
+
+    const pointer = { x: .5, y: .5 };
+    const drawStarsAt = (stars, time, depth) => {
       stars.forEach((star) => {
-        const alpha = reducedMotion ? .42 : .2 + (Math.sin(time / 1100 + star.phase) + 1) * .25;
+        const shimmer = (Math.sin(time * star.speed + star.phase) + 1) * .5;
+        const alpha = Math.min(.95, star.baseAlpha + shimmer * star.amplitude);
+        const [red, green, blue] = star.color;
+        const x = star.x + (pointer.x - .5) * depth;
+        const y = star.y + (pointer.y - .5) * depth;
+        if (star.radius > 1) {
+          const glowRadius = star.radius * 7;
+          const glow = context.createRadialGradient(x, y, 0, x, y, glowRadius);
+          glow.addColorStop(0, `rgba(${red},${green},${blue},${alpha * .46})`);
+          glow.addColorStop(.22, `rgba(${red},${green},${blue},${alpha * .13})`);
+          glow.addColorStop(1, `rgba(${red},${green},${blue},0)`);
+          context.fillStyle = glow;
+          context.fillRect(x - glowRadius, y - glowRadius, glowRadius * 2, glowRadius * 2);
+        }
         context.beginPath();
-        context.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-        context.fillStyle = `rgba(255,239,216,${alpha})`;
+        context.arc(x, y, star.radius, 0, Math.PI * 2);
+        context.fillStyle = `rgba(${red},${green},${blue},${alpha})`;
         context.fill();
       });
-      if (!reducedMotion) requestAnimationFrame(paint);
     };
+
+    const spawnMeteor = (time) => {
+      const angle = randomBetween(.34, .68);
+      const startX = randomBetween(width * .38, width * 1.08);
+      const startY = randomBetween(-height * .08, height * .62);
+      const distance = randomBetween(.38, .68) * Math.max(width, height);
+      meteors.push({
+        startX,
+        startY,
+        velocityX: -Math.cos(angle),
+        velocityY: Math.sin(angle),
+        distance,
+        tailLength: randomBetween(70, 145),
+        startTime: time,
+        duration: randomBetween(850, 1450)
+      });
+    };
+
+    const drawMeteor = (meteor, time) => {
+      const progress = Math.min(1, (time - meteor.startTime) / meteor.duration);
+      const ease = progress * progress * (3 - 2 * progress);
+      const headX = meteor.startX + meteor.velocityX * meteor.distance * ease;
+      const headY = meteor.startY + meteor.velocityY * meteor.distance * ease;
+      const tailX = headX - meteor.velocityX * meteor.tailLength;
+      const tailY = headY - meteor.velocityY * meteor.tailLength;
+      const fade = Math.sin(progress * Math.PI) ** .7;
+      const tail = context.createLinearGradient(tailX, tailY, headX, headY);
+      tail.addColorStop(0, "rgba(255, 222, 157, 0)");
+      tail.addColorStop(.68, `rgba(255, 222, 157, ${fade * .24})`);
+      tail.addColorStop(1, `rgba(255, 248, 224, ${fade * .95})`);
+      context.beginPath();
+      context.moveTo(tailX, tailY);
+      context.lineTo(headX, headY);
+      context.strokeStyle = tail;
+      context.lineWidth = 1.25;
+      context.lineCap = "round";
+      context.shadowColor = `rgba(255, 229, 174, ${fade * .82})`;
+      context.shadowBlur = 9;
+      context.stroke();
+      context.shadowBlur = 0;
+
+      const headGlow = context.createRadialGradient(headX, headY, 0, headX, headY, 8);
+      headGlow.addColorStop(0, `rgba(255, 255, 242, ${fade})`);
+      headGlow.addColorStop(.22, `rgba(255, 229, 174, ${fade * .6})`);
+      headGlow.addColorStop(1, "rgba(255, 229, 174, 0)");
+      context.fillStyle = headGlow;
+      context.fillRect(headX - 8, headY - 8, 16, 16);
+      return progress < 1;
+    };
+
+    const drawFrame = (time) => {
+      context.clearRect(0, 0, width, height);
+      drawBackground();
+      layers.forEach((stars, index) => drawStarsAt(stars, time, (index + 1) * 8));
+      dust.forEach((particle) => {
+        const alpha = .08 + (Math.sin(time * .00016 + particle.phase) + 1) * .045;
+        const x = particle.x + (pointer.x - .5) * 17;
+        const y = particle.y + (pointer.y - .5) * 17;
+        context.beginPath();
+        context.arc(x, y, particle.radius, 0, Math.PI * 2);
+        context.fillStyle = `rgba(229, 211, 176, ${alpha})`;
+        context.fill();
+      });
+      if (reducedMotion) return;
+      if (time >= nextMeteorAt) {
+        spawnMeteor(time);
+        nextMeteorAt = time + randomBetween(5200, 11500);
+      }
+      for (let index = meteors.length - 1; index >= 0; index--) {
+        if (!drawMeteor(meteors[index], time)) meteors.splice(index, 1);
+      }
+    };
+
+    stopBackgroundAnimation = () => {
+      if (frameHandle) cancelAnimationFrame(frameHandle);
+      frameHandle = 0;
+      isRunning = false;
+    };
+
+    function startBackgroundAnimation() {
+      if (reducedMotion || isRunning || document.hidden || welcomeScreen.hidden) return;
+      isRunning = true;
+      const tick = (time) => {
+        if (document.hidden || welcomeScreen.hidden) {
+          stopBackgroundAnimation();
+          return;
+        }
+        drawFrame(time);
+        frameHandle = requestAnimationFrame(tick);
+      };
+      frameHandle = requestAnimationFrame(tick);
+    }
+
+    const onVisibilityChange = () => {
+      if (document.hidden) stopBackgroundAnimation();
+      else startBackgroundAnimation();
+    };
+    welcomeScreen.addEventListener("pointermove", (event) => {
+      if (reducedMotion || event.pointerType === "touch") return;
+      const bounds = welcomeScreen.getBoundingClientRect();
+      pointer.x = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
+      pointer.y = Math.min(1, Math.max(0, (event.clientY - bounds.top) / bounds.height));
+      const moon = $(".welcome-moon");
+      moon.style.setProperty("--moon-shift-x", `${(pointer.x - .5) * -7}px`);
+      moon.style.setProperty("--moon-shift-y", `${(pointer.y - .5) * -7}px`);
+    });
+    welcomeScreen.addEventListener("pointerleave", () => {
+      pointer.x = .5;
+      pointer.y = .5;
+      $(".welcome-moon").style.setProperty("--moon-shift-x", "0px");
+      $(".welcome-moon").style.setProperty("--moon-shift-y", "0px");
+    });
+
+    const observer = new ResizeObserver(resize);
+    observer.observe(welcomeScreen);
     window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", onVisibilityChange);
     resize();
   }
 

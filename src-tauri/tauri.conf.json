@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Notre Première Année",
+  "productName": "Pour nos 1 ans",
   "version": "0.1.0",
   "identifier": "fr.notrepremiereannee.souvenirs",
   "build": {
@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Notre Première Année",
+        "title": "Pour nos 1 ans",
         "width": 1200,
         "height": 800,
         "minWidth": 900,

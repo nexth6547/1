@@ -14,5 +14,5 @@ fn main() {
             }
         })
         .run(tauri::generate_context!())
-        .expect("Erreur au démarrage de Notre Première Année");
+        .expect("Erreur au démarrage de Pour nos 1 ans");
 }
