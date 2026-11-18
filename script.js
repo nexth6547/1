@@ -1017,9 +1017,9 @@ const LOVE_STORY = {
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
       const area = width * height;
       const layerSettings = [
-        { count: Math.min(500, Math.floor(area / 4500)), radius: [.22, .62], alpha: [.2, .48], speed: [.00025, .0008], color: [184, 199, 224] },
-        { count: Math.min(150, Math.floor(area / 14500)), radius: [.55, 1.05], alpha: [.26, .62], speed: [.00035, .0011], color: [238, 224, 192] },
-        { count: Math.min(26, Math.max(7, Math.floor(area / 82000))), radius: [1, 1.65], alpha: [.48, .82], speed: [.00025, .00065], color: [255, 235, 190] }
+        { count: Math.min(900, Math.floor(area / 2500)), radius: [.25, .68], alpha: [.25, .52], speed: [.00025, .0008], color: [205, 215, 235] },
+        { count: Math.min(250, Math.floor(area / 7800)), radius: [.58, 1.1], alpha: [.34, .66], speed: [.00035, .0011], color: [245, 236, 214] },
+        { count: Math.min(45, Math.max(10, Math.floor(area / 42000))), radius: [1, 1.7], alpha: [.52, .76], speed: [.00025, .00065], color: [255, 239, 205] }
       ];
       layers.length = 0;
       layerSettings.forEach((settings) => {
@@ -1028,7 +1028,7 @@ const LOVE_STORY = {
           y: Math.random() * height,
           radius: randomBetween(...settings.radius),
           baseAlpha: randomBetween(...settings.alpha),
-          amplitude: randomBetween(.06, .23),
+          amplitude: randomBetween(.05, .17),
           phase: Math.random() * Math.PI * 2,
           speed: randomBetween(...settings.speed),
           color: settings.color
@@ -1051,28 +1051,79 @@ const LOVE_STORY = {
     };
 
     const drawBackground = () => {
-      const gradient = context.createLinearGradient(0, 0, 0, height);
-      gradient.addColorStop(0, "rgba(5, 8, 17, .18)");
-      gradient.addColorStop(.58, "rgba(14, 17, 33, .08)");
-      gradient.addColorStop(1, "rgba(106, 73, 86, .12)");
-      context.fillStyle = gradient;
+      context.fillStyle = "#03040a";
       context.fillRect(0, 0, width, height);
-      const nebula = context.createRadialGradient(width * .53, height * .9, 0, width * .53, height * .9, Math.max(width, height) * .78);
-      nebula.addColorStop(0, "rgba(172, 119, 112, .055)");
-      nebula.addColorStop(.4, "rgba(93, 88, 132, .035)");
-      nebula.addColorStop(1, "rgba(12, 16, 31, 0)");
-      context.fillStyle = nebula;
+      const vignette = context.createRadialGradient(width * .5, height * .42, Math.min(width, height) * .08, width * .5, height * .48, Math.max(width, height) * .8);
+      vignette.addColorStop(0, "rgba(15, 17, 27, .05)");
+      vignette.addColorStop(1, "rgba(0, 0, 0, .28)");
+      context.fillStyle = vignette;
       context.fillRect(0, 0, width, height);
     };
 
-    const pointer = { x: .5, y: .5 };
-    const drawStarsAt = (stars, time, depth) => {
+    const drawMoon = (time) => {
+      const x = width * .79;
+      const y = height * .19;
+      const radius = Math.min(62, Math.max(32, width * .045));
+      const glowPulse = reducedMotion ? 1 : .96 + Math.sin(time * .00012) * .04;
+      const glow = context.createRadialGradient(x, y, radius * .55, x, y, radius * 3.1);
+      glow.addColorStop(0, `rgba(255, 235, 190, ${.11 * glowPulse})`);
+      glow.addColorStop(.35, `rgba(209, 195, 164, ${.045 * glowPulse})`);
+      glow.addColorStop(1, "rgba(150, 145, 130, 0)");
+      context.fillStyle = glow;
+      context.fillRect(x - radius * 3.1, y - radius * 3.1, radius * 6.2, radius * 6.2);
+
+      context.save();
+      context.beginPath();
+      context.arc(x, y, radius, 0, Math.PI * 2);
+      context.clip();
+      const surface = context.createRadialGradient(x - radius * .35, y - radius * .4, radius * .08, x, y, radius * 1.2);
+      surface.addColorStop(0, "#f7f1df");
+      surface.addColorStop(.58, "#d8d0bb");
+      surface.addColorStop(1, "#777365");
+      context.fillStyle = surface;
+      context.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+
+      [
+        [.34, .35, .13],
+        [.66, .62, .2],
+        [.56, .22, .09],
+        [.27, .7, .07],
+        [.77, .39, .055]
+      ].forEach(([offsetX, offsetY, size]) => {
+        const craterX = x + (offsetX - .5) * radius * 1.75;
+        const craterY = y + (offsetY - .5) * radius * 1.75;
+        const craterRadius = radius * size;
+        const crater = context.createRadialGradient(craterX - craterRadius * .25, craterY - craterRadius * .25, craterRadius * .1, craterX, craterY, craterRadius);
+        crater.addColorStop(0, "rgba(91, 87, 76, .2)");
+        crater.addColorStop(.72, "rgba(101, 96, 83, .14)");
+        crater.addColorStop(1, "rgba(255, 249, 229, .09)");
+        context.beginPath();
+        context.arc(craterX, craterY, craterRadius, 0, Math.PI * 2);
+        context.fillStyle = crater;
+        context.fill();
+      });
+
+      const shade = context.createLinearGradient(x - radius, y, x + radius, y);
+      shade.addColorStop(0, "rgba(255,255,255,.04)");
+      shade.addColorStop(.62, "rgba(16,18,24,0)");
+      shade.addColorStop(1, "rgba(9,11,17,.3)");
+      context.fillStyle = shade;
+      context.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+      context.restore();
+
+      context.beginPath();
+      context.arc(x, y, radius, 0, Math.PI * 2);
+      context.strokeStyle = "rgba(255, 246, 222, .16)";
+      context.lineWidth = 1;
+      context.stroke();
+    };
+
+    const drawStarsAt = (stars, time) => {
       stars.forEach((star) => {
         const shimmer = (Math.sin(time * star.speed + star.phase) + 1) * .5;
         const alpha = Math.min(.95, star.baseAlpha + shimmer * star.amplitude);
         const [red, green, blue] = star.color;
-        const x = star.x + (pointer.x - .5) * depth;
-        const y = star.y + (pointer.y - .5) * depth;
+        const { x, y } = star;
         if (star.radius > 1) {
           const glowRadius = star.radius * 7;
           const glow = context.createRadialGradient(x, y, 0, x, y, glowRadius);
@@ -1141,13 +1192,12 @@ const LOVE_STORY = {
     const drawFrame = (time) => {
       context.clearRect(0, 0, width, height);
       drawBackground();
-      layers.forEach((stars, index) => drawStarsAt(stars, time, (index + 1) * 8));
+      drawMoon(time);
+      layers.forEach((stars) => drawStarsAt(stars, time));
       dust.forEach((particle) => {
         const alpha = .08 + (Math.sin(time * .00016 + particle.phase) + 1) * .045;
-        const x = particle.x + (pointer.x - .5) * 17;
-        const y = particle.y + (pointer.y - .5) * 17;
         context.beginPath();
-        context.arc(x, y, particle.radius, 0, Math.PI * 2);
+        context.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
         context.fillStyle = `rgba(229, 211, 176, ${alpha})`;
         context.fill();
       });
@@ -1185,22 +1235,6 @@ const LOVE_STORY = {
       if (document.hidden) stopBackgroundAnimation();
       else startBackgroundAnimation();
     };
-    welcomeScreen.addEventListener("pointermove", (event) => {
-      if (reducedMotion || event.pointerType === "touch") return;
-      const bounds = welcomeScreen.getBoundingClientRect();
-      pointer.x = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
-      pointer.y = Math.min(1, Math.max(0, (event.clientY - bounds.top) / bounds.height));
-      const moon = $(".welcome-moon");
-      moon.style.setProperty("--moon-shift-x", `${(pointer.x - .5) * -7}px`);
-      moon.style.setProperty("--moon-shift-y", `${(pointer.y - .5) * -7}px`);
-    });
-    welcomeScreen.addEventListener("pointerleave", () => {
-      pointer.x = .5;
-      pointer.y = .5;
-      $(".welcome-moon").style.setProperty("--moon-shift-x", "0px");
-      $(".welcome-moon").style.setProperty("--moon-shift-y", "0px");
-    });
-
     const observer = new ResizeObserver(resize);
     observer.observe(welcomeScreen);
     window.addEventListener("resize", resize);
