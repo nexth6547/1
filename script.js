@@ -1212,12 +1212,12 @@ const LOVE_STORY = {
           },
           render(time) {
             if (!reducedMotion) {
-              pointerX += (pointerTargetX - pointerX) * .035;
-              pointerY += (pointerTargetY - pointerY) * .035;
-              group.rotation.y = time * .000002;
-              group.rotation.x = Math.sin(time * .00011) * .018;
-              group.position.x = frustumWidth * (.29 + pointerX * .004 + Math.sin(time * .00019) * .0012);
-              group.position.y = frustumHeight * (.31 - pointerY * .004 + Math.sin(time * .00027 + 1.4) * .0015);
+              pointerX += (pointerTargetX - pointerX) * .11;
+              pointerY += (pointerTargetY - pointerY) * .11;
+              group.rotation.y = time * .00002;
+              group.rotation.x = Math.sin(time * .00011) * .025;
+              group.position.x = frustumWidth * (.29 + pointerX * .035 + Math.sin(time * .00042) * .012);
+              group.position.y = frustumHeight * (.31 - pointerY * .035 + Math.sin(time * .00055 + 1.4) * .018);
               atmosphere.material.uniforms.glow.value = .18 + Math.sin(time * .00014) * .018;
             }
             renderer.render(scene, camera);
@@ -1404,14 +1404,17 @@ const LOVE_STORY = {
       else startBackgroundAnimation();
     };
     welcomeScreen.addEventListener("pointermove", (event) => {
-      if (event.pointerType === "touch" || reducedMotion) return;
+      if (reducedMotion) return;
       const bounds = welcomeScreen.getBoundingClientRect();
       moonScene?.setPointer(
         Math.max(-1, Math.min(1, (event.clientX - bounds.left) / bounds.width * 2 - 1)),
         Math.max(-1, Math.min(1, (event.clientY - bounds.top) / bounds.height * 2 - 1))
       );
     });
-    welcomeScreen.addEventListener("pointerleave", () => moonScene?.setPointer(0, 0));
+    const resetMoonPointer = () => moonScene?.setPointer(0, 0);
+    welcomeScreen.addEventListener("pointerleave", resetMoonPointer);
+    welcomeScreen.addEventListener("pointerup", resetMoonPointer);
+    welcomeScreen.addEventListener("pointercancel", resetMoonPointer);
     const observer = new ResizeObserver(resize);
     observer.observe(welcomeScreen);
     window.addEventListener("resize", resize);
