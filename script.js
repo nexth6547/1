@@ -1018,7 +1018,7 @@ const LOVE_STORY = {
       const textureHeight = textureCanvas.height;
       const image = textureContext.createImageData(textureWidth, textureHeight);
       const heightData = new Uint8ClampedArray(image.data.length);
-      const noiseLayers = [4, 8, 16, 32, 64, 128].map((columns) => {
+      const noiseLayers = [4, 8, 16, 32, 64, 128, 256].map((columns) => {
         const rows = columns / 2;
         const values = Float32Array.from({ length: columns * rows }, Math.random);
         return { columns, rows, values };
@@ -1039,12 +1039,16 @@ const LOVE_STORY = {
           + layer.values[y1 * layer.columns + x1] * tx;
         return top * (1 - ty) + bottom * ty;
       };
-      const craters = Array.from({ length: 54 }, () => ({
+      const craters = [
+        { count: 22, radius: [.009, .02], depth: [.045, .12] },
+        { count: 115, radius: [.002, .009], depth: [.025, .09] },
+        { count: 430, radius: [.0006, .0028], depth: [.012, .05] }
+      ].flatMap(({ count, radius, depth }) => Array.from({ length: count }, () => ({
         x: Math.random(),
-        y: randomBetween(.04, .96),
-        radius: randomBetween(.003, .018),
-        depth: randomBetween(.035, .12)
-      }));
+        y: randomBetween(.025, .975),
+        radius: randomBetween(...radius),
+        depth: randomBetween(...depth)
+      })));
       const craterRelief = new Float32Array(textureWidth * textureHeight);
       craters.forEach((crater) => {
         const xRadius = Math.ceil(crater.radius * textureWidth * 1.35);
@@ -1074,18 +1078,20 @@ const LOVE_STORY = {
         for (let x = 0; x < textureWidth; x++) {
           const u = x / textureWidth;
           const noise = noiseAt(noiseLayers[0], u, v) * .32
-            + noiseAt(noiseLayers[1], u, v) * .24
-            + noiseAt(noiseLayers[2], u, v) * .18
-            + noiseAt(noiseLayers[3], u, v) * .13
+            + noiseAt(noiseLayers[1], u, v) * .23
+            + noiseAt(noiseLayers[2], u, v) * .17
+            + noiseAt(noiseLayers[3], u, v) * .12
             + noiseAt(noiseLayers[4], u, v) * .08
-            + noiseAt(noiseLayers[5], u, v) * .05;
+            + noiseAt(noiseLayers[5], u, v) * .05
+            + noiseAt(noiseLayers[6], u, v) * .03;
           let relief = .48 + (noise - .5) * .22 + craterRelief[y * textureWidth + x];
           relief = Math.max(0, Math.min(1, relief));
-          const grain = (noise - .5) * 46 + (relief - .48) * 72;
+          const grain = (noise - .5) * 22 + (relief - .48) * 30;
+          const tone = 181 + grain;
           const pixel = (y * textureWidth + x) * 4;
-          image.data[pixel] = Math.max(0, Math.min(255, 174 + grain));
-          image.data[pixel + 1] = Math.max(0, Math.min(255, 168 + grain));
-          image.data[pixel + 2] = Math.max(0, Math.min(255, 154 + grain));
+          image.data[pixel] = Math.max(0, Math.min(255, tone - 5));
+          image.data[pixel + 1] = Math.max(0, Math.min(255, tone));
+          image.data[pixel + 2] = Math.max(0, Math.min(255, tone + 8));
           image.data[pixel + 3] = 255;
           const shade = Math.round(relief * 255);
           heightData[pixel] = heightData[pixel + 1] = heightData[pixel + 2] = shade;
@@ -1122,12 +1128,15 @@ const LOVE_STORY = {
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
         renderer.setClearColor(0x000000, 0);
         renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.08;
 
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(38, 1, .1, 40);
         camera.position.z = 5;
-        scene.add(new THREE.HemisphereLight(0xc3d2ee, 0x29251f, .22));
-        const sunlight = new THREE.DirectionalLight(0xffedc8, 2.1);
+        scene.add(new THREE.HemisphereLight(0xc7d8f4, 0x323949, .34));
+        scene.add(new THREE.AmbientLight(0x7886a3, .12));
+        const sunlight = new THREE.DirectionalLight(0xf1f3ff, 2.15);
         sunlight.position.set(-3.5, 2.3, 4);
         scene.add(sunlight);
 
@@ -1136,10 +1145,10 @@ const LOVE_STORY = {
         const material = new THREE.MeshStandardMaterial({
           map: diffuse,
           bumpMap: bump,
-          bumpScale: .065,
+          bumpScale: .085,
           displacementMap: bump,
-          displacementScale: .022,
-          roughness: .96,
+          displacementScale: .018,
+          roughness: 1,
           metalness: 0
         });
         const moon = new THREE.Mesh(geometry, material);
@@ -1175,23 +1184,41 @@ const LOVE_STORY = {
         const group = new THREE.Group();
         group.add(moon, atmosphere);
         scene.add(group);
+        let frustumWidth = 1;
+        let frustumHeight = 1;
+        let pointerX = 0;
+        let pointerY = 0;
+        let pointerTargetX = 0;
+        let pointerTargetY = 0;
 
         return {
+          setPointer(x, y) {
+            if (reducedMotion) return;
+            pointerTargetX = x;
+            pointerTargetY = y;
+          },
           resize(viewWidth, viewHeight) {
             renderer.setSize(viewWidth, viewHeight, false);
             camera.aspect = viewWidth / viewHeight;
             camera.updateProjectionMatrix();
-            const frustumHeight = 2 * camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-            const frustumWidth = frustumHeight * camera.aspect;
+            const viewFrustumHeight = 2 * camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+            const nextFrustumWidth = viewFrustumHeight * camera.aspect;
+            frustumWidth = nextFrustumWidth;
+            frustumHeight = viewFrustumHeight;
             const radius = Math.max(.24, Math.min(.39, viewWidth * .00031));
             group.scale.setScalar(radius);
-            group.position.set(frustumWidth * .29, frustumHeight * .31, 0);
+            group.position.set(nextFrustumWidth * .29, viewFrustumHeight * .31, 0);
             renderer.render(scene, camera);
           },
           render(time) {
             if (!reducedMotion) {
+              pointerX += (pointerTargetX - pointerX) * .035;
+              pointerY += (pointerTargetY - pointerY) * .035;
               group.rotation.y = time * .000002;
-              atmosphere.material.uniforms.glow.value = .2 + Math.sin(time * .00014) * .025;
+              group.rotation.x = Math.sin(time * .00011) * .018;
+              group.position.x = frustumWidth * (.29 + pointerX * .004 + Math.sin(time * .00019) * .0012);
+              group.position.y = frustumHeight * (.31 - pointerY * .004 + Math.sin(time * .00027 + 1.4) * .0015);
+              atmosphere.material.uniforms.glow.value = .18 + Math.sin(time * .00014) * .018;
             }
             renderer.render(scene, camera);
           }
@@ -1376,6 +1403,15 @@ const LOVE_STORY = {
       if (document.hidden) stopBackgroundAnimation();
       else startBackgroundAnimation();
     };
+    welcomeScreen.addEventListener("pointermove", (event) => {
+      if (event.pointerType === "touch" || reducedMotion) return;
+      const bounds = welcomeScreen.getBoundingClientRect();
+      moonScene?.setPointer(
+        Math.max(-1, Math.min(1, (event.clientX - bounds.left) / bounds.width * 2 - 1)),
+        Math.max(-1, Math.min(1, (event.clientY - bounds.top) / bounds.height * 2 - 1))
+      );
+    });
+    welcomeScreen.addEventListener("pointerleave", () => moonScene?.setPointer(0, 0));
     const observer = new ResizeObserver(resize);
     observer.observe(welcomeScreen);
     window.addEventListener("resize", resize);
