@@ -995,6 +995,7 @@ const LOVE_STORY = {
     if (!context) return;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const welcomeScreen = screens.welcome;
+    const moonCanvas = $("#moon3d");
     const layers = [];
     const dust = [];
     const meteors = [];
@@ -1003,8 +1004,205 @@ const LOVE_STORY = {
     let frameHandle = 0;
     let isRunning = false;
     let nextMeteorAt = 0;
+    let moonScene = null;
 
     const randomBetween = (min, max) => min + Math.random() * (max - min);
+
+    const createLunarTextures = (THREE) => {
+      const textureCanvas = document.createElement("canvas");
+      textureCanvas.width = 768;
+      textureCanvas.height = 384;
+      const textureContext = textureCanvas.getContext("2d");
+      if (!textureContext) throw new Error("Impossible de créer le canevas de texture lunaire.");
+      const textureWidth = textureCanvas.width;
+      const textureHeight = textureCanvas.height;
+      const image = textureContext.createImageData(textureWidth, textureHeight);
+      const heightData = new Uint8ClampedArray(image.data.length);
+      const noiseLayers = [4, 8, 16, 32, 64, 128].map((columns) => {
+        const rows = columns / 2;
+        const values = Float32Array.from({ length: columns * rows }, Math.random);
+        return { columns, rows, values };
+      });
+      const smooth = (value) => value * value * (3 - 2 * value);
+      const noiseAt = (layer, u, v) => {
+        const x = u * layer.columns;
+        const y = v * layer.rows;
+        const x0 = Math.floor(x) % layer.columns;
+        const y0 = Math.min(layer.rows - 1, Math.floor(y));
+        const x1 = (x0 + 1) % layer.columns;
+        const y1 = Math.min(layer.rows - 1, y0 + 1);
+        const tx = smooth(x - Math.floor(x));
+        const ty = smooth(y - Math.floor(y));
+        const top = layer.values[y0 * layer.columns + x0] * (1 - tx)
+          + layer.values[y0 * layer.columns + x1] * tx;
+        const bottom = layer.values[y1 * layer.columns + x0] * (1 - tx)
+          + layer.values[y1 * layer.columns + x1] * tx;
+        return top * (1 - ty) + bottom * ty;
+      };
+      const craters = Array.from({ length: 54 }, () => ({
+        x: Math.random(),
+        y: randomBetween(.04, .96),
+        radius: randomBetween(.003, .018),
+        depth: randomBetween(.035, .12)
+      }));
+      const craterRelief = new Float32Array(textureWidth * textureHeight);
+      craters.forEach((crater) => {
+        const xRadius = Math.ceil(crater.radius * textureWidth * 1.35);
+        const yRadius = Math.ceil(crater.radius * textureHeight * 1.35);
+        const centerX = Math.floor(crater.x * textureWidth);
+        const centerY = Math.floor(crater.y * textureHeight);
+        for (let offsetY = -yRadius; offsetY <= yRadius; offsetY++) {
+          const y = centerY + offsetY;
+          if (y < 0 || y >= textureHeight) continue;
+          const v = y / textureHeight;
+          for (let offsetX = -xRadius; offsetX <= xRadius; offsetX++) {
+            const x = (centerX + offsetX + textureWidth) % textureWidth;
+            const u = x / textureWidth;
+            let dx = Math.abs(u - crater.x);
+            dx = Math.min(dx, 1 - dx) * Math.cos((v - crater.y) * Math.PI);
+            const distance = Math.hypot(dx, v - crater.y) / crater.radius;
+            if (distance >= 1.35) continue;
+            const bowl = Math.exp(-((distance / .58) ** 2));
+            const rim = Math.exp(-(((distance - .88) / .12) ** 2));
+            craterRelief[y * textureWidth + x] += crater.depth * (rim * .42 - bowl);
+          }
+        }
+      });
+
+      for (let y = 0; y < textureHeight; y++) {
+        const v = y / textureHeight;
+        for (let x = 0; x < textureWidth; x++) {
+          const u = x / textureWidth;
+          const noise = noiseAt(noiseLayers[0], u, v) * .32
+            + noiseAt(noiseLayers[1], u, v) * .24
+            + noiseAt(noiseLayers[2], u, v) * .18
+            + noiseAt(noiseLayers[3], u, v) * .13
+            + noiseAt(noiseLayers[4], u, v) * .08
+            + noiseAt(noiseLayers[5], u, v) * .05;
+          let relief = .48 + (noise - .5) * .22 + craterRelief[y * textureWidth + x];
+          relief = Math.max(0, Math.min(1, relief));
+          const grain = (noise - .5) * 46 + (relief - .48) * 72;
+          const pixel = (y * textureWidth + x) * 4;
+          image.data[pixel] = Math.max(0, Math.min(255, 174 + grain));
+          image.data[pixel + 1] = Math.max(0, Math.min(255, 168 + grain));
+          image.data[pixel + 2] = Math.max(0, Math.min(255, 154 + grain));
+          image.data[pixel + 3] = 255;
+          const shade = Math.round(relief * 255);
+          heightData[pixel] = heightData[pixel + 1] = heightData[pixel + 2] = shade;
+          heightData[pixel + 3] = 255;
+        }
+      }
+
+      textureContext.putImageData(image, 0, 0);
+      const heightCanvas = document.createElement("canvas");
+      heightCanvas.width = textureWidth;
+      heightCanvas.height = textureHeight;
+      const heightContext = heightCanvas.getContext("2d");
+      if (!heightContext) throw new Error("Impossible de créer le canevas de relief lunaire.");
+      const heightImage = heightContext.createImageData(textureWidth, textureHeight);
+      heightImage.data.set(heightData);
+      heightContext.putImageData(heightImage, 0, 0);
+
+      const diffuse = new THREE.CanvasTexture(textureCanvas);
+      diffuse.colorSpace = THREE.SRGBColorSpace;
+      diffuse.anisotropy = 8;
+      const bump = new THREE.CanvasTexture(heightCanvas);
+      bump.anisotropy = 8;
+      return { diffuse, bump };
+    };
+
+    const createMoonScene = () => {
+      const THREE = window.THREE;
+      if (!THREE) {
+        console.error("Three.js n'a pas pu être chargé depuis le CDN ; la lune 3D est indisponible.");
+        return null;
+      }
+      try {
+        const renderer = new THREE.WebGLRenderer({ canvas: moonCanvas, alpha: true, antialias: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+        renderer.setClearColor(0x000000, 0);
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(38, 1, .1, 40);
+        camera.position.z = 5;
+        scene.add(new THREE.HemisphereLight(0xc3d2ee, 0x29251f, .22));
+        const sunlight = new THREE.DirectionalLight(0xffedc8, 2.1);
+        sunlight.position.set(-3.5, 2.3, 4);
+        scene.add(sunlight);
+
+        const { diffuse, bump } = createLunarTextures(THREE);
+        const geometry = new THREE.SphereGeometry(1, 128, 96);
+        const material = new THREE.MeshStandardMaterial({
+          map: diffuse,
+          bumpMap: bump,
+          bumpScale: .065,
+          displacementMap: bump,
+          displacementScale: .022,
+          roughness: .96,
+          metalness: 0
+        });
+        const moon = new THREE.Mesh(geometry, material);
+        const atmosphere = new THREE.Mesh(
+          new THREE.SphereGeometry(1.12, 96, 64),
+          new THREE.ShaderMaterial({
+            uniforms: { glow: { value: .22 } },
+            vertexShader: `
+              varying vec3 vNormal;
+              varying vec3 vViewDirection;
+              void main() {
+                vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+                vNormal = normalize(normalMatrix * normal);
+                vViewDirection = normalize(-viewPosition.xyz);
+                gl_Position = projectionMatrix * viewPosition;
+              }
+            `,
+            fragmentShader: `
+              uniform float glow;
+              varying vec3 vNormal;
+              varying vec3 vViewDirection;
+              void main() {
+                float rim = pow(1.0 - max(dot(normalize(vNormal), normalize(vViewDirection)), 0.0), 2.4);
+                gl_FragColor = vec4(vec3(1.0, 0.82, 0.55), rim * glow);
+              }
+            `,
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending
+          })
+        );
+        atmosphere.renderOrder = 1;
+        const group = new THREE.Group();
+        group.add(moon, atmosphere);
+        scene.add(group);
+
+        return {
+          resize(viewWidth, viewHeight) {
+            renderer.setSize(viewWidth, viewHeight, false);
+            camera.aspect = viewWidth / viewHeight;
+            camera.updateProjectionMatrix();
+            const frustumHeight = 2 * camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+            const frustumWidth = frustumHeight * camera.aspect;
+            const radius = Math.max(.24, Math.min(.39, viewWidth * .00031));
+            group.scale.setScalar(radius);
+            group.position.set(frustumWidth * .29, frustumHeight * .31, 0);
+            renderer.render(scene, camera);
+          },
+          render(time) {
+            if (!reducedMotion) {
+              group.rotation.y = time * .000002;
+              atmosphere.material.uniforms.glow.value = .2 + Math.sin(time * .00014) * .025;
+            }
+            renderer.render(scene, camera);
+          }
+        };
+      } catch (error) {
+        console.error("Impossible d'initialiser le rendu WebGL de la lune.", error);
+        return null;
+      }
+    };
+
+    moonScene = createMoonScene();
 
     const resize = () => {
       if (welcomeScreen.hidden) return;
@@ -1012,6 +1210,7 @@ const LOVE_STORY = {
       const ratio = Math.min(window.devicePixelRatio || 1, 1.75);
       width = Math.max(1, bounds.width);
       height = Math.max(1, bounds.height);
+      moonScene?.resize(width, height);
       canvas.width = width * ratio;
       canvas.height = height * ratio;
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -1134,6 +1333,7 @@ const LOVE_STORY = {
     const drawFrame = (time) => {
       context.clearRect(0, 0, width, height);
       drawBackground();
+      moonScene?.render(time);
       layers.forEach((stars) => drawStarsAt(stars, time));
       dust.forEach((particle) => {
         const alpha = .08 + (Math.sin(time * .00016 + particle.phase) + 1) * .045;
