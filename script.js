@@ -1049,6 +1049,14 @@ const LOVE_STORY = {
         radius: randomBetween(...radius),
         depth: randomBetween(...depth)
       })));
+      const maria = [
+        { x: .16, y: .32, radiusX: .11, radiusY: .13, depth: .62 },
+        { x: .34, y: .61, radiusX: .14, radiusY: .1, depth: .5 },
+        { x: .49, y: .39, radiusX: .13, radiusY: .17, depth: .72 },
+        { x: .68, y: .57, radiusX: .12, radiusY: .12, depth: .58 },
+        { x: .83, y: .34, radiusX: .1, radiusY: .16, depth: .48 },
+        { x: .93, y: .72, radiusX: .1, radiusY: .09, depth: .42 }
+      ];
       const craterRelief = new Float32Array(textureWidth * textureHeight);
       craters.forEach((crater) => {
         const xRadius = Math.ceil(crater.radius * textureWidth * 1.35);
@@ -1084,10 +1092,21 @@ const LOVE_STORY = {
             + noiseAt(noiseLayers[4], u, v) * .08
             + noiseAt(noiseLayers[5], u, v) * .05
             + noiseAt(noiseLayers[6], u, v) * .03;
+          let mariaShade = 0;
+          maria.forEach((sea) => {
+            let dx = Math.abs(u - sea.x);
+            dx = Math.min(dx, 1 - dx) * Math.cos((v - sea.y) * Math.PI);
+            const distance = Math.hypot(dx / sea.radiusX, (v - sea.y) / sea.radiusY);
+            const edgeNoise = (noiseAt(noiseLayers[1], u, v) - .5) * .22;
+            const edge = Math.max(0, Math.min(1, (1.12 + edgeNoise - distance) / .34));
+            const mask = edge * edge * (3 - 2 * edge);
+            mariaShade += mask * sea.depth;
+          });
+          mariaShade = Math.min(.82, mariaShade);
           let relief = .48 + (noise - .5) * .22 + craterRelief[y * textureWidth + x];
           relief = Math.max(0, Math.min(1, relief));
-          const grain = (noise - .5) * 22 + (relief - .48) * 30;
-          const tone = 181 + grain;
+          const grain = (noise - .5) * 19 + (relief - .48) * 25;
+          const tone = 193 + grain - mariaShade * 34;
           const pixel = (y * textureWidth + x) * 4;
           image.data[pixel] = Math.max(0, Math.min(255, tone - 5));
           image.data[pixel + 1] = Math.max(0, Math.min(255, tone));
@@ -1207,9 +1226,9 @@ const LOVE_STORY = {
             const nextFrustumWidth = viewFrustumHeight * camera.aspect;
             frustumWidth = nextFrustumWidth;
             frustumHeight = viewFrustumHeight;
-            const radius = Math.max(.24, Math.min(.39, viewWidth * .00031));
+            const radius = Math.max(.34, Math.min(.62, viewWidth * .00045));
             group.scale.setScalar(radius);
-            group.position.set(nextFrustumWidth * .29, viewFrustumHeight * .31, 0);
+            group.position.set(-nextFrustumWidth * .43, viewFrustumHeight * .38, 0);
             renderer.render(scene, camera);
           },
           render(time) {
@@ -1218,16 +1237,29 @@ const LOVE_STORY = {
               pointerY += (pointerTargetY - pointerY) * .11;
               group.rotation.y = time * .000035;
               group.rotation.x = Math.sin(time * .00011) * .025;
-              const travel = (time * .00002 + .2) % 1;
               const smoothstep = (edge0, edge1, value) => {
                 const progress = Math.max(0, Math.min(1, (value - edge0) / (edge1 - edge0)));
                 return progress * progress * (3 - 2 * progress);
               };
-              const fadeIn = smoothstep(.02, .15, travel);
-              const fadeOut = 1 - smoothstep(.86, .99, travel);
+              const travel = (time % 80000) / 80000;
+              const inverseTravel = 1 - travel;
+              const start = { x: .08, y: .13 };
+              const controlOne = { x: .28, y: .02 };
+              const controlTwo = { x: .35, y: .78 };
+              const end = { x: 1.28, y: .84 };
+              const x = inverseTravel ** 3 * start.x
+                + 3 * inverseTravel ** 2 * travel * controlOne.x
+                + 3 * inverseTravel * travel ** 2 * controlTwo.x
+                + travel ** 3 * end.x;
+              const y = inverseTravel ** 3 * start.y
+                + 3 * inverseTravel ** 2 * travel * controlOne.y
+                + 3 * inverseTravel * travel ** 2 * controlTwo.y
+                + travel ** 3 * end.y;
+              const fadeIn = smoothstep(0, .045, travel);
+              const fadeOut = 1 - smoothstep(.91, .985, travel);
               const visibility = Math.min(fadeIn, fadeOut);
-              group.position.x = frustumWidth * (.62 - travel * 1.24 + pointerX * .035 + Math.sin(time * .00042) * .012);
-              group.position.y = frustumHeight * (.31 - pointerY * .035 + Math.sin(time * .00055 + 1.4) * .018);
+              group.position.x = frustumWidth * (x - .5 + pointerX * .008 + Math.sin(time * .00042) * .003);
+              group.position.y = frustumHeight * (.5 - y + pointerY * .008 + Math.sin(time * .00055 + 1.4) * .004);
               moon.material.opacity = visibility;
               atmosphere.material.uniforms.visibility.value = visibility;
               atmosphere.material.uniforms.glow.value = .18 + Math.sin(time * .00014) * .018;
