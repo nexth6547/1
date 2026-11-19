@@ -1145,17 +1145,18 @@ const LOVE_STORY = {
         const material = new THREE.MeshStandardMaterial({
           map: diffuse,
           bumpMap: bump,
-          bumpScale: .085,
+          bumpScale: .1,
           displacementMap: bump,
-          displacementScale: .018,
+          displacementScale: .022,
           roughness: 1,
-          metalness: 0
+          metalness: 0,
+          transparent: true
         });
         const moon = new THREE.Mesh(geometry, material);
         const atmosphere = new THREE.Mesh(
           new THREE.SphereGeometry(1.12, 96, 64),
           new THREE.ShaderMaterial({
-            uniforms: { glow: { value: .22 } },
+            uniforms: { glow: { value: .2 }, visibility: { value: 1 } },
             vertexShader: `
               varying vec3 vNormal;
               varying vec3 vViewDirection;
@@ -1168,11 +1169,12 @@ const LOVE_STORY = {
             `,
             fragmentShader: `
               uniform float glow;
+              uniform float visibility;
               varying vec3 vNormal;
               varying vec3 vViewDirection;
               void main() {
                 float rim = pow(1.0 - max(dot(normalize(vNormal), normalize(vViewDirection)), 0.0), 2.4);
-                gl_FragColor = vec4(vec3(1.0, 0.82, 0.55), rim * glow);
+                gl_FragColor = vec4(vec3(0.82, 0.87, 1.0), rim * glow * visibility);
               }
             `,
             transparent: true,
@@ -1214,10 +1216,20 @@ const LOVE_STORY = {
             if (!reducedMotion) {
               pointerX += (pointerTargetX - pointerX) * .11;
               pointerY += (pointerTargetY - pointerY) * .11;
-              group.rotation.y = time * .00002;
+              group.rotation.y = time * .000035;
               group.rotation.x = Math.sin(time * .00011) * .025;
-              group.position.x = frustumWidth * (.29 + pointerX * .035 + Math.sin(time * .00042) * .012);
+              const travel = (time * .00002 + .2) % 1;
+              const smoothstep = (edge0, edge1, value) => {
+                const progress = Math.max(0, Math.min(1, (value - edge0) / (edge1 - edge0)));
+                return progress * progress * (3 - 2 * progress);
+              };
+              const fadeIn = smoothstep(.02, .15, travel);
+              const fadeOut = 1 - smoothstep(.86, .99, travel);
+              const visibility = Math.min(fadeIn, fadeOut);
+              group.position.x = frustumWidth * (.62 - travel * 1.24 + pointerX * .035 + Math.sin(time * .00042) * .012);
               group.position.y = frustumHeight * (.31 - pointerY * .035 + Math.sin(time * .00055 + 1.4) * .018);
+              moon.material.opacity = visibility;
+              atmosphere.material.uniforms.visibility.value = visibility;
               atmosphere.material.uniforms.glow.value = .18 + Math.sin(time * .00014) * .018;
             }
             renderer.render(scene, camera);
