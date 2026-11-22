@@ -1051,15 +1051,6 @@ const LOVE_STORY = {
         radius: randomBetween(...radius),
         depth: randomBetween(...depth)
       })));
-      const maria = [
-        { x: .13, y: .31, radiusX: .065, radiusY: .09, depth: .78 },
-        { x: .28, y: .62, radiusX: .075, radiusY: .06, depth: .7 },
-        { x: .45, y: .38, radiusX: .085, radiusY: .11, depth: .84 },
-        { x: .61, y: .69, radiusX: .06, radiusY: .07, depth: .66 },
-        { x: .72, y: .44, radiusX: .07, radiusY: .085, depth: .76 },
-        { x: .87, y: .3, radiusX: .06, radiusY: .095, depth: .62 },
-        { x: .94, y: .74, radiusX: .055, radiusY: .06, depth: .58 }
-      ];
       const craterRelief = new Float32Array(textureWidth * textureHeight);
       craters.forEach((crater) => {
         const xRadius = Math.ceil(crater.radius * textureWidth * 1.35);
@@ -1097,25 +1088,25 @@ const LOVE_STORY = {
             + noiseAt(noiseLayers[5], u, v) * .055
             + noiseAt(noiseLayers[6], u, v) * .035
             + noiseAt(noiseLayers[7], u, v) * .025;
-          let mariaShade = 0;
-          maria.forEach((sea) => {
-            let dx = Math.abs(u - sea.x);
-            dx = Math.min(dx, 1 - dx) * Math.cos((v - sea.y) * Math.PI);
-            const distance = Math.hypot(dx / sea.radiusX, (v - sea.y) / sea.radiusY);
-            const edgeNoise = (broadNoise - .5) * .22;
-            const edge = Math.max(0, Math.min(1, (1.12 + edgeNoise - distance) / .34));
-            const mask = edge * edge * (3 - 2 * edge);
-            mariaShade += mask * sea.depth;
-          });
-          mariaShade = Math.min(.82, mariaShade);
+          const warpX = (noiseAt(noiseLayers[2], u, v) - .5) * .08;
+          const warpY = (noiseAt(noiseLayers[3], u, v) - .5) * .08;
+          const warpedU = ((u + warpX) % 1 + 1) % 1;
+          const warpedV = Math.max(.01, Math.min(.99, v + warpY));
+          const mareField = noiseAt(noiseLayers[0], warpedU, warpedV) * .46
+            + noiseAt(noiseLayers[1], warpedU, warpedV) * .3
+            + noiseAt(noiseLayers[2], warpedU, warpedV) * .16
+            + noiseAt(noiseLayers[3], warpedU, warpedV) * .08;
+          const mareEdge = Math.max(0, Math.min(1, (.56 - mareField) / .14));
+          const mariaShade = (1 - mareEdge * mareEdge * (3 - 2 * mareEdge))
+            * (.55 + noiseAt(noiseLayers[4], u, v) * .32);
           let relief = .48 + (noise - .5) * .22 + craterRelief[y * textureWidth + x];
           relief = Math.max(0, Math.min(1, relief));
           const craterDetail = craterRelief[y * textureWidth + x];
           const grain = (noise - .5) * 25
-            + (noiseAt(noiseLayers[7], u, v) - .5) * 52
+            + (noiseAt(noiseLayers[7], u, v) - .5) * 64
             + (relief - .48) * 36
             + craterDetail * 108;
-          const tone = 201 + grain - mariaShade * 64;
+          const tone = 201 + grain - mariaShade * 38;
           const pixel = (y * textureWidth + x) * 4;
           image.data[pixel] = Math.max(0, Math.min(255, tone - 5));
           image.data[pixel + 1] = Math.max(0, Math.min(255, tone));
@@ -1139,10 +1130,31 @@ const LOVE_STORY = {
 
       const diffuse = new THREE.CanvasTexture(textureCanvas);
       diffuse.colorSpace = THREE.SRGBColorSpace;
+      diffuse.wrapS = THREE.RepeatWrapping;
+      diffuse.wrapT = THREE.ClampToEdgeWrapping;
       diffuse.anisotropy = 8;
       const bump = new THREE.CanvasTexture(heightCanvas);
+      bump.wrapS = THREE.RepeatWrapping;
+      bump.wrapT = THREE.ClampToEdgeWrapping;
       bump.anisotropy = 8;
       return { diffuse, bump };
+    };
+
+    const loadLunarTextures = (THREE, anisotropy) => {
+      const loader = new THREE.TextureLoader();
+      loader.setCrossOrigin("anonymous");
+      const loadTexture = (path, colorSpace) => loader.loadAsync(new URL(path, document.baseURI).href)
+        .then((texture) => {
+          texture.colorSpace = colorSpace;
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.ClampToEdgeWrapping;
+          texture.anisotropy = anisotropy;
+          return texture;
+        });
+      return Promise.all([
+        loadTexture("assets/lunar-color.jpg", THREE.SRGBColorSpace),
+        loadTexture("assets/lunar-height.jpg", THREE.NoColorSpace)
+      ]).then(([diffuse, bump]) => ({ diffuse, bump }));
     };
 
     const createMoonScene = () => {
@@ -1168,14 +1180,11 @@ const LOVE_STORY = {
         sunlight.position.set(-3.5, 2.3, 4);
         scene.add(sunlight);
 
-        const { diffuse, bump } = createLunarTextures(THREE);
-        const geometry = new THREE.SphereGeometry(1, 128, 96);
+        const geometry = new THREE.SphereGeometry(1, 192, 128);
         const material = new THREE.MeshStandardMaterial({
-          map: diffuse,
-          bumpMap: bump,
-          bumpScale: .24,
-          displacementMap: bump,
-          displacementScale: .04,
+          color: 0xffffff,
+          bumpScale: .075,
+          displacementScale: .018,
           roughness: 1,
           metalness: 0,
           transparent: true
@@ -1220,9 +1229,9 @@ const LOVE_STORY = {
         let pointerTargetY = 0;
         const moonPathSegments = [
           [
-            { x: .15, y: .2 },
-            { x: .27, y: .18 },
-            { x: .38, y: .34 },
+            { x: .15, y: .22 },
+            { x: .27, y: .22 },
+            { x: .38, y: .36 },
             { x: .5, y: .48 }
           ],
           [
@@ -1242,6 +1251,23 @@ const LOVE_STORY = {
           const progress = Math.max(0, Math.min(1, (value - edge0) / (edge1 - edge0)));
           return progress * progress * (3 - 2 * progress);
         };
+        const applyLunarTextures = ({ diffuse, bump }) => {
+          material.map = diffuse;
+          material.bumpMap = bump;
+          material.displacementMap = bump;
+          material.needsUpdate = true;
+          renderer.render(scene, camera);
+        };
+        loadLunarTextures(THREE, renderer.capabilities.getMaxAnisotropy())
+          .then(applyLunarTextures)
+          .catch((loadError) => {
+            console.warn("Les cartes NASA de la Lune sont indisponibles ; génération de la texture procédurale de secours.", loadError);
+            try {
+              applyLunarTextures(createLunarTextures(THREE));
+            } catch (fallbackError) {
+              console.error("Impossible de générer la texture lunaire procédurale de secours.", fallbackError);
+            }
+          });
 
         return {
           setPointer(x, y) {
@@ -1257,9 +1283,9 @@ const LOVE_STORY = {
             const nextFrustumWidth = viewFrustumHeight * camera.aspect;
             frustumWidth = nextFrustumWidth;
             frustumHeight = viewFrustumHeight;
-            const radius = Math.max(.34, Math.min(.62, viewWidth * .00045));
+            const radius = Math.max(.255, Math.min(.465, viewWidth * .0003375));
             group.scale.setScalar(radius);
-            group.position.set(-nextFrustumWidth * .35, viewFrustumHeight * .3, 0);
+            group.position.set(-nextFrustumWidth * .35, viewFrustumHeight * .28, 0);
             renderer.render(scene, camera);
           },
           render(time) {
@@ -1268,7 +1294,7 @@ const LOVE_STORY = {
               pointerY += (pointerTargetY - pointerY) * .11;
               group.rotation.y = time * .000035;
               group.rotation.x = Math.sin(time * .00011) * .025;
-              const travel = (time % 36000) / 36000;
+              const travel = (time % 26000) / 26000;
               const segmentIndex = travel < .38 ? 0 : travel < .72 ? 1 : 2;
               const path = moonPathSegments[segmentIndex];
               const segmentStart = travel < .38 ? 0 : travel < .72 ? .38 : .72;

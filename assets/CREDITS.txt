@@ -1,0 +1,14 @@
+Lunar color and elevation maps
+
+Source: NASA's Scientific Visualization Studio, CGI Moon Kit (ID 4720)
+https://svs.gsfc.nasa.gov/4720/
+
+Color map: lroc_color_2k.jpg
+Elevation map: ldem_3_8bit.jpg
+
+The maps are derived from Lunar Reconnaissance Orbiter Camera (LROC) and Lunar
+Orbiter Laser Altimeter (LOLA) data. NASA SVS requests credit to NASA's
+Scientific Visualization Studio.
+
+Three.js is bundled from https://threejs.org/ under the MIT License.
+See ../vendor/THREE-LICENSE.txt.

@@ -7,7 +7,12 @@
     "frontendDist": [
       "../index.html",
       "../style.css",
-      "../script.js"
+      "../script.js",
+      "../vendor/three.min.js",
+      "../assets/lunar-color.jpg",
+      "../assets/lunar-height.jpg",
+      "../assets/CREDITS.txt",
+      "../vendor/THREE-LICENSE.txt"
     ]
   },
   "app": {
