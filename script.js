@@ -1004,14 +1004,16 @@ const LOVE_STORY = {
     let frameHandle = 0;
     let isRunning = false;
     let nextMeteorAt = 0;
+    let motionTime = 0;
+    let previousFrameTime = 0;
     let moonScene = null;
 
     const randomBetween = (min, max) => min + Math.random() * (max - min);
 
     const createLunarTextures = (THREE) => {
       const textureCanvas = document.createElement("canvas");
-      textureCanvas.width = 768;
-      textureCanvas.height = 384;
+      textureCanvas.width = 1024;
+      textureCanvas.height = 512;
       const textureContext = textureCanvas.getContext("2d");
       if (!textureContext) throw new Error("Impossible de créer le canevas de texture lunaire.");
       const textureWidth = textureCanvas.width;
@@ -1040,9 +1042,9 @@ const LOVE_STORY = {
         return top * (1 - ty) + bottom * ty;
       };
       const craters = [
-        { count: 22, radius: [.009, .02], depth: [.045, .12] },
-        { count: 115, radius: [.002, .009], depth: [.025, .09] },
-        { count: 430, radius: [.0006, .0028], depth: [.012, .05] }
+        { count: 38, radius: [.009, .024], depth: [.09, .2] },
+        { count: 220, radius: [.0025, .009], depth: [.055, .15] },
+        { count: 700, radius: [.0008, .0035], depth: [.025, .09] }
       ].flatMap(({ count, radius, depth }) => Array.from({ length: count }, () => ({
         x: Math.random(),
         y: randomBetween(.025, .975),
@@ -1050,12 +1052,12 @@ const LOVE_STORY = {
         depth: randomBetween(...depth)
       })));
       const maria = [
-        { x: .16, y: .32, radiusX: .11, radiusY: .13, depth: .62 },
-        { x: .34, y: .61, radiusX: .14, radiusY: .1, depth: .5 },
-        { x: .49, y: .39, radiusX: .13, radiusY: .17, depth: .72 },
-        { x: .68, y: .57, radiusX: .12, radiusY: .12, depth: .58 },
-        { x: .83, y: .34, radiusX: .1, radiusY: .16, depth: .48 },
-        { x: .93, y: .72, radiusX: .1, radiusY: .09, depth: .42 }
+        { x: .16, y: .32, radiusX: .11, radiusY: .13, depth: .76 },
+        { x: .34, y: .61, radiusX: .14, radiusY: .1, depth: .66 },
+        { x: .49, y: .39, radiusX: .13, radiusY: .17, depth: .82 },
+        { x: .68, y: .57, radiusX: .12, radiusY: .12, depth: .72 },
+        { x: .83, y: .34, radiusX: .1, radiusY: .16, depth: .6 },
+        { x: .93, y: .72, radiusX: .1, radiusY: .09, depth: .56 }
       ];
       const craterRelief = new Float32Array(textureWidth * textureHeight);
       craters.forEach((crater) => {
@@ -1076,7 +1078,7 @@ const LOVE_STORY = {
             if (distance >= 1.35) continue;
             const bowl = Math.exp(-((distance / .58) ** 2));
             const rim = Math.exp(-(((distance - .88) / .12) ** 2));
-            craterRelief[y * textureWidth + x] += crater.depth * (rim * .42 - bowl);
+            craterRelief[y * textureWidth + x] += crater.depth * (rim * .68 - bowl * .9);
           }
         }
       });
@@ -1085,8 +1087,9 @@ const LOVE_STORY = {
         const v = y / textureHeight;
         for (let x = 0; x < textureWidth; x++) {
           const u = x / textureWidth;
+          const broadNoise = noiseAt(noiseLayers[1], u, v);
           const noise = noiseAt(noiseLayers[0], u, v) * .32
-            + noiseAt(noiseLayers[1], u, v) * .23
+            + broadNoise * .23
             + noiseAt(noiseLayers[2], u, v) * .17
             + noiseAt(noiseLayers[3], u, v) * .12
             + noiseAt(noiseLayers[4], u, v) * .08
@@ -1097,7 +1100,7 @@ const LOVE_STORY = {
             let dx = Math.abs(u - sea.x);
             dx = Math.min(dx, 1 - dx) * Math.cos((v - sea.y) * Math.PI);
             const distance = Math.hypot(dx / sea.radiusX, (v - sea.y) / sea.radiusY);
-            const edgeNoise = (noiseAt(noiseLayers[1], u, v) - .5) * .22;
+            const edgeNoise = (broadNoise - .5) * .22;
             const edge = Math.max(0, Math.min(1, (1.12 + edgeNoise - distance) / .34));
             const mask = edge * edge * (3 - 2 * edge);
             mariaShade += mask * sea.depth;
@@ -1105,8 +1108,9 @@ const LOVE_STORY = {
           mariaShade = Math.min(.82, mariaShade);
           let relief = .48 + (noise - .5) * .22 + craterRelief[y * textureWidth + x];
           relief = Math.max(0, Math.min(1, relief));
-          const grain = (noise - .5) * 19 + (relief - .48) * 25;
-          const tone = 193 + grain - mariaShade * 34;
+          const craterDetail = craterRelief[y * textureWidth + x];
+          const grain = (noise - .5) * 30 + (relief - .48) * 42 + craterDetail * 82;
+          const tone = 198 + grain - mariaShade * 58;
           const pixel = (y * textureWidth + x) * 4;
           image.data[pixel] = Math.max(0, Math.min(255, tone - 5));
           image.data[pixel + 1] = Math.max(0, Math.min(255, tone));
@@ -1153,9 +1157,9 @@ const LOVE_STORY = {
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(38, 1, .1, 40);
         camera.position.z = 5;
-        scene.add(new THREE.HemisphereLight(0xc7d8f4, 0x323949, .34));
-        scene.add(new THREE.AmbientLight(0x7886a3, .12));
-        const sunlight = new THREE.DirectionalLight(0xf1f3ff, 2.15);
+        scene.add(new THREE.HemisphereLight(0xc7d8f4, 0x323949, .42));
+        scene.add(new THREE.AmbientLight(0x7886a3, .2));
+        const sunlight = new THREE.DirectionalLight(0xf1f3ff, 1.75);
         sunlight.position.set(-3.5, 2.3, 4);
         scene.add(sunlight);
 
@@ -1164,9 +1168,9 @@ const LOVE_STORY = {
         const material = new THREE.MeshStandardMaterial({
           map: diffuse,
           bumpMap: bump,
-          bumpScale: .1,
+          bumpScale: .16,
           displacementMap: bump,
-          displacementScale: .022,
+          displacementScale: .032,
           roughness: 1,
           metalness: 0,
           transparent: true
@@ -1211,6 +1215,30 @@ const LOVE_STORY = {
         let pointerY = 0;
         let pointerTargetX = 0;
         let pointerTargetY = 0;
+        const moonPathSegments = [
+          [
+            { x: .06, y: .12 },
+            { x: .19, y: .1 },
+            { x: .34, y: .28 },
+            { x: .5, y: .48 }
+          ],
+          [
+            { x: .5, y: .48 },
+            { x: .64, y: .66 },
+            { x: .66, y: .71 },
+            { x: .83, y: .78 }
+          ],
+          [
+            { x: .83, y: .78 },
+            { x: .97, y: .84 },
+            { x: 1.12, y: 1.02 },
+            { x: 1.24, y: 1.16 }
+          ]
+        ];
+        const smoothstep = (edge0, edge1, value) => {
+          const progress = Math.max(0, Math.min(1, (value - edge0) / (edge1 - edge0)));
+          return progress * progress * (3 - 2 * progress);
+        };
 
         return {
           setPointer(x, y) {
@@ -1237,26 +1265,24 @@ const LOVE_STORY = {
               pointerY += (pointerTargetY - pointerY) * .11;
               group.rotation.y = time * .000035;
               group.rotation.x = Math.sin(time * .00011) * .025;
-              const smoothstep = (edge0, edge1, value) => {
-                const progress = Math.max(0, Math.min(1, (value - edge0) / (edge1 - edge0)));
-                return progress * progress * (3 - 2 * progress);
-              };
-              const travel = (time % 80000) / 80000;
-              const inverseTravel = 1 - travel;
-              const start = { x: .08, y: .13 };
-              const controlOne = { x: .28, y: .02 };
-              const controlTwo = { x: .35, y: .78 };
-              const end = { x: 1.28, y: .84 };
-              const x = inverseTravel ** 3 * start.x
-                + 3 * inverseTravel ** 2 * travel * controlOne.x
-                + 3 * inverseTravel * travel ** 2 * controlTwo.x
-                + travel ** 3 * end.x;
-              const y = inverseTravel ** 3 * start.y
-                + 3 * inverseTravel ** 2 * travel * controlOne.y
-                + 3 * inverseTravel * travel ** 2 * controlTwo.y
-                + travel ** 3 * end.y;
-              const fadeIn = smoothstep(0, .045, travel);
-              const fadeOut = 1 - smoothstep(.91, .985, travel);
+              const travel = (time % 42000) / 42000;
+              const segmentIndex = travel < .38 ? 0 : travel < .72 ? 1 : 2;
+              const path = moonPathSegments[segmentIndex];
+              const segmentStart = travel < .38 ? 0 : travel < .72 ? .38 : .72;
+              const segmentEnd = travel < .38 ? .38 : travel < .72 ? .72 : 1;
+              const segmentProgress = (travel - segmentStart) / (segmentEnd - segmentStart);
+              const inverseProgress = 1 - segmentProgress;
+              const [start, controlOne, controlTwo, end] = path;
+              const x = inverseProgress ** 3 * start.x
+                + 3 * inverseProgress ** 2 * segmentProgress * controlOne.x
+                + 3 * inverseProgress * segmentProgress ** 2 * controlTwo.x
+                + segmentProgress ** 3 * end.x;
+              const y = inverseProgress ** 3 * start.y
+                + 3 * inverseProgress ** 2 * segmentProgress * controlOne.y
+                + 3 * inverseProgress * segmentProgress ** 2 * controlTwo.y
+                + segmentProgress ** 3 * end.y;
+              const fadeIn = smoothstep(0, .025, travel);
+              const fadeOut = 1 - smoothstep(.94, .995, travel);
               const visibility = Math.min(fadeIn, fadeOut);
               group.position.x = frustumWidth * (x - .5 + pointerX * .008 + Math.sin(time * .00042) * .003);
               group.position.y = frustumHeight * (.5 - y + pointerY * .008 + Math.sin(time * .00055 + 1.4) * .004);
@@ -1401,10 +1427,10 @@ const LOVE_STORY = {
       return progress < 1;
     };
 
-    const drawFrame = (time) => {
+    const drawFrame = (time, moonTime = time) => {
       context.clearRect(0, 0, width, height);
       drawBackground();
-      moonScene?.render(time);
+      moonScene?.render(moonTime);
       layers.forEach((stars) => drawStarsAt(stars, time));
       dust.forEach((particle) => {
         const alpha = .08 + (Math.sin(time * .00016 + particle.phase) + 1) * .045;
@@ -1427,6 +1453,7 @@ const LOVE_STORY = {
       if (frameHandle) cancelAnimationFrame(frameHandle);
       frameHandle = 0;
       isRunning = false;
+      previousFrameTime = 0;
     };
 
     function startBackgroundAnimation() {
@@ -1437,7 +1464,9 @@ const LOVE_STORY = {
           stopBackgroundAnimation();
           return;
         }
-        drawFrame(time);
+        if (previousFrameTime) motionTime += Math.min(time - previousFrameTime, 100);
+        previousFrameTime = time;
+        drawFrame(time, motionTime);
         frameHandle = requestAnimationFrame(tick);
       };
       frameHandle = requestAnimationFrame(tick);
