@@ -1227,26 +1227,6 @@ const LOVE_STORY = {
         let pointerY = 0;
         let pointerTargetX = 0;
         let pointerTargetY = 0;
-        const moonPathSegments = [
-          [
-            { x: .15, y: .22 },
-            { x: .27, y: .22 },
-            { x: .38, y: .36 },
-            { x: .5, y: .48 }
-          ],
-          [
-            { x: .5, y: .48 },
-            { x: .64, y: .66 },
-            { x: .66, y: .71 },
-            { x: .83, y: .78 }
-          ],
-          [
-            { x: .83, y: .78 },
-            { x: .97, y: .84 },
-            { x: 1.12, y: 1.02 },
-            { x: 1.24, y: 1.16 }
-          ]
-        ];
         const smoothstep = (edge0, edge1, value) => {
           const progress = Math.max(0, Math.min(1, (value - edge0) / (edge1 - edge0)));
           return progress * progress * (3 - 2 * progress);
@@ -1295,21 +1275,8 @@ const LOVE_STORY = {
               group.rotation.y = time * .000035;
               group.rotation.x = Math.sin(time * .00011) * .025;
               const travel = (time % 26000) / 26000;
-              const segmentIndex = travel < .38 ? 0 : travel < .72 ? 1 : 2;
-              const path = moonPathSegments[segmentIndex];
-              const segmentStart = travel < .38 ? 0 : travel < .72 ? .38 : .72;
-              const segmentEnd = travel < .38 ? .38 : travel < .72 ? .72 : 1;
-              const segmentProgress = (travel - segmentStart) / (segmentEnd - segmentStart);
-              const inverseProgress = 1 - segmentProgress;
-              const [start, controlOne, controlTwo, end] = path;
-              const x = inverseProgress ** 3 * start.x
-                + 3 * inverseProgress ** 2 * segmentProgress * controlOne.x
-                + 3 * inverseProgress * segmentProgress ** 2 * controlTwo.x
-                + segmentProgress ** 3 * end.x;
-              const y = inverseProgress ** 3 * start.y
-                + 3 * inverseProgress ** 2 * segmentProgress * controlOne.y
-                + 3 * inverseProgress * segmentProgress ** 2 * controlTwo.y
-                + segmentProgress ** 3 * end.y;
+              const x = -.1 + travel * 1.2;
+              const y = .60 - .31 * Math.sin(Math.PI * travel);
               const fadeIn = smoothstep(0, .025, travel);
               const fadeOut = 1 - smoothstep(.94, .995, travel);
               const visibility = Math.min(fadeIn, fadeOut);
