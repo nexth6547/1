@@ -1012,15 +1012,15 @@ const LOVE_STORY = {
 
     const createLunarTextures = (THREE) => {
       const textureCanvas = document.createElement("canvas");
-      textureCanvas.width = 1024;
-      textureCanvas.height = 512;
+      textureCanvas.width = 2048;
+      textureCanvas.height = 1024;
       const textureContext = textureCanvas.getContext("2d");
       if (!textureContext) throw new Error("Impossible de créer le canevas de texture lunaire.");
       const textureWidth = textureCanvas.width;
       const textureHeight = textureCanvas.height;
       const image = textureContext.createImageData(textureWidth, textureHeight);
       const heightData = new Uint8ClampedArray(image.data.length);
-      const noiseLayers = [4, 8, 16, 32, 64, 128, 256].map((columns) => {
+      const noiseLayers = [4, 8, 16, 32, 64, 128, 256, 512].map((columns) => {
         const rows = columns / 2;
         const values = Float32Array.from({ length: columns * rows }, Math.random);
         return { columns, rows, values };
@@ -1042,9 +1042,9 @@ const LOVE_STORY = {
         return top * (1 - ty) + bottom * ty;
       };
       const craters = [
-        { count: 38, radius: [.009, .024], depth: [.09, .2] },
-        { count: 220, radius: [.0025, .009], depth: [.055, .15] },
-        { count: 700, radius: [.0008, .0035], depth: [.025, .09] }
+        { count: 30, radius: [.008, .02], depth: [.1, .22] },
+        { count: 320, radius: [.0025, .009], depth: [.065, .17] },
+        { count: 1100, radius: [.001, .0045], depth: [.035, .12] }
       ].flatMap(({ count, radius, depth }) => Array.from({ length: count }, () => ({
         x: Math.random(),
         y: randomBetween(.025, .975),
@@ -1052,12 +1052,13 @@ const LOVE_STORY = {
         depth: randomBetween(...depth)
       })));
       const maria = [
-        { x: .16, y: .32, radiusX: .11, radiusY: .13, depth: .76 },
-        { x: .34, y: .61, radiusX: .14, radiusY: .1, depth: .66 },
-        { x: .49, y: .39, radiusX: .13, radiusY: .17, depth: .82 },
-        { x: .68, y: .57, radiusX: .12, radiusY: .12, depth: .72 },
-        { x: .83, y: .34, radiusX: .1, radiusY: .16, depth: .6 },
-        { x: .93, y: .72, radiusX: .1, radiusY: .09, depth: .56 }
+        { x: .13, y: .31, radiusX: .065, radiusY: .09, depth: .78 },
+        { x: .28, y: .62, radiusX: .075, radiusY: .06, depth: .7 },
+        { x: .45, y: .38, radiusX: .085, radiusY: .11, depth: .84 },
+        { x: .61, y: .69, radiusX: .06, radiusY: .07, depth: .66 },
+        { x: .72, y: .44, radiusX: .07, radiusY: .085, depth: .76 },
+        { x: .87, y: .3, radiusX: .06, radiusY: .095, depth: .62 },
+        { x: .94, y: .74, radiusX: .055, radiusY: .06, depth: .58 }
       ];
       const craterRelief = new Float32Array(textureWidth * textureHeight);
       craters.forEach((crater) => {
@@ -1089,12 +1090,13 @@ const LOVE_STORY = {
           const u = x / textureWidth;
           const broadNoise = noiseAt(noiseLayers[1], u, v);
           const noise = noiseAt(noiseLayers[0], u, v) * .32
-            + broadNoise * .23
-            + noiseAt(noiseLayers[2], u, v) * .17
+            + broadNoise * .21
+            + noiseAt(noiseLayers[2], u, v) * .16
             + noiseAt(noiseLayers[3], u, v) * .12
-            + noiseAt(noiseLayers[4], u, v) * .08
-            + noiseAt(noiseLayers[5], u, v) * .05
-            + noiseAt(noiseLayers[6], u, v) * .03;
+            + noiseAt(noiseLayers[4], u, v) * .085
+            + noiseAt(noiseLayers[5], u, v) * .055
+            + noiseAt(noiseLayers[6], u, v) * .035
+            + noiseAt(noiseLayers[7], u, v) * .025;
           let mariaShade = 0;
           maria.forEach((sea) => {
             let dx = Math.abs(u - sea.x);
@@ -1109,8 +1111,11 @@ const LOVE_STORY = {
           let relief = .48 + (noise - .5) * .22 + craterRelief[y * textureWidth + x];
           relief = Math.max(0, Math.min(1, relief));
           const craterDetail = craterRelief[y * textureWidth + x];
-          const grain = (noise - .5) * 30 + (relief - .48) * 42 + craterDetail * 82;
-          const tone = 198 + grain - mariaShade * 58;
+          const grain = (noise - .5) * 25
+            + (noiseAt(noiseLayers[7], u, v) - .5) * 52
+            + (relief - .48) * 36
+            + craterDetail * 108;
+          const tone = 201 + grain - mariaShade * 64;
           const pixel = (y * textureWidth + x) * 4;
           image.data[pixel] = Math.max(0, Math.min(255, tone - 5));
           image.data[pixel + 1] = Math.max(0, Math.min(255, tone));
@@ -1168,36 +1173,33 @@ const LOVE_STORY = {
         const material = new THREE.MeshStandardMaterial({
           map: diffuse,
           bumpMap: bump,
-          bumpScale: .16,
+          bumpScale: .24,
           displacementMap: bump,
-          displacementScale: .032,
+          displacementScale: .04,
           roughness: 1,
           metalness: 0,
           transparent: true
         });
         const moon = new THREE.Mesh(geometry, material);
         const atmosphere = new THREE.Mesh(
-          new THREE.SphereGeometry(1.12, 96, 64),
+          new THREE.PlaneGeometry(4, 4),
           new THREE.ShaderMaterial({
             uniforms: { glow: { value: .2 }, visibility: { value: 1 } },
             vertexShader: `
-              varying vec3 vNormal;
-              varying vec3 vViewDirection;
+              varying vec2 vUv;
               void main() {
-                vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
-                vNormal = normalize(normalMatrix * normal);
-                vViewDirection = normalize(-viewPosition.xyz);
-                gl_Position = projectionMatrix * viewPosition;
+                vUv = uv;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
               }
             `,
             fragmentShader: `
               uniform float glow;
               uniform float visibility;
-              varying vec3 vNormal;
-              varying vec3 vViewDirection;
+              varying vec2 vUv;
               void main() {
-                float rim = pow(1.0 - max(dot(normalize(vNormal), normalize(vViewDirection)), 0.0), 2.4);
-                gl_FragColor = vec4(vec3(0.82, 0.87, 1.0), rim * glow * visibility);
+                float radius = length((vUv - 0.5) * 2.0);
+                float halo = exp(-radius * radius * 7.0) * (1.0 - smoothstep(0.55, 1.0, radius));
+                gl_FragColor = vec4(vec3(0.9, 0.86, 0.76), halo * glow * visibility);
               }
             `,
             transparent: true,
@@ -1205,6 +1207,7 @@ const LOVE_STORY = {
             blending: THREE.AdditiveBlending
           })
         );
+        atmosphere.position.z = -.08;
         atmosphere.renderOrder = 1;
         const group = new THREE.Group();
         group.add(moon, atmosphere);
@@ -1217,9 +1220,9 @@ const LOVE_STORY = {
         let pointerTargetY = 0;
         const moonPathSegments = [
           [
-            { x: .06, y: .12 },
-            { x: .19, y: .1 },
-            { x: .34, y: .28 },
+            { x: .15, y: .2 },
+            { x: .27, y: .18 },
+            { x: .38, y: .34 },
             { x: .5, y: .48 }
           ],
           [
@@ -1256,7 +1259,7 @@ const LOVE_STORY = {
             frustumHeight = viewFrustumHeight;
             const radius = Math.max(.34, Math.min(.62, viewWidth * .00045));
             group.scale.setScalar(radius);
-            group.position.set(-nextFrustumWidth * .43, viewFrustumHeight * .38, 0);
+            group.position.set(-nextFrustumWidth * .35, viewFrustumHeight * .3, 0);
             renderer.render(scene, camera);
           },
           render(time) {
@@ -1265,7 +1268,7 @@ const LOVE_STORY = {
               pointerY += (pointerTargetY - pointerY) * .11;
               group.rotation.y = time * .000035;
               group.rotation.x = Math.sin(time * .00011) * .025;
-              const travel = (time % 42000) / 42000;
+              const travel = (time % 36000) / 36000;
               const segmentIndex = travel < .38 ? 0 : travel < .72 ? 1 : 2;
               const path = moonPathSegments[segmentIndex];
               const segmentStart = travel < .38 ? 0 : travel < .72 ? .38 : .72;
@@ -1304,9 +1307,9 @@ const LOVE_STORY = {
     const resize = () => {
       if (welcomeScreen.hidden) return;
       const bounds = welcomeScreen.getBoundingClientRect();
-      const ratio = Math.min(window.devicePixelRatio || 1, 1.75);
-      width = Math.max(1, bounds.width);
-      height = Math.max(1, bounds.height);
+      const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
+      width = Math.max(1, window.innerWidth || bounds.width);
+      height = Math.max(1, window.innerHeight || bounds.height);
       moonScene?.resize(width, height);
       canvas.width = width * ratio;
       canvas.height = height * ratio;
