@@ -99,14 +99,17 @@ const LOVE_STORY = {
       title: "La chasse aux étoiles",
       calendarMonth: "Mars",
       label: "Les étoiles",
-      subtitle: "Les étoiles filantes cachent un poème. Clique-les dans le bon ordre.",
+      subtitle: "Les étoiles filantes cachent un poème. Repère les signes blancs et clique-les dans le bon ordre.",
       game: {
         type: "stars",
-        sequence: ["rose", "gold", "blue", "rose", "gold", "blue"],
+        sequence: ["ring", "diamond", "cross", "spark", "orbit", "asterisk"],
         stars: [
-          { id: "rose", glyph: "✦", color: "rose" },
-          { id: "gold", glyph: "✧", color: "gold" },
-          { id: "blue", glyph: "✶", color: "blue" }
+          { id: "ring", sign: "○", name: "anneau" },
+          { id: "diamond", sign: "◇", name: "losange" },
+          { id: "cross", sign: "✛", name: "croix" },
+          { id: "spark", sign: "✧", name: "étoile fine" },
+          { id: "orbit", sign: "⊙", name: "orbite" },
+          { id: "asterisk", sign: "✣", name: "étoile à quatre branches" }
         ],
         poem: ["Une étoile pour notre rencontre,", "une autre pour chacun de nos rires,", "et toutes celles du ciel", "pour les rêves qu'il nous reste à vivre."]
       },
@@ -1648,7 +1651,7 @@ const LOVE_STORY = {
 
   function renderStars(config) {
     starFieldResizeObserver?.disconnect();
-    gameContent.innerHTML = `<div class="game-panel stars-panel"><p class="activity-kicker">La constellation attend son poème</p><p class="star-order-label">Les six étoiles clés, dans l'ordre</p><div class="star-order" aria-label="Séquence des six étoiles"></div><div class="shooting-star-field" role="group" aria-label="Étoiles filantes à cliquer dans l'ordre"><div class="starfield-nebula" aria-hidden="true"></div><div class="starfield-sparkles" aria-hidden="true"></div><svg class="star-constellation" aria-hidden="true" focusable="false"><path class="star-constellation-glow"></path><path class="star-constellation-line"></path><g class="star-constellation-nodes"></g></svg></div><p class="activity-feedback star-feedback" aria-live="polite">Observe les couleurs et suis l'ordre de la constellation.</p><div class="star-progress" aria-label="Progression du poème"></div><div class="revealed-poem" hidden></div><button class="button button-primary star-finish" type="button" hidden>Garder ce poème ↗</button></div>`;
+    gameContent.innerHTML = `<div class="game-panel stars-panel"><p class="activity-kicker">La constellation attend son poème</p><p class="star-order-label">L'ordre à suivre</p><div class="star-order" aria-label="Séquence des six signes"></div><div class="shooting-star-field" role="group" aria-label="Étoiles filantes à cliquer dans l'ordre"><div class="starfield-nebula" aria-hidden="true"></div><div class="starfield-sparkles" aria-hidden="true"></div><svg class="star-constellation" aria-hidden="true" focusable="false"><path class="star-constellation-glow"></path><path class="star-constellation-line"></path><g class="star-constellation-nodes"></g></svg></div><p class="activity-feedback star-feedback" aria-live="polite">Repère les signes blancs et suis-les dans l'ordre de la constellation.</p><div class="star-progress" aria-label="Progression du poème"></div><div class="revealed-poem" hidden></div><button class="button button-primary star-finish" type="button" hidden>Garder ce poème ↗</button></div>`;
     const field = $(".shooting-star-field");
     const progress = $(".star-progress");
     const order = $(".star-order");
@@ -1661,14 +1664,14 @@ const LOVE_STORY = {
     const constellationPoints = [];
     const movingTargets = [];
     const decoyStars = [
-      { glyph: "✧", color: "gold" },
-      { glyph: "✦", color: "rose" },
-      { glyph: "✶", color: "blue" },
-      { glyph: "✷", color: "gold" },
-      { glyph: "✧", color: "blue" },
-      { glyph: "✦", color: "gold" },
-      { glyph: "✷", color: "rose" },
-      { glyph: "✶", color: "rose" }
+      { sign: "○", name: "anneau" },
+      { sign: "◇", name: "losange" },
+      { sign: "✛", name: "croix" },
+      { sign: "✧", name: "étoile fine" },
+      { sign: "⊙", name: "orbite" },
+      { sign: "✣", name: "étoile à quatre branches" },
+      { sign: "◇", name: "losange" },
+      { sign: "○", name: "anneau" }
     ];
 
     for (let index = 0; index < 38; index += 1) {
@@ -1687,6 +1690,13 @@ const LOVE_STORY = {
           element.style.setProperty(`--flight-x${index}`, `${point.x * width}px`);
           element.style.setProperty(`--flight-y${index}`, `${point.y * height}px`);
         });
+        const direction = route[1];
+        const origin = route[0];
+        const trailAngle = Math.atan2(
+          (direction.y - origin.y) * height,
+          (direction.x - origin.x) * width
+        ) * 180 / Math.PI;
+        element.style.setProperty("--star-trail-angle", `${trailAngle}deg`);
       });
     }
 
@@ -1716,20 +1726,28 @@ const LOVE_STORY = {
       const starConfig = config.stars.find((star) => star.id === starId);
       if (!starConfig) return;
       const orderDot = document.createElement("span");
-      orderDot.className = `star-order-dot star-${starConfig.color}${index === 0 ? " is-next" : ""}`;
-      orderDot.textContent = starConfig.glyph;
-      orderDot.setAttribute("aria-label", `${index + 1} : ${starConfig.color}`);
+      orderDot.className = `star-order-dot${index === 0 ? " is-next" : ""}`;
+      orderDot.textContent = starConfig.sign;
+      orderDot.setAttribute("aria-label", `${index + 1} : ${starConfig.name}, signe ${starConfig.sign}`);
       order.append(orderDot);
     });
 
     function createRoute(index) {
       const seed = index + 1;
-      return [
-        { x: 8 + seed * 23 % 84, y: 8 + seed * 37 % 84 },
-        { x: 8 + (seed * 41 + 27) % 84, y: 8 + (seed * 29 + 39) % 84 },
-        { x: 8 + (seed * 53 + 61) % 84, y: 8 + (seed * 17 + 51) % 84 },
-        { x: 8 + (seed * 31 + 12) % 84, y: 8 + (seed * 43 + 23) % 84 }
-      ];
+      const phase = seed * 1.21;
+      const centerX = 50 + Math.sin(seed * 2.7) * 6;
+      const centerY = 50 + Math.cos(seed * 1.9) * 5;
+      const radiusX = 32 + seed % 3 * 2;
+      const radiusY = 28 + seed % 4 * 2;
+      return Array.from({ length: 5 }, (_, step) => {
+        const angle = phase + step * Math.PI * .48;
+        const x = centerX + Math.cos(angle) * radiusX + Math.sin(angle * 1.55 + phase) * 6;
+        const y = centerY + Math.sin(angle * .82 + phase) * radiusY + Math.cos(angle * 1.4 - phase) * 6;
+        return {
+          x: Math.max(8, Math.min(92, x)),
+          y: Math.max(8, Math.min(92, y))
+        };
+      });
     }
 
     function updateNextStar() {
@@ -1745,23 +1763,31 @@ const LOVE_STORY = {
       const isDecoy = sequenceIndex === null;
       const button = document.createElement("button");
       button.type = "button";
-      button.className = `shooting-target star-${starConfig.color}${isDecoy ? " is-decoy" : ""}`;
+      button.className = `shooting-target${isDecoy ? " is-decoy" : ""}`;
       button.style.setProperty("--star-duration", `${9 + index % 5 * 1.35}s`);
       button.style.setProperty("--star-delay", `${-index * 1.37}s`);
+      button.style.setProperty("--star-trail-duration", `${1.6 + index % 5 * .24}s`);
       button.setAttribute(
         "aria-label",
         isDecoy
-          ? `Étoile leurre ${index - config.sequence.length + 1}`
-          : `Étoile ${starConfig.color}, étape ${sequenceIndex + 1} sur ${config.sequence.length}`
+          ? `Étoile leurre, signe ${starConfig.sign}`
+          : `Étoile ${starConfig.name}, signe ${starConfig.sign}, étape ${sequenceIndex + 1} sur ${config.sequence.length}`
       );
       if (!isDecoy) button.dataset.sequenceIndex = String(sequenceIndex);
       const core = document.createElement("span");
       core.className = "shooting-star-core";
-      core.textContent = starConfig.glyph;
+      core.textContent = "✦";
+      const sign = document.createElement("span");
+      sign.className = "shooting-star-symbol";
+      sign.textContent = starConfig.sign;
+      sign.setAttribute("aria-hidden", "true");
+      const trail = document.createElement("span");
+      trail.className = "shooting-star-trail";
+      trail.setAttribute("aria-hidden", "true");
       const particles = document.createElement("span");
       particles.className = "shooting-star-particles";
       particles.setAttribute("aria-hidden", "true");
-      button.append(core, particles);
+      button.append(trail, core, sign, particles);
       const route = createRoute(index);
       movingTargets.push({ element: button, route });
       button.addEventListener("click", () => {

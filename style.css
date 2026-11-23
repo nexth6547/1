@@ -555,9 +555,9 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   filter: blur(7px);
 }
 .star-constellation-line {
-  stroke: rgba(255,224,158,.95);
+  stroke: rgba(255,248,225,.92);
   stroke-width: 2;
-  filter: drop-shadow(0 0 6px rgba(255,214,129,.9));
+  filter: drop-shadow(0 0 7px rgba(255,244,218,.88));
   animation: constellation-draw 520ms ease-out both;
 }
 .star-constellation-node {
@@ -570,10 +570,7 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
 }
 .star-order-label { margin: 0 0 .45rem; color: #aaa38e; font-size: .65rem; letter-spacing: .08em; text-align: center; }
 .star-order { display: flex; justify-content: center; gap: .75rem; margin-bottom: .85rem; }
-.star-order-dot { color: #e8dfc7; font-size: 1.15rem; opacity: .48; transition: opacity 180ms ease, filter 180ms ease, transform 180ms ease; }
-.star-order-dot.star-rose { color: #f3c1b0; }
-.star-order-dot.star-gold { color: #f3d982; }
-.star-order-dot.star-blue { color: #b6d6ee; }
+.star-order-dot { color: #fff7e8; font-size: 1.15rem; opacity: .48; transition: opacity 180ms ease, filter 180ms ease, transform 180ms ease; }
 .star-order-dot.is-lit { opacity: 1; filter: drop-shadow(0 0 8px currentColor); transform: scale(1.15); }
 .star-order-dot.is-next { opacity: 1; filter: drop-shadow(0 0 12px currentColor); animation: star-next-pulse 1.6s ease-in-out infinite; }
 .shooting-target {
@@ -588,7 +585,7 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   border: 1px solid transparent;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(207,222,255,.08), transparent 67%);
-  color: #fff3cc;
+  color: #fff7e8;
   cursor: pointer;
   filter: drop-shadow(0 0 12px currentColor);
   animation: star-flight var(--star-duration, 12s) ease-in-out infinite alternate;
@@ -596,18 +593,34 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   transition: background 180ms ease, border-color 180ms ease, filter 180ms ease, opacity 460ms ease;
   will-change: transform;
 }
-.shooting-target::before {
+.shooting-star-trail {
   position: absolute;
-  top: 50%;
-  right: 58%;
-  width: clamp(6rem, 13vw, 10rem);
-  height: 2px;
-  background: linear-gradient(90deg, transparent, currentColor 82%, rgba(255,255,255,.95));
-  content: "";
-  opacity: .72;
-  filter: drop-shadow(0 0 5px currentColor);
-  transform: rotate(-16deg);
+  top: 27%;
+  right: 52%;
+  width: clamp(7rem, 15vw, 12rem);
+  height: 2.7rem;
+  border-bottom: 1.5px solid rgba(255,247,226,.48);
+  border-radius: 0 0 76% 54%;
+  background: radial-gradient(ellipse at 94% 84%, rgba(255,249,235,.34), rgba(220,232,248,.12) 38%, transparent 72%);
+  opacity: .76;
+  filter: blur(.55px) drop-shadow(0 0 5px rgba(255,244,220,.5));
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 62%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 18%, #000 62%, transparent);
+  transform: rotate(var(--star-trail-angle, -16deg));
   transform-origin: right center;
+  animation: star-tail-drift var(--star-trail-duration, 2s) ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.shooting-star-trail::before {
+  position: absolute;
+  inset: 20% 0 0;
+  background:
+    radial-gradient(1.5px 1.5px at 22% 72%, rgba(255,250,235,.8) 55%, transparent),
+    radial-gradient(1px 1px at 48% 45%, rgba(230,239,255,.68) 55%, transparent),
+    radial-gradient(1px 1px at 76% 75%, rgba(255,250,235,.55) 55%, transparent);
+  content: "";
+  animation: star-tail-particles 2.4s ease-in-out infinite alternate;
+  pointer-events: none;
 }
 .shooting-star-core {
   position: relative;
@@ -617,10 +630,26 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   height: 2.3rem;
   place-items: center;
   border-radius: 50%;
-  background: radial-gradient(circle, #fff 0 4%, currentColor 17%, transparent 76%);
+  color: #fff9eb;
+  background: radial-gradient(circle, #fff 0 5%, #fff8e9 18%, rgba(255,244,220,.42) 43%, transparent 77%);
   font-size: 1.4rem;
-  text-shadow: 0 0 8px #fff, 0 0 20px currentColor;
+  text-shadow: 0 0 8px #fff, 0 0 20px rgba(255,246,225,.9);
   transition: transform 180ms ease, filter 180ms ease;
+}
+.shooting-star-symbol {
+  position: absolute;
+  z-index: 3;
+  top: .55rem;
+  right: .52rem;
+  display: grid;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  place-items: center;
+  color: #fffaf0;
+  font-size: .79rem;
+  line-height: 1;
+  text-shadow: 0 0 5px rgba(255,255,255,.9), 0 0 11px rgba(255,244,220,.72);
+  pointer-events: none;
 }
 .shooting-star-particles {
   position: absolute;
@@ -628,9 +657,9 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   border-radius: 50%;
   background:
     radial-gradient(1.5px 1.5px at 20% 27%, #fff 60%, transparent),
-    radial-gradient(1px 1px at 73% 18%, currentColor 60%, transparent),
+    radial-gradient(1px 1px at 73% 18%, rgba(255,247,226,.9) 60%, transparent),
     radial-gradient(1px 1px at 82% 72%, #fff 60%, transparent),
-    radial-gradient(1px 1px at 32% 85%, currentColor 60%, transparent);
+    radial-gradient(1px 1px at 32% 85%, rgba(255,247,226,.9) 60%, transparent);
   opacity: .75;
   animation: star-particle-spin 5s linear infinite;
 }
@@ -660,9 +689,6 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   filter: brightness(1.35);
 }
 .shooting-target:focus-visible { outline: 2px solid rgba(255,224,158,.9); outline-offset: 2px; }
-.shooting-target.star-rose { color: #f3c1b0; }
-.shooting-target.star-gold { color: #f3d982; }
-.shooting-target.star-blue { color: #b6d6ee; }
 .shooting-target.is-caught { animation-play-state: paused; opacity: 0; pointer-events: none; }
 .shooting-target.is-caught .shooting-star-core { animation: star-caught 460ms ease-out forwards; }
 .shooting-target.is-wrong .shooting-star-core { animation: star-wrong 540ms ease; }
@@ -670,10 +696,13 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
 .star-feedback.is-error { color: #b9c9e8; text-shadow: 0 0 12px rgba(133,167,229,.3); }
 @keyframes star-flight {
   0% { transform: translate3d(var(--flight-x0), var(--flight-y0), 0) translate(-50%, -50%); }
-  33% { transform: translate3d(var(--flight-x1), var(--flight-y1), 0) translate(-50%, -50%); }
-  66% { transform: translate3d(var(--flight-x2), var(--flight-y2), 0) translate(-50%, -50%); }
-  100% { transform: translate3d(var(--flight-x3), var(--flight-y3), 0) translate(-50%, -50%); }
+  25% { transform: translate3d(var(--flight-x1), var(--flight-y1), 0) translate(-50%, -50%); }
+  50% { transform: translate3d(var(--flight-x2), var(--flight-y2), 0) translate(-50%, -50%); }
+  75% { transform: translate3d(var(--flight-x3), var(--flight-y3), 0) translate(-50%, -50%); }
+  100% { transform: translate3d(var(--flight-x4), var(--flight-y4), 0) translate(-50%, -50%); }
 }
+@keyframes star-tail-drift { from { opacity: .43; scale: .88 .78; } to { opacity: .88; scale: 1.05 1.08; } }
+@keyframes star-tail-particles { from { opacity: .22; transform: translate(-4px, 2px); } to { opacity: .9; transform: translate(3px, -2px); } }
 @keyframes star-wrong { 15%, 55%, 85% { transform: translateX(-6px) rotate(-6deg) scale(1.1); } 35%, 70% { transform: translateX(6px) rotate(6deg) scale(1.1); } }
 @keyframes star-caught { 0% { opacity: 1; transform: scale(1); } 35% { opacity: 1; transform: scale(1.8); } 100% { opacity: 0; transform: scale(.2); } }
 @keyframes star-next-pulse { 0%, 100% { opacity: .58; transform: scale(.88); } 50% { opacity: 1; transform: scale(1.12); } }
