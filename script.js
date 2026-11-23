@@ -93,7 +93,7 @@ const LOVE_STORY = {
           { left: "Notre chanson", right: "Celle que l'on chante ensemble" }
         ]
       },
-      personalMessage: "À venir."
+      personalMessage: ""
     },
     {
       title: "La chasse aux étoiles",
@@ -110,7 +110,7 @@ const LOVE_STORY = {
         ],
         poem: ["Une étoile pour notre rencontre,", "une autre pour chacun de nos rires,", "et toutes celles du ciel", "pour les rêves qu'il nous reste à vivre."]
       },
-      personalMessage: "À venir."
+      personalMessage: ""
     },
     {
       title: "Le cap de la moitié",
@@ -129,7 +129,7 @@ const LOVE_STORY = {
         prompt: "Écoute la mélodie, puis rejoue-la note après note.",
         message: "Six mois déjà, et pourtant j'ai encore l'impression de découvrir chaque jour une nouvelle petite chose à aimer chez toi.\n\nMerci d'être ma mélodie préférée."
       },
-      personalMessage: "À venir."
+      personalMessage: ""
     },
     {
       title: "Le cherche et trouve",
@@ -151,7 +151,7 @@ const LOVE_STORY = {
           { glyph: "🧶", left: "75%", top: "43%" }, { glyph: "🪻", left: "10%", top: "83%" }
         ]
       },
-      personalMessage: "À venir."
+      personalMessage: ""
     },
     {
       title: "Le déchiffrage de code",
@@ -324,9 +324,15 @@ const LOVE_STORY = {
     if (completed.length !== LOVE_STORY.months.length) return;
     $("#reveal-title").textContent = "Le grand mot final";
     const recap = LOVE_STORY.months
-      .map((month, index) => `Mois ${index + 1} · ${month.calendarMonth} · ${month.title}\n${month.personalMessage}`)
+      .map((month, index) => {
+        const heading = `Mois ${index + 1} · ${month.calendarMonth} · ${month.title}`;
+        return month.personalMessage.trim() ? `${heading}\n${month.personalMessage}` : heading;
+      })
       .join("\n\n");
-    $("#reveal-copy").textContent = `${LOVE_STORY.finalMessage}\n\n✦ Notre année en quelques mots ✦\n\n${recap}`;
+    const revealCopy = $("#reveal-copy");
+    revealCopy.textContent = `${LOVE_STORY.finalMessage}\n\n✦ Notre année en quelques mots ✦\n\n${recap}`;
+    revealCopy.hidden = false;
+    $(".reveal-card .letter-divider").hidden = false;
     dialog.classList.add("is-final");
     $("#continue-button").textContent = "Fermer cette lettre";
     $("#continue-button").onclick = () => {
@@ -2004,7 +2010,11 @@ const LOVE_STORY = {
     dialog.classList.remove("is-final");
     const month = LOVE_STORY.months[activeMonth];
     $("#reveal-title").textContent = `Mois ${activeMonth + 1} · ${month.calendarMonth} · ${month.title}`;
-    $("#reveal-copy").textContent = LOVE_STORY.months[activeMonth].personalMessage;
+    const revealCopy = $("#reveal-copy");
+    const hasPersonalMessage = month.personalMessage.trim().length > 0;
+    revealCopy.textContent = month.personalMessage;
+    revealCopy.hidden = !hasPersonalMessage;
+    $(".reveal-card .letter-divider").hidden = !hasPersonalMessage;
     $("#continue-button").textContent = activeMonth < LOVE_STORY.months.length - 1
       ? "Continuer vers le mois suivant ↗"
       : activeMonth === LOVE_STORY.months.length - 1
