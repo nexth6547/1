@@ -115,18 +115,12 @@ const LOVE_STORY = {
     {
       title: "Le cap de la moitié",
       calendarMonth: "Avril",
-      label: "La boîte à musique",
-      subtitle: "Quelques notes se sont échappées de notre boîte à musique. Rejoue la mélodie.",
+      label: "L'astrolabe nocturne",
+      subtitle: "Fais tourner les anneaux célestes et aligne les six premières lumières sur l'axe doré.",
       game: {
-        type: "music",
-        notes: [
-          { id: "do", label: "Do", frequency: 261.63 },
-          { id: "mi", label: "Mi", frequency: 329.63 },
-          { id: "sol", label: "Sol", frequency: 392 },
-          { id: "la", label: "La", frequency: 440 }
-        ],
-        sequence: ["do", "mi", "sol", "mi", "la"],
-        prompt: "Écoute la mélodie, puis rejoue-la note après note.",
+        type: "astrolabe",
+        prompt: "Aligne les six lumières avec l'axe doré. Clique sur une étoile, ou utilise les flèches gauche et droite.",
+        initialRotations: [120, 180, 240, 300, 60, 180],
         message: "Six mois déjà, et pourtant j'ai encore l'impression de découvrir chaque jour une nouvelle petite chose à aimer chez toi.\n\nMerci d'être ma mélodie préférée."
       },
       personalMessage: ""
@@ -360,7 +354,7 @@ const LOVE_STORY = {
     else if (month.game.type === "maze") renderMaze(month.game);
     else if (month.game.type === "matches") renderMatches(month.game);
     else if (month.game.type === "stars") renderStars(month.game);
-    else if (month.game.type === "music") renderMusic(month.game);
+    else if (month.game.type === "astrolabe") renderAstrolabe(month.game);
     else if (month.game.type === "seek") renderSeek(month.game);
     else if (month.game.type === "cipher") renderCipher(month.game);
     else if (month.game.type === "polaroids") renderPolaroids(month.game);
@@ -1721,79 +1715,146 @@ const LOVE_STORY = {
     }
   }
 
-  function renderMusic(config) {
-    gameContent.innerHTML = `<div class="game-panel music-panel"><div class="music-box-art" aria-hidden="true">♫</div><p class="activity-kicker"></p><button class="text-button music-listen" type="button">Écouter la mélodie ♫</button><div class="music-notes"></div><div class="music-sequence" aria-label="Notes jouées"></div><p class="activity-feedback" aria-live="polite"></p><div class="music-message" hidden></div><button class="button button-primary music-finish" type="button" hidden>Garder ce morceau ↗</button></div>`;
-    $(".activity-kicker").textContent = config.prompt;
-    const notes = $(".music-notes");
-    const sequenceDisplay = $(".music-sequence");
-    const feedback = $(".activity-feedback");
-    let position = 0;
-    config.notes.forEach((note) => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "music-note";
-      button.dataset.note = note.id;
-      button.setAttribute("aria-label", `Jouer la note ${note.label}`);
-      button.innerHTML = `<span class="music-note-orb"></span><span class="music-note-label"></span>`;
-      button.querySelector(".music-note-label").textContent = note.label;
-      button.addEventListener("click", () => {
-        if (position >= config.sequence.length) return;
-        playNote(note.frequency);
-        const pip = document.createElement("span");
-        pip.className = "music-note-pip";
-        pip.textContent = note.label;
-        sequenceDisplay.append(pip);
-        if (config.sequence[position] !== note.id) {
-          position = 0;
-          sequenceDisplay.replaceChildren();
-          feedback.textContent = "La mélodie s'est envolée… recommence doucement.";
-          return;
-        }
-        position += 1;
-        feedback.textContent = `${position} sur ${config.sequence.length} notes retrouvées.`;
-        if (position === config.sequence.length) {
-          $(".music-message").textContent = config.message;
-          $(".music-message").hidden = false;
-          $(".music-finish").hidden = false;
-          feedback.textContent = "La boîte s'ouvre et livre son message.";
-        }
-      });
-      notes.append(button);
+  function renderAstrolabe(config) {
+    gameContent.innerHTML = `
+      <div class="game-panel astrolabe-panel">
+        <p class="activity-kicker astrolabe-kicker"></p>
+        <div class="astrolabe-stage" role="group" aria-label="Astrolabe nocturne à six anneaux">
+          <div class="astrolabe-particles" aria-hidden="true"></div>
+          <div class="astrolabe-axis" aria-hidden="true"><span></span></div>
+          <div class="astrolabe-dial" tabindex="0" aria-label="Cadran céleste">
+            <div class="astrolabe-inner-orbit" aria-hidden="true"></div>
+            <div class="astrolabe-stars"></div>
+            <div class="astrolabe-core" aria-hidden="true"><span>VI</span></div>
+          </div>
+        </div>
+        <p class="activity-feedback astrolabe-feedback" aria-live="polite">6 lumières attendent leur alignement.</p>
+        <div class="astrolabe-message" hidden></div>
+        <button class="button button-primary astrolabe-finish" type="button" hidden>Garder ce morceau ↗</button>
+      </div>`;
+
+    $(".astrolabe-kicker").textContent = config.prompt;
+    const stars = $(".astrolabe-stars");
+    const dial = $(".astrolabe-dial");
+    const feedback = $(".astrolabe-feedback");
+    const particles = $(".astrolabe-particles");
+    const rotations = [...config.initialRotations];
+    const step = 30;
+    let aligned = 0;
+    let selected = 0;
+
+    const particleDots = Array.from({ length: 22 }, (_, index) => {
+      const dot = document.createElement("span");
+      dot.style.setProperty("--particle-x", `${8 + (index * 37 % 84)}%`);
+      dot.style.setProperty("--particle-y", `${8 + (index * 53 % 82)}%`);
+      dot.style.setProperty("--particle-delay", `${(index % 7) * .18}s`);
+      particles.append(dot);
+      return dot;
     });
-    $(".music-listen").addEventListener("click", () => {
+
+    const targets = rotations.map((_, index) => index * 60);
+    const markers = rotations.map((rotation, index) => {
+      const marker = document.createElement("button");
+      marker.type = "button";
+      marker.className = "astrolabe-marker";
+      marker.dataset.index = String(index);
+      marker.setAttribute("aria-label", `Repère céleste ${index + 1}, tourner avec les touches gauche ou droite`);
+      marker.innerHTML = `<span class="astrolabe-ring"></span><span class="astrolabe-light">✦</span><span class="astrolabe-month">${index + 1}</span>`;
+      marker.style.setProperty("--marker-angle", `${targets[index]}deg`);
+      stars.append(marker);
+      return marker;
+    });
+
+    function updateMarker(index) {
+      const marker = markers[index];
+      const rotation = rotations[index];
+      const alignedOnAxis = ((targets[index] + rotation) % 360 + 360) % 360 === 270;
+      marker.style.setProperty("--marker-angle", `${targets[index] + rotation}deg`);
+      marker.classList.toggle("is-aligned", alignedOnAxis);
+      marker.classList.toggle("is-selected", selected === index);
+      marker.setAttribute("aria-pressed", alignedOnAxis ? "true" : "false");
+    }
+
+    function playAlignmentTone(index) {
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContextClass) {
-        config.sequence.forEach((noteId, index) => {
-          const note = config.notes.find((item) => item.id === noteId);
-          if (note) setTimeout(() => playNote(note.frequency), index * 480);
-        });
-        return;
-      }
+      if (!AudioContextClass) return;
       try {
         const context = new AudioContextClass();
-        config.sequence.forEach((noteId, index) => {
-          const note = config.notes.find((item) => item.id === noteId);
-          if (!note) return;
-          const start = context.currentTime + index * .48;
-          const oscillator = context.createOscillator();
-          const gain = context.createGain();
-          oscillator.type = "sine";
-          oscillator.frequency.value = note.frequency;
-          gain.gain.setValueAtTime(.0001, start);
-          gain.gain.exponentialRampToValueAtTime(.08, start + .025);
-          gain.gain.exponentialRampToValueAtTime(.0001, start + .38);
-          oscillator.connect(gain);
-          gain.connect(context.destination);
-          oscillator.start(start);
-          oscillator.stop(start + .4);
-        });
-        setTimeout(() => context.close(), config.sequence.length * 480 + 500);
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        const start = context.currentTime;
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(392 + index * 36, start);
+        oscillator.frequency.exponentialRampToValueAtTime(392 + index * 36 + 70, start + .32);
+        gain.gain.setValueAtTime(.0001, start);
+        gain.gain.exponentialRampToValueAtTime(.055, start + .035);
+        gain.gain.exponentialRampToValueAtTime(.0001, start + .48);
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+        oscillator.start(start);
+        oscillator.stop(start + .5);
+        oscillator.addEventListener("ended", () => context.close(), { once: true });
       } catch (error) {
-        console.warn("La mélodie ne peut pas être jouée dans ce navigateur.", error);
-        showToast("La mélodie audio est indisponible. Tu peux tout de même jouer les notes.");
+        console.warn("Le son de l’astrolabe est indisponible.", error);
+      }
+    }
+
+    function rotateMarker(index, direction) {
+      if (markers[index].classList.contains("is-aligned")) return;
+      selected = index;
+      rotations[index] = (rotations[index] + direction * step + 360) % 360;
+      updateMarker(index);
+      if (((targets[index] + rotations[index]) % 360 + 360) % 360 === 270) {
+        aligned += 1;
+        markers[index].disabled = true;
+        playAlignmentTone(index);
+        markers[index].animate(
+          [{ transform: "scale(1)" }, { transform: "scale(1.42)" }, { transform: "scale(1)" }],
+          { duration: 620, easing: "cubic-bezier(.2,.8,.3,1)" }
+        );
+        feedback.textContent = `${aligned} sur 6 lumières alignées.`;
+      } else {
+        feedback.textContent = "Tourne encore cette étoile vers l’axe doré.";
+      }
+
+      if (aligned === markers.length) {
+        dial.classList.add("is-complete");
+        $(".astrolabe-panel").classList.add("is-complete");
+        $(".astrolabe-message").textContent = config.message;
+        $(".astrolabe-message").hidden = false;
+        $(".astrolabe-finish").hidden = false;
+        feedback.textContent = "Les six lumières forment enfin une seule constellation.";
+        particleDots.forEach((dot) => dot.classList.add("is-lit"));
+      }
+    }
+
+    markers.forEach((marker, index) => {
+      updateMarker(index);
+      marker.addEventListener("click", () => rotateMarker(index, 1));
+    });
+
+    dial.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+        event.preventDefault();
+        rotateMarker(selected, event.key === "ArrowRight" ? 1 : -1);
+      } else if (/^[1-6]$/.test(event.key)) {
+        event.preventDefault();
+        selected = Number(event.key) - 1;
+        markers.forEach((_, index) => updateMarker(index));
+        markers[selected].focus();
       }
     });
-    $(".music-finish").addEventListener("click", completeMonth);
+
+    markers.forEach((marker) => {
+      marker.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+          event.preventDefault();
+          rotateMarker(Number(marker.dataset.index), event.key === "ArrowRight" ? 1 : -1);
+        }
+      });
+    });
+
+    $(".astrolabe-finish").addEventListener("click", completeMonth);
   }
 
   function renderSeek(config) {
