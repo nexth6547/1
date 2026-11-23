@@ -414,7 +414,11 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
 .hint-copy { min-height: 1.2rem; margin: .3rem 0 0; color: #b7abc1; font-size: .72rem; }
 
 .maze-panel { overflow: hidden; padding: clamp(1rem, 3vw, 1.8rem); background: radial-gradient(ellipse at 50% 0, rgba(42,53,81,.28), transparent 68%), rgba(7,10,18,.9); text-align: center; }
-.maze-shard-count { display: inline-flex; min-height: 2rem; align-items: center; margin: 0 auto .8rem; border: 1px solid rgba(232,198,111,.2); border-radius: 999px; background: rgba(232,198,111,.055); padding: .3rem .85rem; color: #e8d28f; font-size: .7rem; font-weight: 700; letter-spacing: .08em; }
+.maze-toolbar { display: flex; width: min(100%, 620px); align-items: center; justify-content: space-between; gap: .75rem; margin: 0 auto .8rem; }
+.maze-shard-count { display: inline-flex; min-height: 2rem; align-items: center; border: 1px solid rgba(232,198,111,.2); border-radius: 999px; background: rgba(232,198,111,.055); padding: .3rem .85rem; color: #e8d28f; font-size: .7rem; font-weight: 700; letter-spacing: .08em; }
+.maze-fog-toggle { min-height: 2rem; border: 1px solid rgba(151,177,208,.18); border-radius: 999px; background: rgba(12,18,30,.56); padding: .3rem .75rem; color: #aebbd0; cursor: pointer; font-size: .65rem; letter-spacing: .04em; transition: border-color 160ms ease, color 160ms ease, background 160ms ease; }
+.maze-fog-toggle:hover { border-color: rgba(232,198,111,.36); background: rgba(232,198,111,.06); color: #e8d28f; }
+.maze-fog-toggle:focus-visible { outline: 2px solid rgba(232,198,111,.55); outline-offset: 3px; }
 #maze-canvas { display: block; width: min(100%, 620px); height: auto; margin: 0 auto; border: 1px solid rgba(151,177,208,.2); border-radius: 1rem; background: #070b14; box-shadow: 0 16px 42px rgba(0,0,0,.4), inset 0 0 28px rgba(91,129,177,.08); cursor: crosshair; touch-action: none; }
 #maze-canvas:focus-visible { outline: 2px solid rgba(232,198,111,.62); outline-offset: 4px; }
 .maze-feedback { min-height: 1.5rem; margin: .9rem 0 0; color: #e2d4a9; font-family: "Playfair Display", Georgia, serif; font-size: .9rem; }

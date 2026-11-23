@@ -1185,7 +1185,7 @@ const LOVE_STORY = {
   };
 
   function renderMaze(config) {
-    gameContent.innerHTML = `<div class="game-panel maze-panel"><div class="maze-shard-count" aria-live="polite">Éclats : 0/3</div><canvas id="maze-canvas" width="640" height="640" tabindex="0" role="application" aria-label="Labyrinthe nocturne. Utilise les flèches, WASD ou ZQSD, ou glisse dans le labyrinthe." aria-describedby="maze-instructions maze-feedback"></canvas><p id="maze-feedback" class="maze-feedback" aria-live="polite">La lumière dorée cherche son chemin vers le cœur.</p><p id="maze-instructions" class="maze-instructions">Flèches, WASD ou ZQSD pour avancer · Clique dans une direction ou glisse pour guider la lumière.</p><div class="maze-mobile-controls" aria-label="Contrôles du labyrinthe"><button type="button" data-move="ArrowUp" aria-label="Haut">↑</button><button type="button" data-move="ArrowLeft" aria-label="Gauche">←</button><button type="button" data-move="ArrowDown" aria-label="Bas">↓</button><button type="button" data-move="ArrowRight" aria-label="Droite">→</button></div></div>`;
+    gameContent.innerHTML = `<div class="game-panel maze-panel"><div class="maze-toolbar"><div class="maze-shard-count" aria-live="polite">Éclats : 0/3</div><button class="maze-fog-toggle" type="button" aria-pressed="true">Brouillard : ON</button></div><canvas id="maze-canvas" width="640" height="640" tabindex="0" role="application" aria-label="Labyrinthe nocturne. Utilise les flèches, WASD ou ZQSD, ou glisse dans le labyrinthe." aria-describedby="maze-instructions maze-feedback"></canvas><p id="maze-feedback" class="maze-feedback" aria-live="polite">La lumière dorée cherche son chemin vers le cœur.</p><p id="maze-instructions" class="maze-instructions">Flèches, WASD ou ZQSD pour avancer · Clique dans une direction ou glisse pour guider la lumière.</p><div class="maze-mobile-controls" aria-label="Contrôles du labyrinthe"><button type="button" data-move="ArrowUp" aria-label="Haut">↑</button><button type="button" data-move="ArrowLeft" aria-label="Gauche">←</button><button type="button" data-move="ArrowDown" aria-label="Bas">↓</button><button type="button" data-move="ArrowRight" aria-label="Droite">→</button></div></div>`;
     const canvas = $("#maze-canvas");
     const context = canvas.getContext("2d");
     if (!context) {
@@ -1237,9 +1237,11 @@ const LOVE_STORY = {
     let bumpStarted = -Infinity;
     let bumpDirection = [0, 0];
     let lastParticleAt = 0;
+    let fogEnabled = true;
     let won = false;
     const feedback = $("#maze-feedback");
     const shardCounter = $(".maze-shard-count");
+    const fogToggle = $(".maze-fog-toggle");
     const animationDuration = 145;
     const visibilityRadius = 5.2;
 
@@ -1365,35 +1367,38 @@ const LOVE_STORY = {
         if (!collectedShards.has(index)) drawShard(context, x, y, time);
       });
 
-      fogContext.globalCompositeOperation = "source-over";
-      fogContext.clearRect(0, 0, canvas.width, canvas.height);
-      fogContext.fillStyle = "#03060f";
-      fogContext.fillRect(0, 0, canvas.width, canvas.height);
-      fogContext.save();
-      fogContext.globalCompositeOperation = "destination-out";
-      fogContext.beginPath();
-      visibleCells.forEach(({ x, y }) => fogContext.rect(x * tile, y * tile, tile, tile));
-      fogContext.clip();
-      const lightX = (visualX + .5) * tile;
-      const lightY = (visualY + .5) * tile;
-      const light = fogContext.createRadialGradient(lightX, lightY, tile * .22, lightX, lightY, tile * visibilityRadius);
-      light.addColorStop(0, "rgba(0,0,0,.98)");
-      light.addColorStop(.18, "rgba(0,0,0,.91)");
-      light.addColorStop(.42, "rgba(0,0,0,.72)");
-      light.addColorStop(.7, "rgba(0,0,0,.38)");
-      light.addColorStop(.9, "rgba(0,0,0,.1)");
-      light.addColorStop(1, "rgba(0,0,0,0)");
-      fogContext.fillStyle = light;
-      fogContext.fillRect(0, 0, canvas.width, canvas.height);
-      fogContext.restore();
-      context.drawImage(fogCanvas, 0, 0);
+      if (fogEnabled) {
+        fogContext.globalCompositeOperation = "source-over";
+        fogContext.clearRect(0, 0, canvas.width, canvas.height);
+        fogContext.fillStyle = "#03060f";
+        fogContext.fillRect(0, 0, canvas.width, canvas.height);
+        fogContext.save();
+        fogContext.globalCompositeOperation = "destination-out";
+        fogContext.beginPath();
+        visibleCells.forEach(({ x, y }) => fogContext.rect(x * tile, y * tile, tile, tile));
+        fogContext.clip();
+        const lightX = (visualX + .5) * tile;
+        const lightY = (visualY + .5) * tile;
+        const light = fogContext.createRadialGradient(lightX, lightY, tile * .22, lightX, lightY, tile * visibilityRadius);
+        light.addColorStop(0, "rgba(0,0,0,.98)");
+        light.addColorStop(.18, "rgba(0,0,0,.91)");
+        light.addColorStop(.42, "rgba(0,0,0,.72)");
+        light.addColorStop(.7, "rgba(0,0,0,.38)");
+        light.addColorStop(.9, "rgba(0,0,0,.1)");
+        light.addColorStop(1, "rgba(0,0,0,0)");
+        fogContext.fillStyle = light;
+        fogContext.fillRect(0, 0, canvas.width, canvas.height);
+        fogContext.restore();
+        context.drawImage(fogCanvas, 0, 0);
+      }
 
       const exitX = (exit.x + .5) * tile;
       const exitY = (exit.y + .5) * tile;
       context.save();
       context.globalCompositeOperation = "screen";
-      const heartAlpha = collectedShards.size === shardCells.length ? .62 : .14;
-      const heartGlow = context.createRadialGradient(exitX, exitY, tile * .2, exitX, exitY, tile * (collectedShards.size === shardCells.length ? 3.2 : 1.8));
+      const heartVisible = !fogEnabled || collectedShards.size === shardCells.length;
+      const heartAlpha = heartVisible ? .72 : .14;
+      const heartGlow = context.createRadialGradient(exitX, exitY, tile * .2, exitX, exitY, tile * (heartVisible ? 3.2 : 1.8));
       heartGlow.addColorStop(0, `rgba(244,114,182,${heartAlpha * .4})`);
       heartGlow.addColorStop(1, "rgba(244,114,182,0)");
       context.fillStyle = heartGlow;
@@ -1535,6 +1540,14 @@ const LOVE_STORY = {
         canvas.focus({ preventScroll: true });
         move(DIRECTIONS[button.dataset.move]);
       });
+    });
+    fogToggle.addEventListener("click", () => {
+      fogEnabled = !fogEnabled;
+      fogToggle.setAttribute("aria-pressed", String(fogEnabled));
+      fogToggle.textContent = `Brouillard : ${fogEnabled ? "ON" : "OFF"}`;
+      feedback.textContent = fogEnabled
+        ? "Le brouillard de guerre est activé."
+        : "La carte entière est éclairée.";
     });
     const panel = $(".maze-panel");
     panel.addEventListener("keydown", keydown);
