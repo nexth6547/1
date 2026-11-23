@@ -339,6 +339,7 @@ const LOVE_STORY = {
     selectedLeft = null;
     matchedPairs = new Set();
     const month = LOVE_STORY.months[index];
+    gameContent.classList.toggle("is-hunt", month.game.type === "hunt");
     $("#game-counter").textContent = `SOUVENIR ${String(index + 1).padStart(2, "0")} / 12`;
     $("#game-eyebrow").textContent = `Mois ${index + 1} · ${completed.includes(index) ? "À relire" : "À découvrir"}`;
     $("#game-title").textContent = month.title;

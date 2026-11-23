@@ -304,6 +304,7 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
 .game-heading h2 { margin-top: .8rem; font-size: clamp(2.3rem, 5vw, 3.5rem); }
 .game-heading p { margin: .8rem auto 0; max-width: 37rem; }
 .game-content { width: min(760px, calc(100% - 2rem)); margin: 0 auto; }
+.game-content.is-hunt { width: min(1120px, calc(100% - 2rem)); }
 .game-panel {
   border: 1px solid var(--line);
   border-radius: 1.35rem;
@@ -316,7 +317,7 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   --light-x: 50%;
   --light-y: 52%;
   position: relative;
-  height: clamp(350px, 48vw, 470px);
+  height: clamp(500px, 48vw, 650px);
   overflow: hidden;
   isolation: isolate;
   background: #101621;
@@ -356,17 +357,16 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
 .room-object {
   position: absolute;
   z-index: 4;
-  width: clamp(2.65rem, 5vw, 3.25rem);
+  width: clamp(3rem, 6vw, 4.5rem);
   aspect-ratio: 1;
   border: 1px solid transparent;
   border-radius: 50%;
   background: transparent;
   padding: 0;
-  cursor: pointer;
+  cursor: default;
   transform: translate(-50%, -50%);
-  transition: opacity 260ms ease, background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  transition: opacity 260ms ease;
 }
-.room-object:hover { border-color: rgba(255,235,195,.17); background: rgba(255,239,210,.055); box-shadow: 0 0 16px rgba(255,222,159,.12); }
 .room-object:focus-visible { border-color: rgba(255,235,195,.65); outline: 2px solid rgba(255,235,195,.7); outline-offset: 2px; background: rgba(255,239,210,.12); }
 .room-object.is-found { opacity: 0; pointer-events: none; }
 .hunt-hint {
@@ -681,7 +681,7 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   .game-topbar { min-height: 3.8rem; }
   .game-counter { font-size: .6rem; }
   .game-heading { padding-top: 1.2rem; }
-  .hunt-scene { height: clamp(330px, 94vw, 390px); }
+  .hunt-scene { height: clamp(380px, 100vw, 520px); }
   .hunt-hint { font-size: .7rem; }
   .inventory-item { padding-inline: .55rem; font-size: .62rem; }
   .answer-form { flex-direction: column; }
