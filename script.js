@@ -102,7 +102,7 @@ const LOVE_STORY = {
       subtitle: "Les étoiles filantes cachent un poème. Clique-les dans le bon ordre.",
       game: {
         type: "stars",
-        sequence: ["rose", "gold", "blue", "rose"],
+        sequence: ["rose", "gold", "blue", "rose", "gold", "blue"],
         stars: [
           { id: "rose", glyph: "✦", color: "rose" },
           { id: "gold", glyph: "✧", color: "gold" },
@@ -1648,7 +1648,7 @@ const LOVE_STORY = {
 
   function renderStars(config) {
     starFieldResizeObserver?.disconnect();
-    gameContent.innerHTML = `<div class="game-panel stars-panel"><p class="activity-kicker">La constellation attend son poème</p><p class="star-order-label">L'ordre à suivre</p><div class="star-order" aria-label="Séquence de couleurs"></div><div class="shooting-star-field" role="group" aria-label="Étoiles filantes à cliquer dans l'ordre"><div class="starfield-nebula" aria-hidden="true"></div><div class="starfield-sparkles" aria-hidden="true"></div><svg class="star-constellation" aria-hidden="true" focusable="false"><path class="star-constellation-glow"></path><path class="star-constellation-line"></path><g class="star-constellation-nodes"></g></svg></div><p class="activity-feedback star-feedback" aria-live="polite">Observe les couleurs et suis l'ordre de la constellation.</p><div class="star-progress" aria-label="Progression du poème"></div><div class="revealed-poem" hidden></div><button class="button button-primary star-finish" type="button" hidden>Garder ce poème ↗</button></div>`;
+    gameContent.innerHTML = `<div class="game-panel stars-panel"><p class="activity-kicker">La constellation attend son poème</p><p class="star-order-label">Les six étoiles clés, dans l'ordre</p><div class="star-order" aria-label="Séquence des six étoiles"></div><div class="shooting-star-field" role="group" aria-label="Étoiles filantes à cliquer dans l'ordre"><div class="starfield-nebula" aria-hidden="true"></div><div class="starfield-sparkles" aria-hidden="true"></div><svg class="star-constellation" aria-hidden="true" focusable="false"><path class="star-constellation-glow"></path><path class="star-constellation-line"></path><g class="star-constellation-nodes"></g></svg></div><p class="activity-feedback star-feedback" aria-live="polite">Observe les couleurs et suis l'ordre de la constellation.</p><div class="star-progress" aria-label="Progression du poème"></div><div class="revealed-poem" hidden></div><button class="button button-primary star-finish" type="button" hidden>Garder ce poème ↗</button></div>`;
     const field = $(".shooting-star-field");
     const progress = $(".star-progress");
     const order = $(".star-order");
@@ -1659,6 +1659,17 @@ const LOVE_STORY = {
     const constellationLine = $(".star-constellation-line");
     const constellationNodes = $(".star-constellation-nodes");
     const constellationPoints = [];
+    const movingTargets = [];
+    const decoyStars = [
+      { glyph: "✧", color: "gold" },
+      { glyph: "✦", color: "rose" },
+      { glyph: "✶", color: "blue" },
+      { glyph: "✷", color: "gold" },
+      { glyph: "✧", color: "blue" },
+      { glyph: "✦", color: "gold" },
+      { glyph: "✷", color: "rose" },
+      { glyph: "✶", color: "rose" }
+    ];
 
     for (let index = 0; index < 38; index += 1) {
       const sparkle = document.createElement("span");
@@ -1670,9 +1681,19 @@ const LOVE_STORY = {
       sparkleLayer.append(sparkle);
     }
 
+    function updateStarRoutes(width, height) {
+      movingTargets.forEach(({ element, route }) => {
+        route.forEach((point, index) => {
+          element.style.setProperty(`--flight-x${index}`, `${point.x * width}px`);
+          element.style.setProperty(`--flight-y${index}`, `${point.y * height}px`);
+        });
+      });
+    }
+
     function updateConstellation() {
       const width = field.clientWidth;
       const height = field.clientHeight;
+      updateStarRoutes(width, height);
       constellation.setAttribute("viewBox", `0 0 ${width} ${height}`);
       const path = constellationPoints.map((point, index) => `${index ? "L" : "M"} ${point.x * width} ${point.y * height}`).join(" ");
       constellationGlow.setAttribute("d", path);
@@ -1695,17 +1716,45 @@ const LOVE_STORY = {
       const starConfig = config.stars.find((star) => star.id === starId);
       if (!starConfig) return;
       const orderDot = document.createElement("span");
-      orderDot.className = `star-order-dot star-${starConfig.color}`;
+      orderDot.className = `star-order-dot star-${starConfig.color}${index === 0 ? " is-next" : ""}`;
       orderDot.textContent = starConfig.glyph;
       orderDot.setAttribute("aria-label", `${index + 1} : ${starConfig.color}`);
       order.append(orderDot);
+    });
+
+    function createRoute(index) {
+      const seed = index + 1;
+      return [
+        { x: 8 + seed * 23 % 84, y: 8 + seed * 37 % 84 },
+        { x: 8 + (seed * 41 + 27) % 84, y: 8 + (seed * 29 + 39) % 84 },
+        { x: 8 + (seed * 53 + 61) % 84, y: 8 + (seed * 17 + 51) % 84 },
+        { x: 8 + (seed * 31 + 12) % 84, y: 8 + (seed * 43 + 23) % 84 }
+      ];
+    }
+
+    function updateNextStar() {
+      order.querySelectorAll(".star-order-dot").forEach((dot, index) => {
+        dot.classList.toggle("is-next", index === foundFragments.size);
+      });
+      movingTargets.forEach(({ element }) => {
+        element.classList.toggle("is-next", Number(element.dataset.sequenceIndex) === foundFragments.size);
+      });
+    }
+
+    function createTarget(starConfig, sequenceIndex, index) {
+      const isDecoy = sequenceIndex === null;
       const button = document.createElement("button");
       button.type = "button";
-      button.className = `shooting-target star-${starConfig.color}`;
-      button.style.setProperty("--star-lane", `${16 + (index * 23) % 68}%`);
-      button.style.setProperty("--star-duration", `${7.5 + index * .7}s`);
-      button.style.setProperty("--star-delay", `${-index * 1.25}s`);
-      button.setAttribute("aria-label", `Étoile ${starConfig.color}, étape ${index + 1}`);
+      button.className = `shooting-target star-${starConfig.color}${isDecoy ? " is-decoy" : ""}`;
+      button.style.setProperty("--star-duration", `${9 + index % 5 * 1.35}s`);
+      button.style.setProperty("--star-delay", `${-index * 1.37}s`);
+      button.setAttribute(
+        "aria-label",
+        isDecoy
+          ? `Étoile leurre ${index - config.sequence.length + 1}`
+          : `Étoile ${starConfig.color}, étape ${sequenceIndex + 1} sur ${config.sequence.length}`
+      );
+      if (!isDecoy) button.dataset.sequenceIndex = String(sequenceIndex);
       const core = document.createElement("span");
       core.className = "shooting-star-core";
       core.textContent = starConfig.glyph;
@@ -1713,10 +1762,12 @@ const LOVE_STORY = {
       particles.className = "shooting-star-particles";
       particles.setAttribute("aria-hidden", "true");
       button.append(core, particles);
+      const route = createRoute(index);
+      movingTargets.push({ element: button, route });
       button.addEventListener("click", () => {
         if (button.disabled) return;
-        if (index !== foundFragments.size) {
-          feedback.textContent = "Pas encore celle-ci… suis l'ordre des étoiles.";
+        if (sequenceIndex !== foundFragments.size) {
+          feedback.textContent = "Cette lumière reste silencieuse… suis la prochaine étoile de la séquence.";
           button.classList.remove("is-wrong");
           feedback.classList.remove("is-error");
           void button.offsetWidth;
@@ -1738,11 +1789,12 @@ const LOVE_STORY = {
         foundFragments.add(index);
         button.disabled = true;
         button.classList.add("is-caught");
-        order.children[index].classList.add("is-lit");
+        order.children[sequenceIndex].classList.add("is-lit");
         const pip = document.createElement("span");
         pip.className = "star-progress-dot is-lit";
         pip.textContent = "✦";
         progress.append(pip);
+        updateNextStar();
         feedback.textContent = `Une étoile retrouvée… ${foundFragments.size} sur ${config.sequence.length}.`;
         if (foundFragments.size === config.sequence.length) {
           const poem = $(".revealed-poem");
@@ -1757,7 +1809,16 @@ const LOVE_STORY = {
         }
       });
       field.append(button);
+    }
+
+    config.sequence.forEach((starId, index) => {
+      const starConfig = config.stars.find((star) => star.id === starId);
+      if (starConfig) createTarget(starConfig, index, index);
     });
+    decoyStars.forEach((star, index) => {
+      createTarget(star, null, config.sequence.length + index);
+    });
+    updateNextStar();
     updateConstellation();
     $(".star-finish").addEventListener("click", completeMonth);
   }
