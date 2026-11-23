@@ -1257,12 +1257,12 @@ const LOVE_STORY = {
         const py = y * tile;
         if (cell === "#") {
           const wall = terrainContext.createLinearGradient(px, py, px + tile, py + tile);
-          wall.addColorStop(0, "#29364b");
-          wall.addColorStop(.28, "#1a2639");
-          wall.addColorStop(1, "#101827");
+          wall.addColorStop(0, "#111b2b");
+          wall.addColorStop(.28, "#0a111d");
+          wall.addColorStop(1, "#050a12");
           terrainContext.fillStyle = wall;
           terrainContext.fillRect(px + 1, py + 1, tile - 2, tile - 2);
-          terrainContext.strokeStyle = "rgba(140,167,198,.17)";
+          terrainContext.strokeStyle = "rgba(119,151,190,.24)";
           terrainContext.lineWidth = 1;
           terrainContext.strokeRect(px + 1.5, py + 1.5, tile - 3, tile - 3);
           terrainContext.beginPath();
@@ -1274,15 +1274,16 @@ const LOVE_STORY = {
           terrainContext.fillRect(px + tile * .12, py + tile * .84, tile * .76, tile * .08);
         } else {
           const floor = terrainContext.createLinearGradient(px, py, px + tile, py + tile);
-          floor.addColorStop(0, "#121c2c");
-          floor.addColorStop(1, "#0b1321");
+          floor.addColorStop(0, "#293b50");
+          floor.addColorStop(.55, "#203147");
+          floor.addColorStop(1, "#17263a");
           terrainContext.fillStyle = floor;
           terrainContext.fillRect(px, py, tile, tile);
-          terrainContext.strokeStyle = "rgba(112,146,180,.055)";
+          terrainContext.strokeStyle = "rgba(144,178,211,.13)";
           terrainContext.strokeRect(px + .5, py + .5, tile - 1, tile - 1);
           if ((x * 7 + y * 13) % 5 === 0) {
-            terrainContext.fillStyle = "rgba(206,220,239,.12)";
-            terrainContext.fillRect(px + tile * .38, py + tile * .63, 1.5, 1.5);
+            terrainContext.fillStyle = "rgba(219,231,245,.2)";
+            terrainContext.fillRect(px + tile * .38, py + tile * .63, 2, 2);
           }
         }
       }));
@@ -1334,17 +1335,19 @@ const LOVE_STORY = {
     const drawShard = (target, x, y, time) => {
       const px = (x + .5) * tile;
       const py = (y + .5) * tile;
-      const pulse = .76 + Math.sin(time * .004 + x * 2 + y) * .18;
+      const distance = Math.hypot(x - visualX, y - visualY);
+      const proximity = 1 - Math.min(distance / visibilityRadius, 1);
+      const pulse = .84 + Math.sin(time * .004 + x * 2 + y) * .12;
       target.save();
-      target.globalAlpha = pulse;
-      target.shadowColor = "#f7c967";
-      target.shadowBlur = tile * .48;
-      target.fillStyle = "#f8d987";
+      target.globalAlpha = pulse * (.72 + proximity * .28);
+      target.shadowColor = "#ffe08a";
+      target.shadowBlur = tile * (.4 + proximity * .8);
+      target.fillStyle = "#fff0b2";
       target.beginPath();
-      target.moveTo(px, py - tile * .2);
-      target.lineTo(px + tile * .11, py);
-      target.lineTo(px, py + tile * .2);
-      target.lineTo(px - tile * .11, py);
+      target.moveTo(px, py - tile * .24);
+      target.lineTo(px + tile * .14, py);
+      target.lineTo(px, py + tile * .24);
+      target.lineTo(px - tile * .14, py);
       target.closePath();
       target.fill();
       target.restore();
@@ -1369,7 +1372,10 @@ const LOVE_STORY = {
       const lightY = (visualY + .5) * tile;
       const light = fogContext.createRadialGradient(lightX, lightY, tile * .22, lightX, lightY, tile * visibilityRadius);
       light.addColorStop(0, "rgba(0,0,0,.98)");
-      light.addColorStop(.55, "rgba(0,0,0,.78)");
+      light.addColorStop(.18, "rgba(0,0,0,.91)");
+      light.addColorStop(.42, "rgba(0,0,0,.72)");
+      light.addColorStop(.7, "rgba(0,0,0,.38)");
+      light.addColorStop(.9, "rgba(0,0,0,.1)");
       light.addColorStop(1, "rgba(0,0,0,0)");
       fogContext.fillStyle = light;
       fogContext.fillRect(0, 0, canvas.width, canvas.height);
@@ -1409,13 +1415,14 @@ const LOVE_STORY = {
       context.globalAlpha = 1;
       context.shadowColor = "#f6ca68";
       context.shadowBlur = tile * .85;
-      const playerGlow = context.createRadialGradient(playerX, playerY, tile * .04, playerX, playerY, tile * 1.45);
-      playerGlow.addColorStop(0, "rgba(255,232,158,.95)");
-      playerGlow.addColorStop(.15, "rgba(255,211,105,.72)");
+      const playerGlow = context.createRadialGradient(playerX, playerY, tile * .04, playerX, playerY, tile * 2.1);
+      playerGlow.addColorStop(0, "rgba(255,232,158,.9)");
+      playerGlow.addColorStop(.14, "rgba(255,211,105,.6)");
+      playerGlow.addColorStop(.45, "rgba(250,177,52,.22)");
       playerGlow.addColorStop(1, "rgba(250,177,52,0)");
       context.fillStyle = playerGlow;
       context.beginPath();
-      context.arc(playerX, playerY, tile * 1.45, 0, Math.PI * 2);
+      context.arc(playerX, playerY, tile * 2.1, 0, Math.PI * 2);
       context.fill();
       context.shadowBlur = tile * .24;
       context.fillStyle = "#fff1bd";
