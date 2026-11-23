@@ -1223,10 +1223,6 @@ const LOVE_STORY = {
         scene.add(group);
         let frustumWidth = 1;
         let frustumHeight = 1;
-        let pointerX = 0;
-        let pointerY = 0;
-        let pointerTargetX = 0;
-        let pointerTargetY = 0;
         const smoothstep = (edge0, edge1, value) => {
           const progress = Math.max(0, Math.min(1, (value - edge0) / (edge1 - edge0)));
           return progress * progress * (3 - 2 * progress);
@@ -1250,11 +1246,6 @@ const LOVE_STORY = {
           });
 
         return {
-          setPointer(x, y) {
-            if (reducedMotion) return;
-            pointerTargetX = x;
-            pointerTargetY = y;
-          },
           resize(viewWidth, viewHeight) {
             renderer.setSize(viewWidth, viewHeight, false);
             camera.aspect = viewWidth / viewHeight;
@@ -1270,9 +1261,7 @@ const LOVE_STORY = {
           },
           render(time) {
             if (!reducedMotion) {
-              pointerX += (pointerTargetX - pointerX) * .11;
-              pointerY += (pointerTargetY - pointerY) * .11;
-              group.rotation.y = time * .000035;
+              moon.rotation.y = time * .00018;
               group.rotation.x = Math.sin(time * .00011) * .025;
               const travel = (time % 26000) / 26000;
               const x = -.1 + travel * 1.2;
@@ -1280,8 +1269,8 @@ const LOVE_STORY = {
               const fadeIn = smoothstep(0, .025, travel);
               const fadeOut = 1 - smoothstep(.94, .995, travel);
               const visibility = Math.min(fadeIn, fadeOut);
-              group.position.x = frustumWidth * (x - .5 + pointerX * .008 + Math.sin(time * .00042) * .003);
-              group.position.y = frustumHeight * (.5 - y + pointerY * .008 + Math.sin(time * .00055 + 1.4) * .004);
+              group.position.x = frustumWidth * (x - .5 + Math.sin(time * .00042) * .003);
+              group.position.y = frustumHeight * (.5 - y + Math.sin(time * .00055 + 1.4) * .004);
               moon.material.opacity = visibility;
               atmosphere.material.uniforms.visibility.value = visibility;
               atmosphere.material.uniforms.glow.value = .18 + Math.sin(time * .00014) * .018;
@@ -1472,18 +1461,6 @@ const LOVE_STORY = {
       if (document.hidden) stopBackgroundAnimation();
       else startBackgroundAnimation();
     };
-    welcomeScreen.addEventListener("pointermove", (event) => {
-      if (reducedMotion) return;
-      const bounds = welcomeScreen.getBoundingClientRect();
-      moonScene?.setPointer(
-        Math.max(-1, Math.min(1, (event.clientX - bounds.left) / bounds.width * 2 - 1)),
-        Math.max(-1, Math.min(1, (event.clientY - bounds.top) / bounds.height * 2 - 1))
-      );
-    });
-    const resetMoonPointer = () => moonScene?.setPointer(0, 0);
-    welcomeScreen.addEventListener("pointerleave", resetMoonPointer);
-    welcomeScreen.addEventListener("pointerup", resetMoonPointer);
-    welcomeScreen.addEventListener("pointercancel", resetMoonPointer);
     const observer = new ResizeObserver(resize);
     observer.observe(welcomeScreen);
     window.addEventListener("resize", resize);
