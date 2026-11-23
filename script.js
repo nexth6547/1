@@ -12,14 +12,14 @@ const LOVE_STORY = {
       game: {
         type: "hunt",
         items: [
-          { id: "rose", label: "Une rose", icon: "🌹", left: "25%", top: "63%", kind: "memory", foundText: "Une rose, délicatement posée là… elle est à toi." },
-          { id: "bracelet", label: "Un bracelet", icon: "◎", left: "69%", top: "58%", kind: "memory", foundText: "Un bracelet retrouvé, comme un petit lien entre nous." },
-          { id: "plush", label: "Une peluche", icon: "🧸", left: "53%", top: "70%", kind: "memory", foundText: "Une peluche toute douce, gardienne de nos nuits." },
-          { id: "sweater", label: "Un pull", icon: "👕", left: "79%", top: "73%", kind: "memory", foundText: "Un pull tout chaud, avec un peu de toi dedans." },
-          { id: "book", label: "Un livre", icon: "📖", left: "42%", top: "57%", kind: "decoy", foundText: "Juste un livre entrouvert… le trésor se cache ailleurs." },
-          { id: "mug", label: "Une tasse", icon: "☕", left: "18%", top: "76%", kind: "decoy", foundText: "Une tasse oubliée sur la table de nuit. Continue à chercher." },
-          { id: "perfume", label: "Un flacon", icon: "🧴", left: "88%", top: "53%", kind: "decoy", foundText: "Un petit flacon, mais pas encore le bon souvenir." },
-          { id: "sock", label: "Une chaussette", icon: "🧦", left: "36%", top: "80%", kind: "decoy", foundText: "Une chaussette esseulée… les objets précieux sont encore là." }
+          { id: "rose", label: "Une rose", icon: "🌹", left: "24%", top: "61%", kind: "memory", foundText: "Une rose, délicatement posée là… elle est à toi." },
+          { id: "bracelet", label: "Un bracelet", icon: "◎", left: "55%", top: "86%", kind: "memory", foundText: "Un bracelet retrouvé, comme un petit lien entre nous." },
+          { id: "plush", label: "Une peluche", icon: "🧸", left: "71%", top: "62%", kind: "memory", foundText: "Une peluche toute douce, gardienne de nos nuits." },
+          { id: "sweater", label: "Un pull", icon: "👕", left: "86%", top: "77%", kind: "memory", foundText: "Un pull tout chaud, avec un peu de toi dedans." },
+          { id: "book", label: "Un livre", icon: "📖", left: "14%", top: "65%", kind: "decoy", foundText: "Juste un livre entrouvert… le trésor se cache ailleurs." },
+          { id: "mug", label: "Une tasse", icon: "☕", left: "32%", top: "63%", kind: "decoy", foundText: "Une tasse oubliée sur la table de nuit. Continue à chercher." },
+          { id: "perfume", label: "Un flacon", icon: "🧴", left: "84%", top: "39%", kind: "decoy", foundText: "Un petit flacon, mais pas encore le bon souvenir." },
+          { id: "sock", label: "Une chaussette", icon: "🧦", left: "38%", top: "89%", kind: "decoy", foundText: "Une chaussette esseulée… les objets précieux sont encore là." }
         ]
       },
       personalMessage: "À venir."
@@ -27,13 +27,24 @@ const LOVE_STORY = {
     {
       title: "L'énigme souvenir",
       label: "L'énigme",
-      subtitle: "Un souvenir précieux veille dans ce coffret. Saura-tu retrouver le lieu ?",
+      subtitle: "Deux souvenirs précieux veillent dans ce coffret. Sauras-tu les retrouver ?",
       game: {
         type: "riddle",
-        question: "Où avons-nous eu notre premier vrai rendez-vous ?",
-        answers: ["le petit café du parc"],
+        question: "Quelles sont les premières choses qu'on s'est offertes ?",
+        fields: [
+          {
+            label: "Ton cadeau (ce que je t'ai offert)",
+            placeholder: "Écris ta réponse...",
+            answers: ["un dessin", "dessin", "le dessin"]
+          },
+          {
+            label: "Mon cadeau (ce que tu m'as offert)",
+            placeholder: "Écris ta réponse...",
+            answers: ["un bougeoir", "bougeoir", "le bougeoir"]
+          }
+        ],
         hintAfter: 2,
-        hint: "Indice : c'est un endroit où l'on commande souvent un cappuccino."
+        hint: "Indice : rose pour ton cadeau, bougies pour le mien."
       },
       personalMessage: "À venir."
     },
@@ -349,11 +360,692 @@ const LOVE_STORY = {
   }
 
   function renderHunt(config) {
-    gameContent.innerHTML = `<div class="game-panel hunt-panel"><div class="hunt-scene bedroom-scene" role="group" aria-label="Chambre nocturne : explore la pièce pour retrouver quatre objets précieux"><div class="room-window" aria-hidden="true"><span class="window-moon"></span><i class="window-star window-star-one">✦</i><i class="window-star window-star-two">✧</i><i class="window-star window-star-three">·</i></div><div class="room-picture" aria-hidden="true"><span>☾</span></div><div class="room-shelf" aria-hidden="true"><i></i><i></i><i></i></div><div class="nightstand" aria-hidden="true"><span class="nightstand-drawer"></span><span class="lamp"><i></i></span></div><div class="bed" aria-hidden="true"><span class="bed-headboard"></span><span class="bed-pillow"></span><span class="bed-cover"></span><span class="bed-throw"></span></div><div class="room-rug" aria-hidden="true"></div><div class="room-plant" aria-hidden="true"><i></i><i></i><i></i><span></span></div><div class="room-floor" aria-hidden="true"></div><div class="room-glow" aria-hidden="true"></div><p class="hunt-hint">La chambre dort… fouille les recoins pour retrouver quatre objets précieux.</p></div><div class="hunt-inventory" aria-label="Objets précieux retrouvés"></div><p class="hunt-feedback" aria-live="polite">Clique sur les objets de la chambre pour les examiner.</p></div>`;
+    gameContent.innerHTML = `
+      <div class="game-panel hunt-panel">
+        <div class="hunt-scene" role="group" aria-label="Chambre nocturne : explore la pièce pour retrouver quatre objets précieux">
+          <canvas class="hunt-canvas" aria-hidden="true"></canvas>
+        <canvas class="hunt-dust-canvas" aria-hidden="true"></canvas>
+          <div class="hunt-flashlight" aria-hidden="true"></div>
+        </div>
+        <p class="hunt-hint">La chambre dort… éclaire ses recoins et retrouve quatre objets précieux.</p>
+        <div class="hunt-inventory" aria-label="Objets précieux retrouvés"></div>
+        <p class="hunt-feedback" aria-live="polite">Clique sur les objets de la chambre pour les examiner.</p>
+      </div>`;
     const scene = $(".hunt-scene");
+    const canvas = $(".hunt-canvas");
+    const context = canvas.getContext("2d");
+    const dustCanvas = $(".hunt-dust-canvas");
+    const dustContext = dustCanvas.getContext("2d");
     const inventory = $(".hunt-inventory");
     const memories = config.items.filter((item) => item.kind === "memory");
     const feedback = $(".hunt-feedback");
+    if (!context || !dustContext) {
+      showToast("La scène de recherche n'est pas disponible dans ce navigateur.");
+      return;
+    }
+    let dustParticles = [];
+
+    const itemAt = (id, width, height) => {
+      const item = config.items.find((candidate) => candidate.id === id);
+      return {
+        x: width * Number.parseFloat(item.left) / 100,
+        y: height * Number.parseFloat(item.top) / 100
+      };
+    };
+    const drawRoom = () => {
+      const bounds = scene.getBoundingClientRect();
+      if (!bounds.width || !bounds.height) return;
+      const width = bounds.width;
+      const height = bounds.height;
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(width * pixelRatio);
+      canvas.height = Math.round(height * pixelRatio);
+      dustCanvas.width = canvas.width;
+      dustCanvas.height = canvas.height;
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      dustContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      context.clearRect(0, 0, width, height);
+
+      let seed = 42017;
+      const random = () => {
+        seed = (seed * 16807) % 2147483647;
+        return (seed - 1) / 2147483646;
+      };
+      const roundedRect = (x, y, w, h, radius, fill, stroke) => {
+        context.beginPath();
+        context.roundRect(x, y, w, h, radius);
+        if (fill) {
+          context.fillStyle = fill;
+          context.fill();
+        }
+        if (stroke) {
+          context.strokeStyle = stroke;
+          context.stroke();
+        }
+      };
+      const trace = (points, fill, stroke, lineWidth = 1) => {
+        context.beginPath();
+        points.forEach(([x, y], index) => {
+          if (index === 0) context.moveTo(x, y);
+          else context.lineTo(x, y);
+        });
+        context.closePath();
+        if (fill) {
+          context.fillStyle = fill;
+          context.fill();
+        }
+        if (stroke) {
+          context.lineWidth = lineWidth;
+          context.strokeStyle = stroke;
+          context.stroke();
+        }
+      };
+      const wallEnd = height * .69;
+      const wall = context.createLinearGradient(0, 0, width * .8, wallEnd);
+      wall.addColorStop(0, "#111b2b");
+      wall.addColorStop(.58, "#202535");
+      wall.addColorStop(1, "#353341");
+      context.fillStyle = wall;
+      context.fillRect(0, 0, width, height);
+      const moonWash = context.createRadialGradient(width * .18, height * .31, 0, width * .18, height * .31, width * .62);
+      moonWash.addColorStop(0, "rgba(91,132,174,.22)");
+      moonWash.addColorStop(.56, "rgba(57,85,119,.09)");
+      moonWash.addColorStop(1, "rgba(12,18,31,0)");
+      context.fillStyle = moonWash;
+      context.fillRect(0, 0, width, wallEnd);
+
+      for (let index = 0; index < 850; index++) {
+        const x = random() * width;
+        const y = random() * wallEnd;
+        const alpha = random() * .035;
+        context.fillStyle = random() > .5
+          ? `rgba(192,202,214,${alpha})`
+          : `rgba(5,9,17,${alpha})`;
+        context.fillRect(x, y, random() * 1.5 + .35, random() * 2 + .4);
+      }
+      context.strokeStyle = "rgba(7,11,20,.22)";
+      context.lineWidth = 1;
+      for (let index = 1; index < 6; index++) {
+        const y = wallEnd * index / 7;
+        context.beginPath();
+        context.moveTo(0, y);
+        context.lineTo(width, y);
+        context.stroke();
+      }
+      const wallTrim = context.createLinearGradient(0, wallEnd - 8, 0, wallEnd + 12);
+      wallTrim.addColorStop(0, "#514842");
+      wallTrim.addColorStop(.35, "#76695e");
+      wallTrim.addColorStop(.55, "#262832");
+      wallTrim.addColorStop(1, "#11151e");
+      context.fillStyle = wallTrim;
+      context.fillRect(0, wallEnd - 7, width, 20);
+
+      const lampGlow = context.createRadialGradient(width * .24, height * .56, 1, width * .24, height * .56, height * .8);
+      lampGlow.addColorStop(0, "rgba(242,190,115,.29)");
+      lampGlow.addColorStop(.2, "rgba(209,150,90,.16)");
+      lampGlow.addColorStop(.58, "rgba(181,126,83,.045)");
+      lampGlow.addColorStop(1, "rgba(181,126,83,0)");
+      context.fillStyle = lampGlow;
+      context.fillRect(0, 0, width, height);
+
+      const floorTop = height * .69;
+      const floor = context.createLinearGradient(0, floorTop, 0, height);
+      floor.addColorStop(0, "#403a3a");
+      floor.addColorStop(.32, "#302a2d");
+      floor.addColorStop(1, "#17191f");
+      trace([[0, floorTop], [width, floorTop], [width, height], [0, height]], floor);
+      context.save();
+      trace([[0, floorTop], [width, floorTop], [width, height], [0, height]], "rgba(0,0,0,0)");
+      context.clip();
+      for (let index = 0; index <= 10; index++) {
+        const topX = width * index / 10;
+        const bottomX = topX + (width * .5 - topX) * .17;
+        context.beginPath();
+        context.moveTo(topX, floorTop);
+        context.lineTo(bottomX, height);
+        context.strokeStyle = index % 2 ? "rgba(8,10,15,.28)" : "rgba(181,150,116,.08)";
+        context.lineWidth = index % 2 ? 2 : 1;
+        context.stroke();
+      }
+      for (let row = 1; row < 5; row++) {
+        const y = floorTop + (height - floorTop) * row / 5;
+        context.beginPath();
+        context.moveTo(0, y);
+        context.lineTo(width, y);
+        context.strokeStyle = "rgba(7,9,14,.23)";
+        context.lineWidth = 2;
+        context.stroke();
+      }
+      for (let index = 0; index < 430; index++) {
+        const x = random() * width;
+        const y = floorTop + random() * (height - floorTop);
+        context.beginPath();
+        context.moveTo(x, y);
+        context.quadraticCurveTo(x + random() * 15, y - 2, x + random() * 35 + 5, y + random() * 3);
+        context.strokeStyle = random() > .5 ? "rgba(191,155,119,.08)" : "rgba(4,7,12,.12)";
+        context.lineWidth = random() * 1.2 + .3;
+        context.stroke();
+      }
+      context.restore();
+
+      const windowX = width * .075;
+      const windowY = height * .095;
+      const windowW = width * .245;
+      const windowH = height * .43;
+      context.save();
+      context.shadowColor = "rgba(0,0,0,.6)";
+      context.shadowBlur = 20;
+      context.shadowOffsetY = 8;
+      roundedRect(windowX - 7, windowY - 7, windowW + 14, windowH + 14, 8, "#463c38");
+      context.restore();
+      const glass = context.createLinearGradient(windowX, windowY, windowX + windowW, windowY + windowH);
+      glass.addColorStop(0, "#0b172b");
+      glass.addColorStop(.55, "#172940");
+      glass.addColorStop(1, "#28364a");
+      roundedRect(windowX, windowY, windowW, windowH, 3, glass, "#92775e");
+      context.save();
+      context.beginPath();
+      context.roundRect(windowX + 4, windowY + 4, windowW - 8, windowH - 8, 2);
+      context.clip();
+      for (let index = 0; index < 35; index++) {
+        const x = windowX + random() * windowW;
+        const y = windowY + random() * windowH * .72;
+        context.beginPath();
+        context.arc(x, y, random() * 1.2 + .3, 0, Math.PI * 2);
+        context.fillStyle = `rgba(226,230,226,${random() * .55 + .15})`;
+        context.fill();
+      }
+      const moonX = windowX + windowW * .72;
+      const moonY = windowY + windowH * .23;
+      const moonGlow = context.createRadialGradient(moonX, moonY, 1, moonX, moonY, windowW * .3);
+      moonGlow.addColorStop(0, "rgba(220,225,218,.31)");
+      moonGlow.addColorStop(1, "rgba(220,225,218,0)");
+      context.fillStyle = moonGlow;
+      context.fillRect(windowX, windowY, windowW, windowH);
+      context.beginPath();
+      context.arc(moonX, moonY, windowW * .055, 0, Math.PI * 2);
+      context.fillStyle = "#d4d7cc";
+      context.shadowColor = "rgba(204,219,232,.55)";
+      context.shadowBlur = 12;
+      context.fill();
+      context.shadowBlur = 0;
+      trace([
+        [windowX, windowY + windowH * .72],
+        [windowX + windowW * .18, windowY + windowH * .61],
+        [windowX + windowW * .39, windowY + windowH * .69],
+        [windowX + windowW * .6, windowY + windowH * .58],
+        [windowX + windowW, windowY + windowH * .67],
+        [windowX + windowW, windowY + windowH],
+        [windowX, windowY + windowH]
+      ], "rgba(9,16,27,.73)");
+      context.strokeStyle = "rgba(213,225,233,.17)";
+      context.lineWidth = Math.max(2, width * .003);
+      context.beginPath();
+      context.moveTo(windowX + windowW * .18, windowY + windowH * .08);
+      context.lineTo(windowX + windowW * .39, windowY + windowH * .48);
+      context.moveTo(windowX + windowW * .29, windowY + windowH * .06);
+      context.lineTo(windowX + windowW * .49, windowY + windowH * .45);
+      context.stroke();
+      context.restore();
+      context.fillStyle = "#665548";
+      context.fillRect(windowX + windowW * .49, windowY, 5, windowH);
+      context.fillRect(windowX, windowY + windowH * .57, windowW, 5);
+      context.fillStyle = "rgba(218,192,151,.55)";
+      context.fillRect(windowX + windowW * .49, windowY, 1, windowH);
+      context.fillRect(windowX, windowY + windowH * .57, windowW, 1);
+
+      const pictureX = width * .73;
+      const pictureY = height * .12;
+      const pictureW = width * .13;
+      const pictureH = height * .19;
+      context.save();
+      context.shadowColor = "rgba(0,0,0,.44)";
+      context.shadowBlur = 12;
+      context.shadowOffsetY = 5;
+      roundedRect(pictureX, pictureY, pictureW, pictureH, 3, "#493d37");
+      context.restore();
+      roundedRect(pictureX + 5, pictureY + 5, pictureW - 10, pictureH - 10, 1, "#17202a");
+      const pictureGlow = context.createLinearGradient(pictureX, pictureY, pictureX, pictureY + pictureH);
+      pictureGlow.addColorStop(0, "rgba(154,167,174,.2)");
+      pictureGlow.addColorStop(1, "rgba(169,137,102,.05)");
+      context.fillStyle = pictureGlow;
+      context.fillRect(pictureX + 8, pictureY + 8, pictureW - 16, pictureH - 16);
+      context.strokeStyle = "rgba(210,201,181,.21)";
+      context.lineWidth = 1;
+      context.beginPath();
+      context.moveTo(pictureX + pictureW * .2, pictureY + pictureH * .76);
+      context.quadraticCurveTo(pictureX + pictureW * .45, pictureY + pictureH * .3, pictureX + pictureW * .8, pictureY + pictureH * .69);
+      context.stroke();
+      const shelfX = width * .67;
+      const shelfY = height * .38;
+      context.save();
+      context.shadowColor = "rgba(0,0,0,.52)";
+      context.shadowBlur = 10;
+      context.shadowOffsetY = 5;
+      roundedRect(shelfX, shelfY, width * .25, height * .018, 2, "#584b42", "rgba(194,164,128,.22)");
+      context.restore();
+      context.fillStyle = "#252932";
+      context.fillRect(shelfX + width * .035, shelfY - height * .075, width * .035, height * .075);
+      context.fillStyle = "#453a37";
+      context.fillRect(shelfX + width * .077, shelfY - height * .095, width * .043, height * .095);
+      context.fillStyle = "#55534e";
+      context.fillRect(shelfX + width * .125, shelfY - height * .064, width * .028, height * .064);
+
+      const rugX = width * .39;
+      const rugY = height * .82;
+      context.save();
+      context.shadowColor = "rgba(0,0,0,.58)";
+      context.shadowBlur = 14;
+      context.shadowOffsetY = 6;
+      context.beginPath();
+      context.ellipse(rugX + width * .19, rugY + height * .045, width * .2, height * .095, -.04, 0, Math.PI * 2);
+      const rug = context.createRadialGradient(rugX + width * .18, rugY, 0, rugX + width * .19, rugY, width * .22);
+      rug.addColorStop(0, "#514548");
+      rug.addColorStop(.76, "#38353b");
+      rug.addColorStop(1, "#24252d");
+      context.fillStyle = rug;
+      context.fill();
+      context.restore();
+      context.save();
+      context.beginPath();
+      context.ellipse(rugX + width * .19, rugY + height * .045, width * .19, height * .085, -.04, 0, Math.PI * 2);
+      context.clip();
+      for (let index = 0; index < 190; index++) {
+        const x = rugX + random() * width * .38;
+        const y = rugY - height * .04 + random() * height * .17;
+        context.beginPath();
+        context.moveTo(x, y);
+        context.lineTo(x + random() * 5 + 2, y + random() * 2);
+        context.strokeStyle = random() > .5 ? "rgba(192,169,149,.14)" : "rgba(7,9,15,.2)";
+        context.lineWidth = .7;
+        context.stroke();
+      }
+      context.restore();
+
+      const plantX = width * .38;
+      const plantY = height * .71;
+      context.save();
+      context.shadowColor = "rgba(0,0,0,.55)";
+      context.shadowBlur = 12;
+      context.shadowOffsetY = 5;
+      context.fillStyle = "#171b20";
+      for (let index = 0; index < 7; index++) {
+        context.save();
+        context.translate(plantX, plantY);
+        context.rotate((index - 3) * .2);
+        context.beginPath();
+        context.ellipse(0, -height * (.1 + random() * .08), width * .018, height * .13, 0, 0, Math.PI * 2);
+        context.fillStyle = index % 2 ? "#35403d" : "#465047";
+        context.fill();
+        context.restore();
+      }
+      roundedRect(plantX - width * .035, plantY - height * .015, width * .07, height * .09, 4, "#665044");
+      context.restore();
+
+      const bedX = width * .42;
+      const bedY = height * .4;
+      const bedW = width * .55;
+      const headboard = context.createLinearGradient(0, bedY, 0, bedY + height * .17);
+      headboard.addColorStop(0, "#4c4141");
+      headboard.addColorStop(.5, "#312e34");
+      headboard.addColorStop(1, "#1c2029");
+      context.save();
+      context.shadowColor = "rgba(0,0,0,.64)";
+      context.shadowBlur = 20;
+      context.shadowOffsetY = 8;
+      roundedRect(bedX, bedY, bedW, height * .17, 8, headboard, "rgba(180,151,121,.19)");
+      context.restore();
+      for (let index = 0; index < 4; index++) {
+        const panelX = bedX + bedW * (.04 + index * .24);
+        roundedRect(panelX, bedY + height * .025, bedW * .2, height * .105, 5, "rgba(6,10,18,.16)", "rgba(198,166,135,.08)");
+      }
+      const mattress = context.createLinearGradient(bedX, bedY + height * .12, bedX + bedW, bedY + height * .49);
+      mattress.addColorStop(0, "#77717a");
+      mattress.addColorStop(.36, "#555963");
+      mattress.addColorStop(1, "#30343f");
+      context.save();
+      context.shadowColor = "rgba(0,0,0,.66)";
+      context.shadowBlur = 20;
+      context.shadowOffsetY = 12;
+      roundedRect(bedX + width * .008, bedY + height * .13, bedW - width * .015, height * .43, 9, mattress);
+      context.restore();
+
+      const pillow = context.createLinearGradient(0, bedY + height * .15, width * .2, bedY + height * .3);
+      pillow.addColorStop(0, "#88838a");
+      pillow.addColorStop(.48, "#666671");
+      pillow.addColorStop(1, "#454956");
+      context.save();
+      context.shadowColor = "rgba(0,0,0,.37)";
+      context.shadowBlur = 9;
+      roundedRect(bedX + bedW * .07, bedY + height * .15, bedW * .35, height * .12, 12, pillow, "rgba(220,211,194,.13)");
+      context.restore();
+      context.strokeStyle = "rgba(222,213,198,.16)";
+      context.lineWidth = 1;
+      context.beginPath();
+      context.moveTo(bedX + bedW * .1, bedY + height * .2);
+      context.quadraticCurveTo(bedX + bedW * .24, bedY + height * .16, bedX + bedW * .38, bedY + height * .23);
+      context.stroke();
+
+      const plush = itemAt("plush", width, height);
+      if (!foundFragments.has("plush")) {
+        context.save();
+        context.shadowColor = "rgba(0,0,0,.65)";
+        context.shadowBlur = 7;
+        context.fillStyle = "#62564f";
+        context.beginPath();
+        context.ellipse(plush.x, plush.y + height * .022, width * .025, height * .045, -.08, 0, Math.PI * 2);
+        context.fill();
+        context.beginPath();
+        context.arc(plush.x, plush.y, height * .031, 0, Math.PI * 2);
+        context.fill();
+        context.beginPath();
+        context.arc(plush.x - height * .022, plush.y - height * .022, height * .012, 0, Math.PI * 2);
+        context.arc(plush.x + height * .022, plush.y - height * .022, height * .012, 0, Math.PI * 2);
+        context.fill();
+        context.fillStyle = "rgba(202,180,154,.54)";
+        context.beginPath();
+        context.arc(plush.x - height * .009, plush.y, 1.1, 0, Math.PI * 2);
+        context.arc(plush.x + height * .009, plush.y, 1.1, 0, Math.PI * 2);
+        context.fill();
+        context.restore();
+      }
+
+      const cover = context.createLinearGradient(bedX, bedY + height * .25, bedX + bedW, bedY + height * .52);
+      cover.addColorStop(0, "#555968");
+      cover.addColorStop(.27, "#414653");
+      cover.addColorStop(.6, "#323845");
+      cover.addColorStop(1, "#252b35");
+      trace([
+        [bedX + bedW * .03, bedY + height * .28],
+        [bedX + bedW * .34, bedY + height * .3],
+        [bedX + bedW * .53, bedY + height * .25],
+        [bedX + bedW * .98, bedY + height * .3],
+        [bedX + bedW, bedY + height * .55],
+        [bedX + bedW * .02, bedY + height * .55]
+      ], cover);
+      context.save();
+      trace([
+        [bedX + bedW * .03, bedY + height * .28],
+        [bedX + bedW * .34, bedY + height * .3],
+        [bedX + bedW * .53, bedY + height * .25],
+        [bedX + bedW * .98, bedY + height * .3],
+        [bedX + bedW, bedY + height * .55],
+        [bedX + bedW * .02, bedY + height * .55]
+      ], "rgba(0,0,0,0)");
+      context.clip();
+      for (let index = 0; index < 150; index++) {
+        const x = bedX + random() * bedW;
+        const y = bedY + height * (.28 + random() * .27);
+        context.beginPath();
+        context.moveTo(x, y);
+        context.bezierCurveTo(x + 4, y - 3, x + 10, y + 3, x + 18, y + 1);
+        context.strokeStyle = random() > .5 ? "rgba(205,209,211,.07)" : "rgba(4,8,14,.12)";
+        context.lineWidth = random() * 1.3 + .3;
+        context.stroke();
+      }
+      context.restore();
+      context.strokeStyle = "rgba(202,207,207,.21)";
+      context.lineWidth = 2;
+      context.beginPath();
+      context.moveTo(bedX + bedW * .06, bedY + height * .3);
+      context.bezierCurveTo(bedX + bedW * .19, bedY + height * .34, bedX + bedW * .24, bedY + height * .43, bedX + bedW * .34, bedY + height * .47);
+      context.moveTo(bedX + bedW * .48, bedY + height * .29);
+      context.bezierCurveTo(bedX + bedW * .58, bedY + height * .35, bedX + bedW * .54, bedY + height * .43, bedX + bedW * .68, bedY + height * .49);
+      context.stroke();
+
+      const nightstandX = width * .07;
+      const nightstandY = height * .61;
+      const nightstandW = width * .28;
+      const nightstandH = height * .26;
+      const wood = context.createLinearGradient(nightstandX, nightstandY, nightstandX + nightstandW, nightstandY);
+      wood.addColorStop(0, "#352c2b");
+      wood.addColorStop(.25, "#5a463d");
+      wood.addColorStop(.53, "#463a37");
+      wood.addColorStop(1, "#27272e");
+      context.save();
+      context.shadowColor = "rgba(0,0,0,.72)";
+      context.shadowBlur = 18;
+      context.shadowOffsetY = 9;
+      roundedRect(nightstandX + width * .012, nightstandY + height * .04, nightstandW - width * .024, nightstandH - height * .035, 4, wood, "rgba(198,157,117,.2)");
+      context.restore();
+      const tabletop = context.createLinearGradient(0, nightstandY, 0, nightstandY + height * .035);
+      tabletop.addColorStop(0, "#81705c");
+      tabletop.addColorStop(.4, "#57483e");
+      tabletop.addColorStop(1, "#292930");
+      roundedRect(nightstandX, nightstandY, nightstandW, height * .04, 3, tabletop, "rgba(218,188,144,.19)");
+      const lampX = width * .185;
+      const lampBaseY = nightstandY + height * .006;
+      context.save();
+      context.shadowColor = "rgba(249,202,130,.42)";
+      context.shadowBlur = 13;
+      context.fillStyle = "#947957";
+      context.beginPath();
+      context.ellipse(lampX, lampBaseY, width * .035, height * .012, 0, 0, Math.PI * 2);
+      context.fill();
+      context.fillStyle = "#c0a37a";
+      context.fillRect(lampX - width * .004, nightstandY - height * .105, width * .008, height * .11);
+      const shade = context.createLinearGradient(lampX - width * .04, 0, lampX + width * .04, 0);
+      shade.addColorStop(0, "#8c7054");
+      shade.addColorStop(.5, "#c2a274");
+      shade.addColorStop(1, "#755d4a");
+      trace([
+        [lampX - width * .045, nightstandY - height * .105],
+        [lampX - width * .03, nightstandY - height * .19],
+        [lampX + width * .03, nightstandY - height * .19],
+        [lampX + width * .045, nightstandY - height * .105]
+      ], shade, "rgba(255,230,184,.19)");
+      context.restore();
+      context.strokeStyle = "rgba(211,173,130,.13)";
+      for (let index = 0; index < 7; index++) {
+        const y = nightstandY + height * (.08 + index * .019);
+        context.beginPath();
+        context.moveTo(nightstandX + width * .035, y);
+        context.bezierCurveTo(nightstandX + nightstandW * .35, y - 1, nightstandX + nightstandW * .65, y + 1, nightstandX + nightstandW * .26, y);
+        context.stroke();
+      }
+      roundedRect(nightstandX + nightstandW * .12, nightstandY + height * .1, nightstandW * .76, height * .1, 3, "rgba(9,12,17,.15)", "rgba(196,158,121,.13)");
+      context.fillStyle = "#a58b68";
+      context.beginPath();
+      context.arc(nightstandX + nightstandW * .5, nightstandY + height * .15, 2, 0, Math.PI * 2);
+      context.fill();
+      context.fillStyle = "#27272d";
+      context.fillRect(nightstandX + nightstandW * .12, nightstandY + nightstandH - height * .025, width * .018, height * .035);
+      context.fillRect(nightstandX + nightstandW * .8, nightstandY + nightstandH - height * .025, width * .018, height * .035);
+
+      const book = itemAt("book", width, height);
+      if (!foundFragments.has("book")) {
+        context.save();
+        context.translate(book.x, book.y);
+        context.rotate(-.08);
+        context.shadowColor = "rgba(0,0,0,.5)";
+        context.shadowBlur = 4;
+        roundedRect(-width * .045, -height * .018, width * .09, height * .036, 2, "#343740", "rgba(194,177,150,.25)");
+        context.fillStyle = "rgba(189,175,149,.27)";
+        context.fillRect(-width * .038, -height * .014, width * .076, height * .002);
+        context.restore();
+      }
+      const mug = itemAt("mug", width, height);
+      if (!foundFragments.has("mug")) {
+        context.save();
+        context.shadowColor = "rgba(0,0,0,.48)";
+        context.shadowBlur = 5;
+        context.fillStyle = "#77746f";
+        context.beginPath();
+        context.ellipse(mug.x, mug.y, width * .018, height * .014, 0, 0, Math.PI * 2);
+        context.fill();
+        context.fillStyle = "#383a3f";
+        context.beginPath();
+        context.ellipse(mug.x, mug.y - 2, width * .015, height * .01, 0, 0, Math.PI * 2);
+        context.fill();
+        context.beginPath();
+        context.arc(mug.x + width * .017, mug.y, height * .009, -Math.PI * .5, Math.PI * .5);
+        context.strokeStyle = "#77746f";
+        context.lineWidth = 2;
+        context.stroke();
+        context.restore();
+      }
+
+      const rose = itemAt("rose", width, height);
+      if (!foundFragments.has("rose")) {
+        context.save();
+        context.shadowColor = "rgba(0,0,0,.58)";
+        context.shadowBlur = 6;
+        context.strokeStyle = "#4b5a4a";
+        context.lineWidth = 2;
+        context.beginPath();
+        context.moveTo(rose.x, rose.y - height * .01);
+        context.quadraticCurveTo(rose.x + 2, rose.y - height * .02, rose.x + 1, rose.y - height * .03);
+        context.stroke();
+        context.fillStyle = "#46554a";
+        context.beginPath();
+        context.ellipse(rose.x - 4, rose.y - 2, 5, 2, -.5, 0, Math.PI * 2);
+        context.ellipse(rose.x + 4, rose.y - 5, 5, 2, .5, 0, Math.PI * 2);
+        context.fill();
+        const petalColors = ["#643b43", "#75454b", "#53333d", "#8a5755"];
+        for (let index = 0; index < 5; index++) {
+          context.beginPath();
+          context.ellipse(rose.x + Math.cos(index * Math.PI * .4) * 4, rose.y - height * .032 + Math.sin(index * Math.PI * .4) * 3, 4.5, 3.2, index * .6, 0, Math.PI * 2);
+          context.fillStyle = petalColors[index % petalColors.length];
+          context.fill();
+        }
+        context.beginPath();
+        context.arc(rose.x, rose.y - height * .032, 2.2, 0, Math.PI * 2);
+        context.fillStyle = "#c09469";
+        context.fill();
+        context.restore();
+      }
+
+      const perfume = itemAt("perfume", width, height);
+      if (!foundFragments.has("perfume")) {
+        context.save();
+        context.shadowColor = "rgba(0,0,0,.6)";
+        context.shadowBlur = 5;
+        roundedRect(perfume.x - width * .012, perfume.y - height * .035, width * .024, height * .055, 3, "rgba(133,139,138,.42)", "rgba(215,218,207,.21)");
+        roundedRect(perfume.x - width * .005, perfume.y - height * .044, width * .01, height * .012, 1, "#817768");
+        context.restore();
+      }
+
+      const bracelet = itemAt("bracelet", width, height);
+      if (!foundFragments.has("bracelet")) {
+        context.save();
+        context.translate(bracelet.x, bracelet.y);
+        context.rotate(-.1);
+        context.beginPath();
+        context.ellipse(0, 0, width * .034, height * .018, 0, 0, Math.PI * 2);
+        context.strokeStyle = "rgba(177,160,129,.63)";
+        context.lineWidth = 2;
+        context.shadowColor = "rgba(229,201,148,.3)";
+        context.shadowBlur = 4;
+        context.stroke();
+        context.setLineDash([2, 4]);
+        context.strokeStyle = "rgba(203,188,154,.38)";
+        context.lineWidth = 1;
+        context.stroke();
+        context.setLineDash([]);
+        context.restore();
+      }
+
+      const sock = itemAt("sock", width, height);
+      if (!foundFragments.has("sock")) {
+        context.save();
+        context.translate(sock.x, sock.y);
+        context.rotate(.38);
+        context.fillStyle = "#454750";
+        context.shadowColor = "rgba(0,0,0,.5)";
+        context.shadowBlur = 4;
+        context.beginPath();
+        context.moveTo(-width * .012, -height * .023);
+        context.lineTo(width * .012, -height * .023);
+        context.lineTo(width * .01, height * .008);
+        context.lineTo(width * .025, height * .02);
+        context.quadraticCurveTo(width * .025, height * .032, width * .01, height * .031);
+        context.lineTo(-width * .014, height * .02);
+        context.closePath();
+        context.fill();
+        context.restore();
+      }
+
+      const sweater = itemAt("sweater", width, height);
+      if (!foundFragments.has("sweater")) {
+        context.save();
+        context.translate(sweater.x, sweater.y);
+        context.rotate(.16);
+        context.shadowColor = "rgba(0,0,0,.55)";
+        context.shadowBlur = 10;
+        context.shadowOffsetY = 4;
+        const knit = context.createLinearGradient(-width * .06, -height * .04, width * .05, height * .05);
+        knit.addColorStop(0, "#56545a");
+        knit.addColorStop(.45, "#3b3e47");
+        knit.addColorStop(1, "#292e38");
+        trace([
+          [-width * .058, -height * .025],
+          [-width * .03, -height * .052],
+          [-width * .014, -height * .032],
+          [width * .016, -height * .038],
+          [width * .042, -height * .055],
+          [width * .06, -height * .028],
+          [width * .043, height * .042],
+          [-width * .048, height * .044]
+        ], knit, "rgba(201,197,184,.13)");
+        context.shadowBlur = 0;
+        context.strokeStyle = "rgba(201,197,184,.13)";
+        context.lineWidth = 1;
+        for (let index = -3; index <= 3; index++) {
+          context.beginPath();
+          context.moveTo(index * 5, -height * .027);
+          context.quadraticCurveTo(index * 5 - 4, 0, index * 5 + 2, height * .032);
+          context.stroke();
+        }
+        context.restore();
+      }
+
+      dustParticles = Array.from({ length: 55 }, () => ({
+        x: width * (.12 + random() * .35),
+        y: height * (.43 + random() * .36),
+        size: random() * 1.2 + .4,
+        phase: random() * Math.PI * 2,
+        speed: random() * .008 + .003
+      }));
+      const vignette = context.createRadialGradient(width * .5, height * .45, height * .18, width * .5, height * .5, width * .75);
+      vignette.addColorStop(0, "rgba(2,5,12,0)");
+      vignette.addColorStop(1, "rgba(2,5,12,.48)");
+      context.fillStyle = vignette;
+      context.fillRect(0, 0, width, height);
+    };
+    const animateDust = (time) => {
+      const bounds = scene.getBoundingClientRect();
+      if (!bounds.width || !bounds.height) return;
+      dustContext.clearRect(0, 0, bounds.width, bounds.height);
+      dustParticles.forEach((particle) => {
+        const beamTop = bounds.height * .43;
+        const beamHeight = bounds.height * .42;
+        const drift = (time * particle.speed) % beamHeight;
+        const y = beamTop + (particle.y - beamTop - drift + beamHeight) % beamHeight;
+        const x = particle.x + Math.sin(time * .00035 + particle.phase) * 2;
+        const shimmer = .28 + (Math.sin(time * .0012 + particle.phase) + 1) * .22;
+        dustContext.beginPath();
+        dustContext.arc(x, y, particle.size, 0, Math.PI * 2);
+        dustContext.fillStyle = `rgba(246,211,154,${shimmer})`;
+        dustContext.shadowColor = "rgba(246,211,154,.65)";
+        dustContext.shadowBlur = 5;
+        dustContext.fill();
+      });
+      dustContext.shadowBlur = 0;
+      requestAnimationFrame(animateDust);
+    };
+    const resizeObserver = new ResizeObserver(drawRoom);
+    resizeObserver.observe(scene);
+    requestAnimationFrame(animateDust);
+    const moveFlashlight = (event) => {
+      const bounds = scene.getBoundingClientRect();
+      scene.style.setProperty("--light-x", `${((event.clientX - bounds.left) / bounds.width) * 100}%`);
+      scene.style.setProperty("--light-y", `${((event.clientY - bounds.top) / bounds.height) * 100}%`);
+      scene.classList.add("is-searching");
+    };
+    scene.addEventListener("pointermove", moveFlashlight);
+    scene.addEventListener("pointerdown", moveFlashlight);
+    scene.addEventListener("pointerleave", () => scene.classList.remove("is-searching"));
+
     memories.forEach((item) => {
       const entry = document.createElement("span");
       entry.className = "inventory-item";
@@ -370,14 +1062,10 @@ const LOVE_STORY = {
       button.style.left = item.left;
       button.style.top = item.top;
       button.setAttribute("aria-label", `Examiner : ${item.label}`);
-      button.innerHTML = `<span class="object-glyph"></span>`;
-      button.querySelector(".object-glyph").textContent = item.icon;
       button.addEventListener("click", () => {
         if (button.disabled) return;
         if (item.kind === "decoy") {
           feedback.textContent = item.foundText;
-          button.classList.remove("is-trap");
-          requestAnimationFrame(() => button.classList.add("is-trap"));
           playTone();
           return;
         }
@@ -385,6 +1073,7 @@ const LOVE_STORY = {
         foundFragments.add(item.id);
         button.classList.add("is-found");
         button.disabled = true;
+        drawRoom();
         inventory.querySelectorAll(".inventory-item")[memories.indexOf(item)].classList.add("is-found");
         feedback.textContent = item.foundText;
         playTone(foundFragments.size === memories.length ? "success" : "tap");
@@ -402,24 +1091,93 @@ const LOVE_STORY = {
   }
 
   function renderRiddle(config) {
-    gameContent.innerHTML = `<div class="game-panel riddle-card"><div class="chest-icon" aria-hidden="true">♧</div><h3></h3><form class="answer-form"><input class="answer-input" type="text" autocomplete="off" placeholder="Ta réponse…" aria-label="Ta réponse"><button class="button button-primary" type="submit">Ouvrir <span aria-hidden="true">↗</span></button></form><p class="feedback" aria-live="polite"></p><p class="hint-copy" aria-live="polite"></p></div>`;
+    const fields = config.fields?.length ? config.fields : [{
+      label: "Ta réponse",
+      placeholder: "Ta réponse…",
+      answers: config.answers
+    }];
+    const isMultiField = fields.length > 1;
+    const solvedFields = new Set();
+    const acceptedAnswers = fields.map((field) => field.answers.map(normalizeAnswer));
+    gameContent.innerHTML = `<div class="game-panel riddle-card"><div class="chest-icon" aria-hidden="true">♧</div><h3></h3><form class="answer-form riddle-form"><div class="riddle-fields${isMultiField ? " is-multiple" : " is-single"}"></div><button class="button button-primary" type="submit">Valider <span aria-hidden="true">↗</span></button></form><p class="feedback" aria-live="polite"></p><p class="hint-copy" aria-live="polite"></p></div>`;
     $(".riddle-card h3").textContent = config.question;
-    $(".answer-form").addEventListener("submit", (event) => {
+    const form = $(".riddle-form");
+    const fieldInputs = [];
+    const fieldStatuses = [];
+    fields.forEach((field, index) => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "riddle-field";
+      const label = document.createElement("label");
+      label.className = "riddle-field-label";
+      label.htmlFor = `riddle-answer-${index + 1}`;
+      label.textContent = field.label;
+      const input = document.createElement("input");
+      input.id = label.htmlFor;
+      input.className = "answer-input riddle-input";
+      input.type = "text";
+      input.autocomplete = "off";
+      input.placeholder = field.placeholder;
+      input.setAttribute("aria-describedby", `riddle-status-${index + 1}`);
+      const status = document.createElement("span");
+      status.id = `riddle-status-${index + 1}`;
+      status.className = "riddle-field-status";
+      status.setAttribute("aria-live", "polite");
+      input.addEventListener("input", () => {
+        if (solvedFields.has(index)) return;
+        input.classList.remove("is-incorrect");
+        status.classList.remove("is-incorrect");
+        status.textContent = solvedFields.size > 0 ? "Encore à trouver" : "";
+      });
+      fieldInputs.push(input);
+      fieldStatuses.push(status);
+      wrapper.append(label, input, status);
+      $(".riddle-fields").append(wrapper);
+    });
+    form.addEventListener("submit", (event) => {
       event.preventDefault();
-      const answer = normalizeAnswer($(".answer-input").value);
-      const accepted = config.answers.map(normalizeAnswer);
-      if (answer && accepted.includes(answer)) {
-        $(".feedback").textContent = "Le coffret s'ouvre…";
-        $(".feedback").classList.add("is-correct");
+      let hasUnsolvedFields = false;
+      fieldInputs.forEach((input, index) => {
+        if (solvedFields.has(index)) return;
+        const answer = normalizeAnswer(input.value);
+        if (answer && acceptedAnswers[index].includes(answer)) {
+          solvedFields.add(index);
+          input.disabled = true;
+          input.classList.remove("is-incorrect");
+          input.classList.add("is-correct");
+          fieldStatuses[index].classList.remove("is-incorrect");
+          fieldStatuses[index].classList.add("is-correct");
+          fieldStatuses[index].textContent = "Trouvé";
+          return;
+        }
+        hasUnsolvedFields = true;
+        input.classList.toggle("is-incorrect", Boolean(answer));
+        fieldStatuses[index].classList.toggle("is-incorrect", Boolean(answer));
+        fieldStatuses[index].textContent = answer ? "À corriger" : "Encore à trouver";
+      });
+      const feedback = $(".feedback");
+      if (solvedFields.size === fields.length) {
+        feedback.textContent = isMultiField ? "Les deux cadeaux sont retrouvés, le coffret s'ouvre…" : "Le coffret s'ouvre…";
+        feedback.classList.remove("is-partial");
+        feedback.classList.add("is-correct");
         playTone("success");
         completeMonth();
         return;
       }
-      attempts += 1;
-      $(".feedback").textContent = "Ce n'est pas tout à fait ça… essaie encore.";
-      if (attempts >= config.hintAfter) $(".hint-copy").textContent = config.hint;
+      if (hasUnsolvedFields) {
+        attempts += 1;
+        feedback.classList.remove("is-correct");
+        feedback.classList.toggle("is-partial", solvedFields.size > 0);
+        if (solvedFields.size > 0) {
+          feedback.textContent = "Un cadeau est trouvé. L'autre reste à trouver.";
+        } else {
+          feedback.textContent = isMultiField
+            ? "Les deux réponses sont encore à trouver."
+            : "Ce n'est pas tout à fait ça… essaie encore.";
+        }
+        if (attempts >= config.hintAfter) $(".hint-copy").textContent = config.hint;
+      }
       playTone();
-      $(".answer-input").select();
+      fieldInputs.find((input, index) => !solvedFields.has(index))?.focus();
     });
   }
 
