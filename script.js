@@ -7,13 +7,14 @@ const LOVE_STORY = {
   months: [
     {
       title: "La fouille de zone",
+      calendarMonth: "Novembre",
       label: "La fouille",
       subtitle: "La chambre garde quatre objets précieux. Observe les détails et retrouve-les.",
       game: {
         type: "hunt",
         items: [
           { id: "rose", label: "Une rose", left: "24%", top: "61%", kind: "memory", foundText: "Une rose, délicatement posée là… elle est à toi." },
-          { id: "bracelet", label: "Un bracelet", left: "55%", top: "86%", kind: "memory", foundText: "Un bracelet retrouvé, comme un petit lien entre nous." },
+          { id: "bracelet", label: "Un bracelet", left: "55%", top: "86%", kind: "memory", foundText: "Un bracelet retrouvé, un petit lien entre nous." },
           { id: "plush", label: "Une peluche", left: "71%", top: "62%", kind: "memory", foundText: "Une peluche toute douce, gardienne de nos nuits." },
           { id: "sweater", label: "Un pull", left: "86%", top: "77%", kind: "memory", foundText: "Un pull tout chaud, avec un peu de toi dedans." },
           { id: "book", label: "Un livre", left: "14%", top: "65%", kind: "decoy", foundText: "Juste un livre entrouvert… le trésor se cache ailleurs." },
@@ -22,10 +23,11 @@ const LOVE_STORY = {
           { id: "sock", label: "Une chaussette", left: "38%", top: "89%", kind: "decoy", foundText: "Une chaussette esseulée… les objets précieux sont encore là." }
         ]
       },
-      personalMessage: "À venir."
+      personalMessage: "Le mois de novembre a été le mois ou on s'est mis ensemble c'est pas la meilleure des manières en plus j'étais tellement stressé que j'ai pas pu attendre ta réponse j'avais trop peur mdrrrr, ça était un mois vraiment incroyable je pense que c'était bien la première fois où je m'entendais si bien avec une personne et que je pensais a elle autant, je reste quand même désolé pour Emma ou mtn elle ne te parle plus ect c'était pas voulu évidemment mais quand même j'aurais dû plus réfléchir mais ce qui est fait est fait et je ne regrette pas non plus pour autant ça a pu me permettre que je ne pouvais plus me passer de toi."
     },
     {
       title: "L'énigme souvenir",
+      calendarMonth: "Décembre",
       label: "L'énigme",
       subtitle: "Deux souvenirs précieux veillent dans ce coffret. Sauras-tu les retrouver ?",
       game: {
@@ -46,10 +48,11 @@ const LOVE_STORY = {
         hintAfter: 2,
         hint: "Indice : rose pour ton cadeau, bougies pour le mien."
       },
-      personalMessage: "À venir."
+      personalMessage: "Le mois de décembre ça était un mois vraiment incroyable il y a eu que des bonnes choses, je crois que si mais souvenirs sont bon ça devait être pendant ce mois là que tu est venu chez moi je crois ? ou alors ça devait être en janvier je ne sais plus trop tout ce que je sais c'était que j'aurais aimé être avec toi pour Noël mais du coup si ça avait bien était se mois que je t'avais présenté à ma mère et que tu avais était chez moi bah t'avais était la première a venir aussi vite chez moi parce que j'avais tellement confiance en toi c'était dingue, ya eu aussi le karting ça j'avais vraiment kiffé c'était une dinguerie avec le bowling les arcades et tout c'était vraiment la meilleure journée et de très loin je pense pour moi. "
     },
     {
       title: "Le labyrinthe des souvenirs",
+      calendarMonth: "Janvier",
       label: "Le labyrinthe",
       subtitle: "Une petite lumière cherche le chemin jusqu'au cœur. Guide-la jusqu'à la sortie.",
       game: {
@@ -59,10 +62,11 @@ const LOVE_STORY = {
           "#.#####.#.#", "#.....#.#.#", "#####...#.#", "#.....#...#", "#.#######E#", "###########"
         ]
       },
-      personalMessage: "À venir."
+      personalMessage: "Le mois de Janvier je pense que ça devait être le pire mois avec ton stage et je crois que j'avais énormément stressé ect c'était vraiment long et chiant c'était horrible mais je t'avais quand même fait une belle surprise au soir de ton stage eheh j'avais passé une superbe soirée franchement."
     },
     {
       title: "Correspondance de moments",
+      calendarMonth: "Février",
       label: "Les paires",
       subtitle: "Chaque petit indice appartient à un souvenir. Retrouve les quatre bonnes paires.",
       game: {
@@ -78,6 +82,7 @@ const LOVE_STORY = {
     },
     {
       title: "La chasse aux étoiles",
+      calendarMonth: "Mars",
       label: "Les étoiles",
       subtitle: "Les étoiles filantes cachent un poème. Clique-les dans le bon ordre.",
       game: {
@@ -94,6 +99,7 @@ const LOVE_STORY = {
     },
     {
       title: "Le cap de la moitié",
+      calendarMonth: "Avril",
       label: "La boîte à musique",
       subtitle: "Quelques notes se sont échappées de notre boîte à musique. Rejoue la mélodie.",
       game: {
@@ -112,6 +118,7 @@ const LOVE_STORY = {
     },
     {
       title: "Le cherche et trouve",
+      calendarMonth: "Mai",
       label: "Le petit chat",
       subtitle: "Cette chambre est pleine de petits détails… mais un invité s'y est caché.",
       game: {
@@ -133,6 +140,7 @@ const LOVE_STORY = {
     },
     {
       title: "Le déchiffrage de code",
+      calendarMonth: "Juin",
       label: "Le message secret",
       subtitle: "Les lettres ont avancé de trois places. Ramène-les chez elles pour lire le message.",
       game: {
@@ -146,6 +154,7 @@ const LOVE_STORY = {
     },
     {
       title: "La balade dans nos souvenirs",
+      calendarMonth: "Juillet",
       label: "Les polaroids",
       subtitle: "Retourne chaque polaroid pour revoir un petit instant de notre histoire.",
       game: {
@@ -161,6 +170,7 @@ const LOVE_STORY = {
     },
     {
       title: "Le quiz complice",
+      calendarMonth: "Août",
       label: "Le quiz",
       subtitle: "Trois petites questions sur nous deux. Voyons si tu te souviens de tout !",
       game: {
@@ -175,6 +185,7 @@ const LOVE_STORY = {
     },
     {
       title: "La traînée de lumière",
+      calendarMonth: "Septembre",
       label: "Le cœur lumineux",
       subtitle: "Trace un cœur d'un seul geste pour laisser une petite lumière dans la nuit.",
       game: { type: "trace", shape: "heart" },
@@ -182,6 +193,7 @@ const LOVE_STORY = {
     },
     {
       title: "Le bouquet final",
+      calendarMonth: "Octobre",
       label: "Le bouquet",
       subtitle: "Douze mois, douze petites fleurs. Compose notre bouquet pour ouvrir la dernière lettre.",
       game: {
@@ -213,6 +225,7 @@ const LOVE_STORY = {
   const timeline = $("#timeline");
   const gameContent = $("#game-content");
   const dialog = $("#reveal-dialog");
+  const disclaimerDialog = $("#disclaimer-dialog");
   document.title = LOVE_STORY.title;
   $("#welcome-copy").textContent = LOVE_STORY.subtitle;
   let completed = loadProgress();
@@ -276,8 +289,9 @@ const LOVE_STORY = {
       node.type = "button";
       node.className = `month-node${isComplete ? " is-complete" : ""}${isCurrent ? " is-current" : ""}`;
       node.disabled = !isUnlocked;
-      node.setAttribute("aria-label", `Mois ${index + 1} : ${month.label}${isComplete ? ", souvenir retrouvé, rejouer" : isUnlocked ? ", à découvrir" : ", verrouillé"}`);
-      node.innerHTML = `<span class="month-number">MOIS ${String(index + 1).padStart(2, "0")}</span><span class="month-icon" aria-hidden="true">${isComplete ? "✦" : isUnlocked ? "✧" : "⌑"}</span><span class="month-name"></span><span class="month-status" aria-hidden="true">${isComplete ? "✓" : !isUnlocked ? "⌑" : ""}</span>`;
+      node.setAttribute("aria-label", `Mois ${index + 1}, ${month.calendarMonth} : ${month.label}${isComplete ? ", souvenir retrouvé, rejouer" : isUnlocked ? ", à découvrir" : ", verrouillé"}`);
+      node.innerHTML = `<span class="month-number">MOIS ${String(index + 1).padStart(2, "0")}</span><span class="month-calendar"></span><span class="month-icon" aria-hidden="true">${isComplete ? "✦" : isUnlocked ? "✧" : "⌑"}</span><span class="month-name"></span><span class="month-status" aria-hidden="true">${isComplete ? "✓" : !isUnlocked ? "⌑" : ""}</span>`;
+      node.querySelector(".month-calendar").textContent = month.calendarMonth;
       node.querySelector(".month-name").textContent = month.label;
       if (isUnlocked) node.addEventListener("click", () => openMonth(index));
       timeline.append(node);
@@ -295,7 +309,7 @@ const LOVE_STORY = {
     if (completed.length !== LOVE_STORY.months.length) return;
     $("#reveal-title").textContent = "Le grand mot final";
     const recap = LOVE_STORY.months
-      .map((month, index) => `Mois ${index + 1} · ${month.title}\n${month.personalMessage}`)
+      .map((month, index) => `Mois ${index + 1} · ${month.calendarMonth} · ${month.title}\n${month.personalMessage}`)
       .join("\n\n");
     $("#reveal-copy").textContent = `${LOVE_STORY.finalMessage}\n\n✦ Notre année en quelques mots ✦\n\n${recap}`;
     dialog.classList.add("is-final");
@@ -317,7 +331,7 @@ const LOVE_STORY = {
     const month = LOVE_STORY.months[index];
     gameContent.classList.toggle("is-hunt", month.game.type === "hunt");
     $("#game-counter").textContent = `SOUVENIR ${String(index + 1).padStart(2, "0")} / 12`;
-    $("#game-eyebrow").textContent = `Mois ${index + 1} · ${completed.includes(index) ? "À relire" : "À découvrir"}`;
+    $("#game-eyebrow").textContent = `Mois ${index + 1} · ${month.calendarMonth} · ${completed.includes(index) ? "À relire" : "À découvrir"}`;
     $("#game-title").textContent = month.title;
     $("#game-description").textContent = month.subtitle;
     if (month.game.type === "hunt") renderHunt(month.game);
@@ -1635,7 +1649,8 @@ const LOVE_STORY = {
     }
     renderHub();
     dialog.classList.remove("is-final");
-    $("#reveal-title").textContent = `Mois ${activeMonth + 1} · ${LOVE_STORY.months[activeMonth].title}`;
+    const month = LOVE_STORY.months[activeMonth];
+    $("#reveal-title").textContent = `Mois ${activeMonth + 1} · ${month.calendarMonth} · ${month.title}`;
     $("#reveal-copy").textContent = LOVE_STORY.months[activeMonth].personalMessage;
     $("#continue-button").textContent = activeMonth < LOVE_STORY.months.length - 1
       ? "Continuer vers le mois suivant ↗"
@@ -1655,6 +1670,10 @@ const LOVE_STORY = {
   }
 
   $("#start-button").addEventListener("click", () => {
+    disclaimerDialog.showModal();
+  });
+  $("#disclaimer-continue-button").addEventListener("click", () => {
+    disclaimerDialog.close();
     renderHub();
     showScreen("hub");
   });
