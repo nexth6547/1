@@ -35,12 +35,12 @@ const LOVE_STORY = {
         question: "Quelles sont les premières choses qu'on s'est offertes ?",
         fields: [
           {
-            label: "Ton cadeau (ce que je t'ai offert)",
+            label: "Mon cadeau (ce que tu m'as offert)",
             placeholder: "Écris ta réponse...",
             answers: ["un dessin", "dessin", "le dessin"]
           },
           {
-            label: "Mon cadeau (ce que tu m'as offert)",
+            label: "Ton cadeau (ce que je t'ai offert)",
             placeholder: "Écris ta réponse...",
             answers: ["un bougeoir", "bougeoir", "le bougeoir"]
           }
