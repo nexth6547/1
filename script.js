@@ -83,14 +83,14 @@ const LOVE_STORY = {
       title: "Correspondance de moments",
       calendarMonth: "Février",
       label: "Les paires",
-      subtitle: "Chaque petit indice appartient à un souvenir. Retrouve les quatre bonnes paires.",
+      subtitle: "Du karting aux Minions, retrouve les détails de nos souvenirs.",
       game: {
         type: "matches",
         pairs: [
-          { left: "Notre premier café", right: "Un cappuccino partagé" },
-          { left: "Le jour de notre rencontre", right: "Un sourire inoubliable" },
-          { left: "Notre première balade", right: "Le chemin au bord de l'eau" },
-          { left: "Notre chanson", right: "Celle que l'on chante ensemble" }
+          { left: "Le karting", right: "Complètement fou" },
+          { left: "Notre premier film ensemble", right: "Les Minions" },
+          { left: "Notre sortie à Pairi Daiza", right: "On a fini trempés" },
+          { left: "Notre premier jeu en coop", right: "Tu n’as pas aimé le passage avec les araignées" }
         ]
       },
       personalMessage: ""
