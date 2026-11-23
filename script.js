@@ -12,14 +12,14 @@ const LOVE_STORY = {
       game: {
         type: "hunt",
         items: [
-          { id: "rose", label: "Une rose", icon: "🌹", left: "24%", top: "61%", kind: "memory", foundText: "Une rose, délicatement posée là… elle est à toi." },
-          { id: "bracelet", label: "Un bracelet", icon: "◎", left: "55%", top: "86%", kind: "memory", foundText: "Un bracelet retrouvé, comme un petit lien entre nous." },
-          { id: "plush", label: "Une peluche", icon: "🧸", left: "71%", top: "62%", kind: "memory", foundText: "Une peluche toute douce, gardienne de nos nuits." },
-          { id: "sweater", label: "Un pull", icon: "👕", left: "86%", top: "77%", kind: "memory", foundText: "Un pull tout chaud, avec un peu de toi dedans." },
-          { id: "book", label: "Un livre", icon: "📖", left: "14%", top: "65%", kind: "decoy", foundText: "Juste un livre entrouvert… le trésor se cache ailleurs." },
-          { id: "mug", label: "Une tasse", icon: "☕", left: "32%", top: "63%", kind: "decoy", foundText: "Une tasse oubliée sur la table de nuit. Continue à chercher." },
-          { id: "perfume", label: "Un flacon", icon: "🧴", left: "84%", top: "39%", kind: "decoy", foundText: "Un petit flacon, mais pas encore le bon souvenir." },
-          { id: "sock", label: "Une chaussette", icon: "🧦", left: "38%", top: "89%", kind: "decoy", foundText: "Une chaussette esseulée… les objets précieux sont encore là." }
+          { id: "rose", label: "Une rose", left: "24%", top: "61%", kind: "memory", foundText: "Une rose, délicatement posée là… elle est à toi." },
+          { id: "bracelet", label: "Un bracelet", left: "55%", top: "86%", kind: "memory", foundText: "Un bracelet retrouvé, comme un petit lien entre nous." },
+          { id: "plush", label: "Une peluche", left: "71%", top: "62%", kind: "memory", foundText: "Une peluche toute douce, gardienne de nos nuits." },
+          { id: "sweater", label: "Un pull", left: "86%", top: "77%", kind: "memory", foundText: "Un pull tout chaud, avec un peu de toi dedans." },
+          { id: "book", label: "Un livre", left: "14%", top: "65%", kind: "decoy", foundText: "Juste un livre entrouvert… le trésor se cache ailleurs." },
+          { id: "mug", label: "Une tasse", left: "32%", top: "63%", kind: "decoy", foundText: "Une tasse oubliée sur la table de nuit. Continue à chercher." },
+          { id: "perfume", label: "Un flacon", left: "84%", top: "39%", kind: "decoy", foundText: "Un petit flacon, mais pas encore le bon souvenir." },
+          { id: "sock", label: "Une chaussette", left: "38%", top: "89%", kind: "decoy", foundText: "Une chaussette esseulée… les objets précieux sont encore là." }
         ]
       },
       personalMessage: "À venir."
@@ -245,30 +245,6 @@ const LOVE_STORY = {
     }
   }
 
-  function playTone(kind = "tap") {
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextClass) return;
-    try {
-      const context = new AudioContextClass();
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      const success = kind === "success";
-      oscillator.type = "sine";
-      oscillator.frequency.setValueAtTime(success ? 660 : 420, context.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(success ? 990 : 520, context.currentTime + (success ? .28 : .09));
-      gain.gain.setValueAtTime(.0001, context.currentTime);
-      gain.gain.exponentialRampToValueAtTime(success ? .075 : .035, context.currentTime + .015);
-      gain.gain.exponentialRampToValueAtTime(.0001, context.currentTime + (success ? .38 : .14));
-      oscillator.connect(gain);
-      gain.connect(context.destination);
-      oscillator.start();
-      oscillator.stop(context.currentTime + (success ? .4 : .16));
-      oscillator.addEventListener("ended", () => context.close(), { once: true });
-    } catch (error) {
-      console.warn("Le son n'est pas disponible dans ce navigateur.", error);
-    }
-  }
-
   function showToast(message) {
     const toast = $("#toast");
     toast.textContent = message;
@@ -369,7 +345,6 @@ const LOVE_STORY = {
           <div class="hunt-flashlight" aria-hidden="true"></div>
         </div>
         <p class="hunt-hint">La chambre dort… éclaire ses recoins et retrouve quatre objets précieux.</p>
-        <div class="hunt-inventory" aria-label="Objets précieux retrouvés"></div>
         <p class="hunt-feedback" aria-live="polite">Clique sur les objets de la chambre pour les examiner.</p>
       </div>`;
     const scene = $(".hunt-scene");
@@ -377,7 +352,6 @@ const LOVE_STORY = {
     const context = canvas.getContext("2d");
     const dustCanvas = $(".hunt-dust-canvas");
     const dustContext = dustCanvas.getContext("2d");
-    const inventory = $(".hunt-inventory");
     const memories = config.items.filter((item) => item.kind === "memory");
     const feedback = $(".hunt-feedback");
     if (!context || !dustContext) {
@@ -1047,15 +1021,6 @@ const LOVE_STORY = {
     scene.addEventListener("pointerdown", moveFlashlight);
     scene.addEventListener("pointerleave", () => scene.classList.remove("is-searching"));
 
-    memories.forEach((item) => {
-      const entry = document.createElement("span");
-      entry.className = "inventory-item";
-      entry.setAttribute("aria-label", item.label);
-      entry.innerHTML = `<span class="inventory-icon" aria-hidden="true"></span><span class="inventory-label"></span>`;
-      entry.querySelector(".inventory-icon").textContent = item.icon;
-      entry.querySelector(".inventory-label").textContent = item.label;
-      inventory.append(entry);
-    });
     config.items.forEach((item) => {
       const button = document.createElement("button");
       button.type = "button";
@@ -1067,7 +1032,6 @@ const LOVE_STORY = {
         if (button.disabled) return;
         if (item.kind === "decoy") {
           feedback.textContent = item.foundText;
-          playTone();
           return;
         }
         if (foundFragments.has(item.id)) return;
@@ -1075,9 +1039,7 @@ const LOVE_STORY = {
         button.classList.add("is-found");
         button.disabled = true;
         drawRoom();
-        inventory.querySelectorAll(".inventory-item")[memories.indexOf(item)].classList.add("is-found");
         feedback.textContent = item.foundText;
-        playTone(foundFragments.size === memories.length ? "success" : "tap");
         if (foundFragments.size === memories.length) {
           feedback.textContent = "Tout est retrouvé… il ne reste qu'à découvrir la lettre.";
           completeMonth();
@@ -1160,7 +1122,6 @@ const LOVE_STORY = {
         feedback.textContent = isMultiField ? "Les deux cadeaux sont retrouvés, le coffret s'ouvre…" : "Le coffret s'ouvre…";
         feedback.classList.remove("is-partial");
         feedback.classList.add("is-correct");
-        playTone("success");
         completeMonth();
         return;
       }
@@ -1177,7 +1138,6 @@ const LOVE_STORY = {
         }
         if (attempts >= config.hintAfter) $(".hint-copy").textContent = config.hint;
       }
-      playTone();
       fieldInputs.find((input, index) => !solvedFields.has(index))?.focus();
     });
   }
@@ -1241,7 +1201,6 @@ const LOVE_STORY = {
       if (!maze[ny] || maze[ny][nx] === "#") return;
       player = { x: nx, y: ny };
       draw();
-      playTone();
       if (maze[ny][nx] === "E") completeMonth();
     };
     document.onkeydown = (event) => {
@@ -1269,7 +1228,6 @@ const LOVE_STORY = {
         selectedLeft = index;
         gameContent.querySelectorAll(".left-column .match-item").forEach((item) => item.classList.toggle("is-selected", Number(item.dataset.pair) === index));
         $(".match-feedback").textContent = "Maintenant, choisis le souvenir correspondant.";
-        playTone();
       });
       $(".left-column").append(button);
     });
@@ -1288,12 +1246,10 @@ const LOVE_STORY = {
             item.disabled = true;
           });
           $(".match-feedback").textContent = `${matchedPairs.size} sur 4 paires retrouvées`;
-          playTone(matchedPairs.size === 4 ? "success" : "tap");
           selectedLeft = null;
           if (matchedPairs.size === pairs.length) completeMonth();
         } else {
           $(".match-feedback").textContent = "Pas cette fois… essaie une autre paire.";
-          playTone();
         }
         gameContent.querySelectorAll(".left-column .match-item").forEach((item) => item.classList.remove("is-selected"));
         selectedLeft = null;
@@ -1329,7 +1285,6 @@ const LOVE_STORY = {
           feedback.textContent = "Pas encore celle-ci… suis l'ordre des étoiles.";
           button.classList.remove("is-wrong");
           requestAnimationFrame(() => button.classList.add("is-wrong"));
-          playTone();
           return;
         }
         foundFragments.add(index);
@@ -1341,7 +1296,6 @@ const LOVE_STORY = {
         pip.textContent = "✦";
         progress.append(pip);
         feedback.textContent = `Une étoile retrouvée… ${foundFragments.size} sur ${config.sequence.length}.`;
-        playTone(foundFragments.size === config.sequence.length ? "success" : "tap");
         if (foundFragments.size === config.sequence.length) {
           const poem = $(".revealed-poem");
           config.poem.forEach((line) => {
@@ -1361,10 +1315,7 @@ const LOVE_STORY = {
 
   function playNote(frequency) {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextClass) {
-      playTone();
-      return;
-    }
+    if (!AudioContextClass) return;
     try {
       const context = new AudioContextClass();
       const oscillator = context.createOscillator();
@@ -1410,7 +1361,6 @@ const LOVE_STORY = {
           position = 0;
           sequenceDisplay.replaceChildren();
           feedback.textContent = "La mélodie s'est envolée… recommence doucement.";
-          playTone();
           return;
         }
         position += 1;
@@ -1420,7 +1370,6 @@ const LOVE_STORY = {
           $(".music-message").hidden = false;
           $(".music-finish").hidden = false;
           feedback.textContent = "La boîte s'ouvre et livre son message.";
-          playTone("success");
         }
       });
       notes.append(button);
@@ -1477,13 +1426,11 @@ const LOVE_STORY = {
         if (item.id === config.target) {
           button.classList.add("is-found");
           $(".activity-feedback").textContent = `Trouvé ! ${config.targetLabel} était bien là.`;
-          playTone("success");
           completeMonth();
         } else {
           button.classList.remove("is-bump");
           requestAnimationFrame(() => button.classList.add("is-bump"));
           $(".activity-feedback").textContent = "Un joli détail, mais ce n'est pas celui que l'on cherche.";
-          playTone();
         }
       });
       scene.append(button);
@@ -1499,14 +1446,12 @@ const LOVE_STORY = {
       if (answer === normalizeAnswer(config.answer)) {
         $(".feedback").textContent = "Le message est déchiffré.";
         $(".feedback").classList.add("is-correct");
-        playTone("success");
         completeMonth();
         return;
       }
       attempts += 1;
       $(".feedback").textContent = "Les lettres ne sont pas encore à leur place.";
       if (attempts >= 2) $(".hint-copy").textContent = config.hint;
-      playTone();
       $(".answer-input").select();
     });
   }
@@ -1529,11 +1474,9 @@ const LOVE_STORY = {
         button.setAttribute("aria-pressed", "true");
         matchedPairs.add(index);
         $(".activity-feedback").textContent = `${matchedPairs.size} sur ${config.cards.length} souvenirs retournés.`;
-        playTone();
         if (matchedPairs.size === config.cards.length) {
           $(".activity-feedback").textContent = "Tous les petits instants sont retrouvés.";
           $(".polaroid-finish").hidden = false;
-          playTone("success");
         }
       });
       grid.append(button);
@@ -1558,18 +1501,15 @@ const LOVE_STORY = {
       const question = config.questions[questionIndex];
       if (!question.answers.map(normalizeAnswer).includes(answer)) {
         $(".feedback").textContent = "Pas tout à fait… pense à nos petits moments.";
-        playTone();
         return;
       }
       questionIndex += 1;
       if (questionIndex === config.questions.length) {
         $(".feedback").textContent = "Trois sur trois ! Tu connais bien notre petite histoire.";
         $(".feedback").classList.add("is-correct");
-        playTone("success");
         completeMonth();
       } else {
         $(".feedback").textContent = "Bien joué ! Question suivante…";
-        playTone("success");
         showQuestion();
       }
     });
@@ -1644,11 +1584,9 @@ const LOVE_STORY = {
       const coverage = samples.filter((sample) => points.some((point) => Math.hypot(point.x - sample.x, point.y - sample.y) < .055)).length / samples.length;
       if (points.length > 35 && coverage >= .38) {
         $(".activity-feedback").textContent = "Un cœur lumineux, rien que pour nous.";
-        playTone("success");
         completeMonth();
       } else {
         $(".activity-feedback").textContent = "Le cœur n'est pas encore complet. Essaie de suivre la ligne dorée d'un seul geste.";
-        playTone();
       }
     };
     canvas.addEventListener("pointerup", finish);
@@ -1679,7 +1617,6 @@ const LOVE_STORY = {
         button.classList.add("is-picked");
         matchedPairs.add(index);
         $(".activity-feedback").textContent = `${matchedPairs.size} sur ${config.flowers.length} fleurs dans le bouquet.`;
-        playTone(matchedPairs.size === config.flowers.length ? "success" : "tap");
         if (matchedPairs.size === config.flowers.length) {
           $(".activity-feedback").textContent = "Le bouquet est prêt. La dernière lettre peut s'ouvrir.";
           $(".bouquet-finish").hidden = false;
@@ -1718,7 +1655,6 @@ const LOVE_STORY = {
   }
 
   $("#start-button").addEventListener("click", () => {
-    playTone();
     renderHub();
     showScreen("hub");
   });
@@ -1744,7 +1680,6 @@ const LOVE_STORY = {
     }
     renderHub();
     showToast("La constellation est prête pour un nouveau voyage.");
-    playTone();
   });
   $("#read-final-button").addEventListener("click", openFinalMessage);
   dialog.addEventListener("close", () => {
