@@ -1367,7 +1367,7 @@ const LOVE_STORY = {
 
       fogContext.globalCompositeOperation = "source-over";
       fogContext.clearRect(0, 0, canvas.width, canvas.height);
-      fogContext.fillStyle = "rgba(3,6,15,.94)";
+      fogContext.fillStyle = "#03060f";
       fogContext.fillRect(0, 0, canvas.width, canvas.height);
       fogContext.save();
       fogContext.globalCompositeOperation = "destination-out";
