@@ -54,12 +54,27 @@ const LOVE_STORY = {
       title: "Le labyrinthe des souvenirs",
       calendarMonth: "Janvier",
       label: "Le labyrinthe",
-      subtitle: "Une petite lumière cherche le chemin jusqu'au cœur. Guide-la jusqu'à la sortie.",
+      subtitle: "Guide une lumière dans la nuit, retrouve les trois éclats de souvenir et ouvre le chemin vers le cœur.",
       game: {
         type: "maze",
         map: [
-          "###########", "#S#########", "#.#.......#", "#.#.#####.#", "#.#.....#.#",
-          "#.#####.#.#", "#.....#.#.#", "#####...#.#", "#.....#...#", "#.#######E#", "###########"
+          "#################",
+          "#S#*....#*....#.#",
+          "#.###.#.###.#.#.#",
+          "#.....#.....#.#.#",
+          "#############.#.#",
+          "#...#.......#...#",
+          "#.###.#.#######.#",
+          "#.....#...#.....#",
+          "#.#######.#.#####",
+          "#.#.......#...#*#",
+          "#.#.#########.#.#",
+          "#.#.#.......#...#",
+          "###.#.#####.###.#",
+          "#...#.#...#...#.#",
+          "#.###.#.#.###.#.#",
+          "#.......#...#..E#",
+          "#################"
         ]
       },
       personalMessage: "Le mois de Janvier je pense que ça devait être le pire mois avec ton stage et je crois que j'avais énormément stressé ect c'était vraiment long et chiant c'était horrible mais je t'avais quand même fait une belle surprise au soir de ton stage eheh j'avais passé une superbe soirée franchement."
@@ -150,7 +165,7 @@ const LOVE_STORY = {
         answer: "nous sommes plus beaux a deux",
         hint: "Indice : pour décoder, recule chaque lettre de trois places dans l'alphabet."
       },
-      personalMessage: "À venir."
+      personalMessage: "Le mois de juin j'ai peur de souvenirs mais du coup tu m'as rappeler la friterie où on était aller et où tu as rencontré ma grande soeur et mon neuve, c'était d'ailleurs vraiment pas fou comme moment parce qu'il avait failli dire de la merde a ce moment 😭, il a eu aussi l'endroit où on était aller manger un couscous et je crois que pour toi c'était pas le meilleur des moments avec toute ma famille mdrrrr 😭😭 mais c'était vraiment sympas aussi comme toute les journées qu'on a passé a deux et ou avait fait des choses ensemble ect."
     },
     {
       title: "La balade dans nos souvenirs",
@@ -1157,74 +1172,405 @@ const LOVE_STORY = {
   }
 
   const DIRECTIONS = {
-    ArrowUp: [0, -1], z: [0, -1], Z: [0, -1],
-    ArrowDown: [0, 1], s: [0, 1], S: [0, 1],
-    ArrowLeft: [-1, 0], q: [-1, 0], Q: [-1, 0],
-    ArrowRight: [1, 0], d: [1, 0], D: [1, 0]
+    ArrowUp: [0, -1], w: [0, -1], W: [0, -1], z: [0, -1], Z: [0, -1], KeyW: [0, -1], KeyZ: [0, -1],
+    ArrowDown: [0, 1], s: [0, 1], S: [0, 1], KeyS: [0, 1],
+    ArrowLeft: [-1, 0], a: [-1, 0], A: [-1, 0], q: [-1, 0], Q: [-1, 0], KeyA: [-1, 0], KeyQ: [-1, 0],
+    ArrowRight: [1, 0], d: [1, 0], D: [1, 0], KeyD: [1, 0]
   };
 
   function renderMaze(config) {
-    gameContent.innerHTML = `<div class="game-panel maze-panel"><canvas id="maze-canvas" width="440" height="440" role="img" aria-label="Labyrinthe à résoudre"></canvas><p class="maze-instructions">Flèches du clavier ou ZQSD pour avancer · Le petit cœur t'attend au bout du chemin.</p><div class="maze-mobile-controls" aria-label="Contrôles du labyrinthe"><button type="button" data-move="ArrowUp" aria-label="Haut">↑</button><button type="button" data-move="ArrowLeft" aria-label="Gauche">←</button><button type="button" data-move="ArrowDown" aria-label="Bas">↓</button><button type="button" data-move="ArrowRight" aria-label="Droite">→</button></div></div>`;
+    gameContent.innerHTML = `<div class="game-panel maze-panel"><div class="maze-shard-count" aria-live="polite">Éclats : 0/3</div><canvas id="maze-canvas" width="640" height="640" tabindex="0" role="application" aria-label="Labyrinthe nocturne. Utilise les flèches, WASD ou ZQSD, ou glisse dans le labyrinthe." aria-describedby="maze-instructions maze-feedback"></canvas><p id="maze-feedback" class="maze-feedback" aria-live="polite">La lumière dorée cherche son chemin vers le cœur.</p><p id="maze-instructions" class="maze-instructions">Flèches, WASD ou ZQSD pour avancer · Clique dans une direction ou glisse pour guider la lumière.</p><div class="maze-mobile-controls" aria-label="Contrôles du labyrinthe"><button type="button" data-move="ArrowUp" aria-label="Haut">↑</button><button type="button" data-move="ArrowLeft" aria-label="Gauche">←</button><button type="button" data-move="ArrowDown" aria-label="Bas">↓</button><button type="button" data-move="ArrowRight" aria-label="Droite">→</button></div></div>`;
     const canvas = $("#maze-canvas");
     const context = canvas.getContext("2d");
-    const maze = config.map;
     if (!context) {
       showToast("Le canvas n'est pas disponible dans ce navigateur.");
       return;
     }
-    let player = { x: 1, y: 1 };
-    const tile = canvas.width / maze[0].length;
-    const draw = () => {
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      maze.forEach((row, y) => [...row].forEach((cell, x) => {
+    const maze = config.map.map((row) => [...row]);
+    const height = maze.length;
+    const width = maze[0]?.length ?? 0;
+    const findCell = (marker) => {
+      for (let y = 0; y < height; y++) {
+        const x = maze[y].indexOf(marker);
+        if (x !== -1) return { x, y };
+      }
+      return null;
+    };
+    const start = findCell("S");
+    const exit = findCell("E");
+    const shardCells = [];
+    maze.forEach((row, y) => row.forEach((cell, x) => {
+      if (cell === "*") shardCells.push({ x, y });
+    }));
+    if (!width || maze.some((row) => row.length !== width) || !start || !exit || shardCells.length !== 3) {
+      showToast("La carte du labyrinthe est invalide.");
+      return;
+    }
+
+    const tile = canvas.width / width;
+    const terrain = document.createElement("canvas");
+    terrain.width = canvas.width;
+    terrain.height = canvas.height;
+    const terrainContext = terrain.getContext("2d");
+    const fogCanvas = document.createElement("canvas");
+    fogCanvas.width = canvas.width;
+    fogCanvas.height = canvas.height;
+    const fogContext = fogCanvas.getContext("2d");
+    if (!terrainContext || !fogContext) {
+      showToast("Le rendu du labyrinthe n'est pas disponible dans ce navigateur.");
+      return;
+    }
+    let player = { ...start };
+    let visualX = start.x;
+    let visualY = start.y;
+    let movement = null;
+    let queuedMoves = [];
+    let particles = [];
+    let collectedShards = new Set();
+    let visibleCells = [];
+    let bumpStarted = -Infinity;
+    let bumpDirection = [0, 0];
+    let lastParticleAt = 0;
+    let won = false;
+    const feedback = $("#maze-feedback");
+    const shardCounter = $(".maze-shard-count");
+    const animationDuration = 145;
+    const visibilityRadius = 5.2;
+
+    const drawHeart = (target, x, y, size, color, alpha) => {
+      target.save();
+      target.globalAlpha = alpha;
+      target.fillStyle = color;
+      target.beginPath();
+      target.moveTo(x, y + size * .42);
+      target.bezierCurveTo(x - size * .58, y + size * .02, x - size * .48, y - size * .54, x, y - size * .2);
+      target.bezierCurveTo(x + size * .48, y - size * .54, x + size * .58, y + size * .02, x, y + size * .42);
+      target.closePath();
+      target.fill();
+      target.restore();
+    };
+    const drawTerrain = () => {
+      terrainContext.fillStyle = "#070b14";
+      terrainContext.fillRect(0, 0, terrain.width, terrain.height);
+      maze.forEach((row, y) => row.forEach((cell, x) => {
         const px = x * tile;
         const py = y * tile;
         if (cell === "#") {
-          context.fillStyle = "#25314c";
-          context.fillRect(px, py, tile, tile);
-          context.strokeStyle = "rgba(255,255,255,.035)";
-          context.strokeRect(px, py, tile, tile);
+          const wall = terrainContext.createLinearGradient(px, py, px + tile, py + tile);
+          wall.addColorStop(0, "#29364b");
+          wall.addColorStop(.28, "#1a2639");
+          wall.addColorStop(1, "#101827");
+          terrainContext.fillStyle = wall;
+          terrainContext.fillRect(px + 1, py + 1, tile - 2, tile - 2);
+          terrainContext.strokeStyle = "rgba(140,167,198,.17)";
+          terrainContext.lineWidth = 1;
+          terrainContext.strokeRect(px + 1.5, py + 1.5, tile - 3, tile - 3);
+          terrainContext.beginPath();
+          terrainContext.moveTo(px + tile * .18, py + tile * .2);
+          terrainContext.lineTo(px + tile * .82, py + tile * .2);
+          terrainContext.strokeStyle = "rgba(218,231,247,.08)";
+          terrainContext.stroke();
+          terrainContext.fillStyle = "rgba(0,0,0,.17)";
+          terrainContext.fillRect(px + tile * .12, py + tile * .84, tile * .76, tile * .08);
         } else {
-          context.fillStyle = "#131d34";
-          context.fillRect(px, py, tile, tile);
-        }
-        if (cell === "E") {
-          context.fillStyle = "#f472b6";
-          context.shadowColor = "#f472b6";
-          context.shadowBlur = 18;
-          context.font = `${tile * .58}px sans-serif`;
-          context.textAlign = "center";
-          context.textBaseline = "middle";
-          context.fillText("♥", px + tile / 2, py + tile / 2 + 1);
-          context.shadowBlur = 0;
+          const floor = terrainContext.createLinearGradient(px, py, px + tile, py + tile);
+          floor.addColorStop(0, "#121c2c");
+          floor.addColorStop(1, "#0b1321");
+          terrainContext.fillStyle = floor;
+          terrainContext.fillRect(px, py, tile, tile);
+          terrainContext.strokeStyle = "rgba(112,146,180,.055)";
+          terrainContext.strokeRect(px + .5, py + .5, tile - 1, tile - 1);
+          if ((x * 7 + y * 13) % 5 === 0) {
+            terrainContext.fillStyle = "rgba(206,220,239,.12)";
+            terrainContext.fillRect(px + tile * .38, py + tile * .63, 1.5, 1.5);
+          }
         }
       }));
+      const exitX = (exit.x + .5) * tile;
+      const exitY = (exit.y + .5) * tile;
+      const heartGlow = terrainContext.createRadialGradient(exitX, exitY, tile * .1, exitX, exitY, tile * 2.8);
+      heartGlow.addColorStop(0, "rgba(244,114,182,.18)");
+      heartGlow.addColorStop(1, "rgba(244,114,182,0)");
+      terrainContext.fillStyle = heartGlow;
+      terrainContext.fillRect(exitX - tile * 3, exitY - tile * 3, tile * 6, tile * 6);
+      drawHeart(terrainContext, exitX, exitY, tile * .55, "#f472b6", .22);
+    };
+    const hasLineOfSight = (x0, y0, x1, y1) => {
+      let x = x0;
+      let y = y0;
+      const dx = Math.abs(x1 - x0);
+      const dy = Math.abs(y1 - y0);
+      const sx = x0 < x1 ? 1 : -1;
+      const sy = y0 < y1 ? 1 : -1;
+      let error = dx - dy;
+      while (true) {
+        if (x === x1 && y === y1) return true;
+        if ((x !== x0 || y !== y0) && maze[y][x] === "#") return false;
+        const doubledError = error * 2;
+        if (doubledError > -dy) {
+          error -= dy;
+          x += sx;
+        }
+        if (doubledError < dx) {
+          error += dx;
+          y += sy;
+        }
+      }
+    };
+    const updateVisibility = () => {
+      visibleCells = [];
+      const minX = Math.max(0, Math.floor(player.x - visibilityRadius));
+      const maxX = Math.min(width - 1, Math.ceil(player.x + visibilityRadius));
+      const minY = Math.max(0, Math.floor(player.y - visibilityRadius));
+      const maxY = Math.min(height - 1, Math.ceil(player.y + visibilityRadius));
+      for (let y = minY; y <= maxY; y++) {
+        for (let x = minX; x <= maxX; x++) {
+          if (Math.hypot(x - player.x, y - player.y) <= visibilityRadius && hasLineOfSight(player.x, player.y, x, y)) {
+            visibleCells.push({ x, y });
+          }
+        }
+      }
+    };
+    const drawShard = (target, x, y, time) => {
+      const px = (x + .5) * tile;
+      const py = (y + .5) * tile;
+      const pulse = .76 + Math.sin(time * .004 + x * 2 + y) * .18;
+      target.save();
+      target.globalAlpha = pulse;
+      target.shadowColor = "#f7c967";
+      target.shadowBlur = tile * .48;
+      target.fillStyle = "#f8d987";
+      target.beginPath();
+      target.moveTo(px, py - tile * .2);
+      target.lineTo(px + tile * .11, py);
+      target.lineTo(px, py + tile * .2);
+      target.lineTo(px - tile * .11, py);
+      target.closePath();
+      target.fill();
+      target.restore();
+    };
+    const draw = (time) => {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(terrain, 0, 0);
+      shardCells.forEach(({ x, y }, index) => {
+        if (!collectedShards.has(index)) drawShard(context, x, y, time);
+      });
+
+      fogContext.globalCompositeOperation = "source-over";
+      fogContext.clearRect(0, 0, canvas.width, canvas.height);
+      fogContext.fillStyle = "rgba(3,6,15,.94)";
+      fogContext.fillRect(0, 0, canvas.width, canvas.height);
+      fogContext.save();
+      fogContext.globalCompositeOperation = "destination-out";
+      fogContext.beginPath();
+      visibleCells.forEach(({ x, y }) => fogContext.rect(x * tile, y * tile, tile, tile));
+      fogContext.clip();
+      const lightX = (visualX + .5) * tile;
+      const lightY = (visualY + .5) * tile;
+      const light = fogContext.createRadialGradient(lightX, lightY, tile * .22, lightX, lightY, tile * visibilityRadius);
+      light.addColorStop(0, "rgba(0,0,0,.98)");
+      light.addColorStop(.55, "rgba(0,0,0,.78)");
+      light.addColorStop(1, "rgba(0,0,0,0)");
+      fogContext.fillStyle = light;
+      fogContext.fillRect(0, 0, canvas.width, canvas.height);
+      fogContext.restore();
+      context.drawImage(fogCanvas, 0, 0);
+
+      const exitX = (exit.x + .5) * tile;
+      const exitY = (exit.y + .5) * tile;
+      context.save();
+      context.globalCompositeOperation = "screen";
+      const heartAlpha = collectedShards.size === shardCells.length ? .62 : .14;
+      const heartGlow = context.createRadialGradient(exitX, exitY, tile * .2, exitX, exitY, tile * (collectedShards.size === shardCells.length ? 3.2 : 1.8));
+      heartGlow.addColorStop(0, `rgba(244,114,182,${heartAlpha * .4})`);
+      heartGlow.addColorStop(1, "rgba(244,114,182,0)");
+      context.fillStyle = heartGlow;
+      context.fillRect(exitX - tile * 3.5, exitY - tile * 3.5, tile * 7, tile * 7);
+      drawHeart(context, exitX, exitY, tile * .55, "#f472b6", heartAlpha);
+      context.restore();
+
+      const bumpProgress = (time - bumpStarted) / 220;
+      const bump = bumpProgress >= 0 && bumpProgress <= 1
+        ? Math.sin(bumpProgress * Math.PI) * tile * .15
+        : 0;
+      const playerX = (visualX + .5 + bumpDirection[0] * bump / tile) * tile;
+      const playerY = (visualY + .5 + bumpDirection[1] * bump / tile) * tile;
+      particles = particles.filter((particle) => time - particle.born < particle.lifetime);
+      particles.forEach((particle) => {
+        const life = (time - particle.born) / particle.lifetime;
+        context.globalAlpha = (1 - life) * .55;
+        context.fillStyle = "#f5d992";
+        context.shadowColor = "#f8d987";
+        context.shadowBlur = tile * .22;
+        context.beginPath();
+        context.arc((particle.x + .5) * tile, (particle.y + .5) * tile, tile * (.035 + life * .025), 0, Math.PI * 2);
+        context.fill();
+      });
+      context.globalAlpha = 1;
+      context.shadowColor = "#f6ca68";
+      context.shadowBlur = tile * .85;
+      const playerGlow = context.createRadialGradient(playerX, playerY, tile * .04, playerX, playerY, tile * 1.45);
+      playerGlow.addColorStop(0, "rgba(255,232,158,.95)");
+      playerGlow.addColorStop(.15, "rgba(255,211,105,.72)");
+      playerGlow.addColorStop(1, "rgba(250,177,52,0)");
+      context.fillStyle = playerGlow;
       context.beginPath();
-      context.arc((player.x + .5) * tile, (player.y + .5) * tile, tile * .24, 0, Math.PI * 2);
-      context.fillStyle = "#fbbf24";
-      context.shadowColor = "#fbbf24";
-      context.shadowBlur = 16;
+      context.arc(playerX, playerY, tile * 1.45, 0, Math.PI * 2);
+      context.fill();
+      context.shadowBlur = tile * .24;
+      context.fillStyle = "#fff1bd";
+      context.beginPath();
+      context.arc(playerX, playerY, tile * .14, 0, Math.PI * 2);
       context.fill();
       context.shadowBlur = 0;
     };
-    const move = (key) => {
-      const direction = DIRECTIONS[key];
-      if (!direction) return;
-      const nx = player.x + direction[0];
-      const ny = player.y + direction[1];
-      if (!maze[ny] || maze[ny][nx] === "#") return;
-      player = { x: nx, y: ny };
-      draw();
-      if (maze[ny][nx] === "E") completeMonth();
+    const hitWall = (direction, time) => {
+      bumpStarted = time;
+      bumpDirection = direction;
+      feedback.textContent = "Le mur bloque le passage.";
     };
-    document.onkeydown = (event) => {
-      if (!screens.game.hidden && activeMonth === 2 && DIRECTIONS[event.key]) {
-        event.preventDefault();
-        move(event.key);
+    const beginMove = (direction, time) => {
+      const [dx, dy] = direction;
+      const x = player.x + dx;
+      const y = player.y + dy;
+      if (!maze[y] || !maze[y][x] || maze[y][x] === "#") {
+        hitWall(direction, time);
+        return false;
       }
+      if (maze[y][x] === "E" && collectedShards.size < shardCells.length) {
+        hitWall(direction, time);
+        feedback.textContent = `Le cœur attend encore ${shardCells.length - collectedShards.size} éclat${shardCells.length - collectedShards.size > 1 ? "s" : ""}.`;
+        return false;
+      }
+      player = { x, y };
+      updateVisibility();
+      movement = {
+        fromX: visualX,
+        fromY: visualY,
+        toX: x,
+        toY: y,
+        startedAt: time
+      };
+      return true;
     };
-    gameContent.querySelectorAll("[data-move]").forEach((button) => button.addEventListener("click", () => move(button.dataset.move)));
-    draw();
+    const move = (direction) => {
+      if (won) return;
+      const time = performance.now();
+      if (movement) {
+        if (queuedMoves.length < 4) queuedMoves.push(direction);
+        return;
+      }
+      beginMove(direction, time);
+    };
+    const keydown = (event) => {
+      const direction = DIRECTIONS[event.key] || DIRECTIONS[event.code];
+      if (!direction) return;
+      event.preventDefault();
+      move(direction);
+    };
+    const pointerPosition = (event) => {
+      const bounds = canvas.getBoundingClientRect();
+      return { bounds, x: event.clientX - bounds.left, y: event.clientY - bounds.top };
+    };
+    let pointerStart = null;
+    canvas.addEventListener("pointerdown", (event) => {
+      if (event.button !== undefined && event.button !== 0) return;
+      event.preventDefault();
+      canvas.focus({ preventScroll: true });
+      canvas.setPointerCapture(event.pointerId);
+      const point = pointerPosition(event);
+      pointerStart = { x: point.x, y: point.y, moved: false };
+    });
+    canvas.addEventListener("pointermove", (event) => {
+      if (!pointerStart) return;
+      const point = pointerPosition(event);
+      const threshold = Math.max(12, point.bounds.width / width * .62);
+      const dx = point.x - pointerStart.x;
+      const dy = point.y - pointerStart.y;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < threshold) return;
+      if (Math.abs(dx) >= Math.abs(dy)) {
+        const sign = Math.sign(dx);
+        const steps = Math.min(4, Math.floor(Math.abs(dx) / threshold));
+        for (let step = 0; step < steps; step++) move([sign, 0]);
+        pointerStart.x += sign * steps * threshold;
+      } else {
+        const sign = Math.sign(dy);
+        const steps = Math.min(4, Math.floor(Math.abs(dy) / threshold));
+        for (let step = 0; step < steps; step++) move([0, sign]);
+        pointerStart.y += sign * steps * threshold;
+      }
+      pointerStart.moved = true;
+    });
+    const finishPointer = (event) => {
+      if (!pointerStart) return;
+      if (!pointerStart.moved) {
+        const point = pointerPosition(event);
+        const playerPixelX = (visualX + .5) * point.bounds.width / width;
+        const playerPixelY = (visualY + .5) * point.bounds.height / height;
+        const dx = point.x - playerPixelX;
+        const dy = point.y - playerPixelY;
+        if (Math.max(Math.abs(dx), Math.abs(dy)) > point.bounds.width / width * .35) {
+          move(Math.abs(dx) >= Math.abs(dy) ? [Math.sign(dx), 0] : [0, Math.sign(dy)]);
+        }
+      }
+      pointerStart = null;
+    };
+    canvas.addEventListener("pointerup", finishPointer);
+    canvas.addEventListener("pointercancel", () => { pointerStart = null; });
+    $(".maze-mobile-controls").querySelectorAll("[data-move]").forEach((button) => {
+      button.addEventListener("click", () => {
+        canvas.focus({ preventScroll: true });
+        move(DIRECTIONS[button.dataset.move]);
+      });
+    });
+    const panel = $(".maze-panel");
+    panel.addEventListener("keydown", keydown);
+
+    const easeInOut = (value) => value < .5 ? 2 * value * value : 1 - ((-2 * value + 2) ** 2) / 2;
+    const tick = (time) => {
+      if (screens.game.hidden || activeMonth !== 2 || won) return;
+      if (!movement && queuedMoves.length) beginMove(queuedMoves.shift(), time);
+      if (movement) {
+        const progress = Math.min(1, (time - movement.startedAt) / animationDuration);
+        const eased = easeInOut(progress);
+        visualX = movement.fromX + (movement.toX - movement.fromX) * eased;
+        visualY = movement.fromY + (movement.toY - movement.fromY) * eased;
+        if (time - lastParticleAt > 42) {
+          particles.push({ x: visualX + (Math.random() - .5) * .16, y: visualY + (Math.random() - .5) * .16, born: time, lifetime: 360 });
+          lastParticleAt = time;
+        }
+        if (progress === 1) {
+          visualX = movement.toX;
+          visualY = movement.toY;
+          movement = null;
+          const cell = maze[player.y][player.x];
+          if (cell === "*") {
+            const shardIndex = shardCells.findIndex((shard) => shard.x === player.x && shard.y === player.y);
+            if (shardIndex !== -1 && !collectedShards.has(shardIndex)) {
+              collectedShards.add(shardIndex);
+              shardCounter.textContent = `Éclats : ${collectedShards.size}/${shardCells.length}`;
+              feedback.textContent = collectedShards.size === shardCells.length
+                ? "Les trois éclats s’assemblent. Le cœur peut maintenant être rejoint."
+                : `Un éclat de souvenir retrouvé : ${collectedShards.size}/${shardCells.length}.`;
+            }
+          } else if (cell === "E" && collectedShards.size === shardCells.length) {
+            won = true;
+            queuedMoves = [];
+            feedback.textContent = "Le cœur s’illumine.";
+            completeMonth();
+          }
+        }
+      }
+      draw(time);
+      requestAnimationFrame(tick);
+    };
+
+    drawTerrain();
+    updateVisibility();
+    requestAnimationFrame(tick);
+    requestAnimationFrame(() => {
+      if (!screens.game.hidden && activeMonth === 2) canvas.focus({ preventScroll: true });
+    });
   }
 
   function renderMatches(config) {

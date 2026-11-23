@@ -413,9 +413,12 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
 .feedback.is-partial { color: #d8c784; }
 .hint-copy { min-height: 1.2rem; margin: .3rem 0 0; color: #b7abc1; font-size: .72rem; }
 
-.maze-panel { padding: 1.2rem; text-align: center; }
-#maze-canvas { display: block; width: min(100%, 440px); height: auto; margin: 0 auto; border: 1px solid rgba(255,255,255,.09); border-radius: .75rem; background: #121b31; touch-action: none; }
-.maze-instructions { margin: 1rem .3rem .1rem; color: var(--muted); font-size: .74rem; line-height: 1.7; }
+.maze-panel { overflow: hidden; padding: clamp(1rem, 3vw, 1.8rem); background: radial-gradient(ellipse at 50% 0, rgba(42,53,81,.28), transparent 68%), rgba(7,10,18,.9); text-align: center; }
+.maze-shard-count { display: inline-flex; min-height: 2rem; align-items: center; margin: 0 auto .8rem; border: 1px solid rgba(232,198,111,.2); border-radius: 999px; background: rgba(232,198,111,.055); padding: .3rem .85rem; color: #e8d28f; font-size: .7rem; font-weight: 700; letter-spacing: .08em; }
+#maze-canvas { display: block; width: min(100%, 620px); height: auto; margin: 0 auto; border: 1px solid rgba(151,177,208,.2); border-radius: 1rem; background: #070b14; box-shadow: 0 16px 42px rgba(0,0,0,.4), inset 0 0 28px rgba(91,129,177,.08); cursor: crosshair; touch-action: none; }
+#maze-canvas:focus-visible { outline: 2px solid rgba(232,198,111,.62); outline-offset: 4px; }
+.maze-feedback { min-height: 1.5rem; margin: .9rem 0 0; color: #e2d4a9; font-family: "Playfair Display", Georgia, serif; font-size: .9rem; }
+.maze-instructions { margin: .35rem .3rem .1rem; color: var(--muted); font-size: .74rem; line-height: 1.7; }
 .maze-mobile-controls { display: none; grid-template-columns: repeat(3, 2.8rem); grid-template-rows: repeat(2, 2.5rem); justify-content: center; gap: .25rem; margin: 1rem auto 0; }
 .maze-mobile-controls button { border: 1px solid var(--line); border-radius: .6rem; background: rgba(255,255,255,.08); cursor: pointer; }
 .maze-mobile-controls button:nth-child(1) { grid-column: 2; }
