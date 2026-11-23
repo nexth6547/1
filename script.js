@@ -212,6 +212,7 @@ const LOVE_STORY = {
   let matchedPairs = new Set();
   let toastTimer;
   let stopBackgroundAnimation = () => {};
+  let startBackgroundAnimation = () => {};
 
   function loadProgress() {
     try {
@@ -266,12 +267,15 @@ const LOVE_STORY = {
   }
 
   function showScreen(name) {
-    if (name !== "welcome") stopBackgroundAnimation();
+    const showSky = name === "welcome" || name === "hub";
+    document.body.classList.toggle("has-sky-background", showSky);
     Object.entries(screens).forEach(([key, screen]) => {
       const visible = key === name;
       screen.hidden = !visible;
       screen.classList.toggle("is-visible", visible);
     });
+    if (showSky) startBackgroundAnimation();
+    else stopBackgroundAnimation();
   }
 
   function renderHub() {
@@ -995,6 +999,7 @@ const LOVE_STORY = {
     if (!context) return;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const welcomeScreen = screens.welcome;
+    const hubScreen = screens.hub;
     const moonCanvas = $("#moon3d");
     const layers = [];
     const dust = [];
@@ -1007,6 +1012,7 @@ const LOVE_STORY = {
     let motionTime = 0;
     let previousFrameTime = 0;
     let moonScene = null;
+    const isSkyVisible = () => !welcomeScreen.hidden || !hubScreen.hidden;
 
     const randomBetween = (min, max) => min + Math.random() * (max - min);
 
@@ -1287,8 +1293,9 @@ const LOVE_STORY = {
     moonScene = createMoonScene();
 
     const resize = () => {
-      if (welcomeScreen.hidden) return;
-      const bounds = welcomeScreen.getBoundingClientRect();
+      if (!isSkyVisible()) return;
+      const activeScreen = welcomeScreen.hidden ? hubScreen : welcomeScreen;
+      const bounds = activeScreen.getBoundingClientRect();
       const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
       width = Math.max(1, window.innerWidth || bounds.width);
       height = Math.max(1, window.innerHeight || bounds.height);
@@ -1441,11 +1448,11 @@ const LOVE_STORY = {
       previousFrameTime = 0;
     };
 
-    function startBackgroundAnimation() {
-      if (reducedMotion || isRunning || document.hidden || welcomeScreen.hidden) return;
+    startBackgroundAnimation = () => {
+      if (reducedMotion || isRunning || document.hidden || !isSkyVisible()) return;
       isRunning = true;
       const tick = (time) => {
-        if (document.hidden || welcomeScreen.hidden) {
+        if (document.hidden || !isSkyVisible()) {
           stopBackgroundAnimation();
           return;
         }
@@ -1455,7 +1462,7 @@ const LOVE_STORY = {
         frameHandle = requestAnimationFrame(tick);
       };
       frameHandle = requestAnimationFrame(tick);
-    }
+    };
 
     const onVisibilityChange = () => {
       if (document.hidden) stopBackgroundAnimation();
@@ -1463,6 +1470,7 @@ const LOVE_STORY = {
     };
     const observer = new ResizeObserver(resize);
     observer.observe(welcomeScreen);
+    observer.observe(hubScreen);
     window.addEventListener("resize", resize);
     document.addEventListener("visibilitychange", onVisibilityChange);
     resize();
