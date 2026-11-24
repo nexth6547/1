@@ -241,6 +241,8 @@ const LOVE_STORY = {
   let starFieldResizeObserver;
   let stopBackgroundAnimation = () => {};
   let startBackgroundAnimation = () => {};
+  let openingSequenceComplete = false;
+  let openingMoonOpacity = 0;
 
   function loadProgress() {
     try {
@@ -2539,12 +2541,32 @@ const LOVE_STORY = {
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const duration = 9200;
-    const stars = Array.from({ length: 460 }, () => ({
+    const stars = Array.from({ length: 560 }, () => ({
       x: Math.random() * 2 - 1,
       y: Math.random() * 2 - 1,
       z: Math.random() * .96 + .04,
       speed: .18 + Math.random() * .36,
       warmth: Math.random()
+    }));
+    const dust = Array.from({ length: 150 }, () => ({
+      x: Math.random() * 2 - 1,
+      y: Math.random() * 2 - 1,
+      z: Math.random() * .9 + .1,
+      speed: .08 + Math.random() * .18,
+      warmth: Math.random(),
+      phase: Math.random() * Math.PI * 2
+    }));
+    const planets = [
+      { start: 1300, end: 4050, fromX: .9, toX: -.14, fromY: .34, toY: .42, size: .13, colors: ["#c2b9a2", "#737b83", "#303847"], seed: 1 },
+      { start: 4200, end: 6850, fromX: .12, toX: 1.15, fromY: .68, toY: .48, size: .105, colors: ["#bdad93", "#706d70", "#343849"], seed: 2 }
+    ].map((planet) => ({
+      ...planet,
+      craters: Array.from({ length: 64 }, () => ({
+        x: Math.random() * 1.5 - .75,
+        y: Math.random() * 1.5 - .75,
+        size: .018 + Math.random() * .045,
+        depth: .1 + Math.random() * .2
+      }))
     }));
     let width = 0;
     let height = 0;
@@ -2554,6 +2576,11 @@ const LOVE_STORY = {
     let pausedAt = 0;
     let finished = false;
     let previousFrame = 0;
+
+    const smoothstep = (start, end, value) => {
+      const progress = Math.max(0, Math.min(1, (value - start) / (end - start)));
+      return progress * progress * (3 - 2 * progress);
+    };
 
     const resize = () => {
       pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -2571,114 +2598,168 @@ const LOVE_STORY = {
         { x: .52, y: .16, radius: .3, color: "165, 133, 87", phase: 4.1 }
       ];
       clouds.forEach((cloud) => {
-        const drift = Math.sin(time * .00008 + cloud.phase) * .035;
+        const drift = Math.sin(time * .000035 + cloud.phase) * .025;
         const centerX = width * (cloud.x + drift);
-        const centerY = height * (cloud.y + Math.cos(time * .00006 + cloud.phase) * .025);
+        const centerY = height * (cloud.y + Math.cos(time * .00003 + cloud.phase) * .018);
         const radius = Math.max(width, height) * cloud.radius;
         const glow = context.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
-        glow.addColorStop(0, `rgba(${cloud.color}, .12)`);
-        glow.addColorStop(.42, `rgba(${cloud.color}, .055)`);
+        glow.addColorStop(0, `rgba(${cloud.color}, .095)`);
+        glow.addColorStop(.42, `rgba(${cloud.color}, .04)`);
         glow.addColorStop(1, `rgba(${cloud.color}, 0)`);
         context.fillStyle = glow;
         context.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
       });
+      const atmosphere = context.createRadialGradient(width * .5, height * .48, 0, width * .5, height * .48, Math.max(width, height) * .68);
+      atmosphere.addColorStop(0, "rgba(110, 139, 192, .035)");
+      atmosphere.addColorStop(.58, "rgba(86, 103, 158, .016)");
+      atmosphere.addColorStop(1, "rgba(86, 103, 158, 0)");
+      context.fillStyle = atmosphere;
+      context.fillRect(0, 0, width, height);
     };
 
     const drawStarfield = (delta, progress, time) => {
-      const speedGain = .34 + progress * 2.8;
-      const focalX = width * .5;
-      const focalY = height * .48;
+      const speedGain = .22 + Math.sin(Math.PI * progress) ** 2 * 1.25;
+      const focalX = width * (.5 + Math.sin(progress * Math.PI * 1.4) * .025);
+      const focalY = height * (.48 + Math.sin(progress * Math.PI * 1.1 + .4) * .018);
+      const scale = Math.min(width, height) * .42;
       stars.forEach((star) => {
-        const previousZ = star.z;
-        star.z -= delta * .00012 * star.speed * speedGain;
-        if (star.z <= .025) {
+        star.z -= delta * .00022 * star.speed * speedGain;
+        if (star.z <= .035) {
           star.x = Math.random() * 2 - 1;
           star.y = Math.random() * 2 - 1;
           star.z = 1;
         }
-        const x = focalX + star.x / star.z * Math.min(width, height) * .44;
-        const y = focalY + star.y / star.z * Math.min(width, height) * .44;
+        const x = focalX + star.x / star.z * scale;
+        const y = focalY + star.y / star.z * scale;
         if (x < -40 || x > width + 40 || y < -40 || y > height + 40) return;
-        const size = Math.min(3.2, .45 + (1 - star.z) * 2.6);
-        const alpha = Math.min(.95, .18 + (1 - star.z) * .85);
-        const tailX = focalX + star.x / previousZ * Math.min(width, height) * .44;
-        const tailY = focalY + star.y / previousZ * Math.min(width, height) * .44;
-        const fade = Math.max(0, Math.min(1, (progress - .12) * 2.6));
-        context.beginPath();
-        context.moveTo(x, y);
-        context.lineTo(x + (x - tailX) * fade * 2.4, y + (y - tailY) * fade * 2.4);
-        context.strokeStyle = star.warmth > .78
-          ? `rgba(255, 224, 167, ${alpha * fade})`
-          : `rgba(191, 215, 255, ${alpha * fade})`;
-        context.lineWidth = size;
-        context.lineCap = "round";
-        context.stroke();
+        const size = Math.min(2.5, .35 + (1 - star.z) * 1.9);
+        const shimmer = .78 + (Math.sin(time * .001 + star.x * 17 + star.y * 11) + 1) * .11;
+        const alpha = Math.min(.8, (.14 + (1 - star.z) * .55) * shimmer);
+        if (size > 1.2) {
+          const halo = context.createRadialGradient(x, y, 0, x, y, size * 4.5);
+          halo.addColorStop(0, `rgba(216, 226, 248, ${alpha * .32})`);
+          halo.addColorStop(1, "rgba(216, 226, 248, 0)");
+          context.fillStyle = halo;
+          context.fillRect(x - size * 4.5, y - size * 4.5, size * 9, size * 9);
+        }
         context.beginPath();
         context.arc(x, y, size * .5, 0, Math.PI * 2);
-        context.fillStyle = `rgba(240, 244, 255, ${alpha})`;
+        context.fillStyle = star.warmth > .88
+          ? `rgba(255, 230, 190, ${alpha})`
+          : `rgba(225, 233, 250, ${alpha})`;
         context.fill();
       });
     };
 
-    const drawSystem = (time, start, end, side, tint) => {
-      const progress = (time - start) / (end - start);
-      if (progress <= 0 || progress >= 1) return;
-      const eased = progress * progress * (3 - 2 * progress);
-      const x = width * (side < 0 ? .73 - eased * 1.05 : .22 + eased * 1.06);
-      const y = height * (side < 0 ? .38 + eased * .17 : .62 - eased * .2);
-      const radius = Math.min(width, height) * (.018 + eased * .075);
-      const opacity = Math.sin(progress * Math.PI) * .88;
-      context.save();
-      context.translate(x, y);
-      context.rotate(side * -.18);
-      const halo = context.createRadialGradient(0, 0, 0, 0, 0, radius * 2.8);
-      halo.addColorStop(0, `rgba(${tint}, ${opacity * .65})`);
-      halo.addColorStop(.26, `rgba(${tint}, ${opacity * .18})`);
-      halo.addColorStop(1, `rgba(${tint}, 0)`);
-      context.fillStyle = halo;
-      context.fillRect(-radius * 3, -radius * 3, radius * 6, radius * 6);
-      for (let ring = 0; ring < 3; ring++) {
+    const drawDust = (delta, progress, time) => {
+      const speedGain = .18 + Math.sin(Math.PI * progress) ** 2 * .7;
+      const focalX = width * .5;
+      const focalY = height * .48;
+      const scale = Math.min(width, height) * .38;
+      dust.forEach((particle) => {
+        particle.z -= delta * .00012 * particle.speed * speedGain;
+        if (particle.z <= .08) {
+          particle.x = Math.random() * 2 - 1;
+          particle.y = Math.random() * 2 - 1;
+          particle.z = 1;
+          particle.phase = Math.random() * Math.PI * 2;
+        }
+        const x = focalX + particle.x / particle.z * scale;
+        const y = focalY + particle.y / particle.z * scale;
+        if (x < -12 || x > width + 12 || y < -12 || y > height + 12) return;
+        const radius = .35 + (1 - particle.z) * 1.1;
+        const alpha = (.035 + (1 - particle.z) * .085)
+          * (.72 + (Math.sin(time * .0007 + particle.phase) + 1) * .14);
         context.beginPath();
-        context.ellipse(0, 0, radius * (1.25 + ring * .35), radius * (.26 + ring * .075), ring * .2, 0, Math.PI * 2);
-        context.strokeStyle = `rgba(${tint}, ${opacity * (.48 - ring * .1)})`;
-        context.lineWidth = ring === 0 ? 1.15 : .7;
-        context.stroke();
-      }
-      const core = context.createRadialGradient(-radius * .2, -radius * .2, 0, 0, 0, radius * .55);
-      core.addColorStop(0, `rgba(255, 251, 233, ${opacity})`);
-      core.addColorStop(.45, `rgba(${tint}, ${opacity * .95})`);
-      core.addColorStop(1, `rgba(${tint}, ${opacity * .35})`);
+        context.arc(x, y, radius, 0, Math.PI * 2);
+        context.fillStyle = particle.warmth > .72
+          ? `rgba(241, 220, 184, ${alpha})`
+          : `rgba(185, 204, 235, ${alpha})`;
+        context.fill();
+      });
+    };
+
+    const drawPlanet = (planet, time) => {
+      const progress = (time - planet.start) / (planet.end - planet.start);
+      if (progress <= 0 || progress >= 1) return;
+      const travel = smoothstep(0, 1, progress);
+      const envelope = Math.sin(progress * Math.PI);
+      const x = width * (planet.fromX + (planet.toX - planet.fromX) * travel);
+      const y = height * (planet.fromY + (planet.toY - planet.fromY) * travel
+        + Math.sin(progress * Math.PI) * (planet.seed === 1 ? .035 : -.028));
+      const radius = Math.min(width, height) * (.008 + envelope * planet.size);
+      const opacity = Math.min(1, envelope * 1.2);
+      context.save();
+      context.globalAlpha = opacity;
+      context.translate(x, y);
+      const halo = context.createRadialGradient(0, 0, radius * .62, 0, 0, radius * 1.65);
+      halo.addColorStop(0, "rgba(192, 207, 235, .08)");
+      halo.addColorStop(.5, "rgba(153, 177, 219, .035)");
+      halo.addColorStop(1, "rgba(153, 177, 219, 0)");
+      context.fillStyle = halo;
+      context.fillRect(-radius * 2, -radius * 2, radius * 4, radius * 4);
       context.beginPath();
-      context.arc(0, 0, radius * .42, 0, Math.PI * 2);
-      context.fillStyle = core;
+      context.arc(0, 0, radius, 0, Math.PI * 2);
+      const [light, mid, dark] = planet.colors;
+      const surface = context.createRadialGradient(-radius * .34, -radius * .38, radius * .04, radius * .12, radius * .1, radius * 1.28);
+      surface.addColorStop(0, light);
+      surface.addColorStop(.35, mid);
+      surface.addColorStop(.74, dark);
+      surface.addColorStop(1, "#161b28");
+      context.fillStyle = surface;
       context.fill();
+      context.clip();
+      context.rotate(time * .000025 * planet.seed);
+      planet.craters.forEach((crater) => {
+        if (Math.hypot(crater.x, crater.y) > .84) return;
+        const craterX = crater.x * radius;
+        const craterY = crater.y * radius;
+        const craterRadius = crater.size * radius;
+        context.beginPath();
+        context.ellipse(craterX, craterY, craterRadius * 1.35, craterRadius, .18, 0, Math.PI * 2);
+        context.fillStyle = `rgba(16, 20, 29, ${crater.depth})`;
+        context.fill();
+        context.beginPath();
+        context.ellipse(craterX - craterRadius * .18, craterY - craterRadius * .2, craterRadius * 1.15, craterRadius * .76, .18, Math.PI, Math.PI * 2);
+        context.strokeStyle = `rgba(236, 229, 213, ${crater.depth * .48})`;
+        context.lineWidth = Math.max(.45, radius * .009);
+        context.stroke();
+      });
+      const terminator = context.createLinearGradient(-radius * .34, -radius * .44, radius * .82, radius * .44);
+      terminator.addColorStop(0, "rgba(8, 12, 21, 0)");
+      terminator.addColorStop(.44, "rgba(8, 12, 21, .08)");
+      terminator.addColorStop(.76, "rgba(7, 10, 18, .54)");
+      terminator.addColorStop(1, "rgba(4, 6, 12, .88)");
+      context.fillStyle = terminator;
+      context.fillRect(-radius, -radius, radius * 2, radius * 2);
       context.restore();
     };
 
+    const drawPlanets = (time) => planets.forEach((planet) => drawPlanet(planet, time));
+
     const drawMoon = (time, progress) => {
-      const arrival = Math.max(0, Math.min(1, (progress - .62) / .38));
-      const eased = arrival * arrival * (3 - 2 * arrival);
-      const radius = Math.min(width, height) * (.025 + eased * .11);
-      const centerX = width * (.52 - eased * .205);
-      const centerY = height * (.48 - eased * .03);
+      const arrival = smoothstep(.58, .88, progress);
+      openingMoonOpacity = smoothstep(.83, 1, progress);
+      const radius = Math.min(width, height) * (.016 + arrival * .084);
+      const centerX = width * (.52 - arrival * .2);
+      const centerY = height * (.48 - arrival * .03);
       const glowRadius = radius * 2.6;
       const glow = context.createRadialGradient(centerX, centerY, radius * .55, centerX, centerY, glowRadius);
-      glow.addColorStop(0, `rgba(207, 220, 247, ${eased * .15})`);
-      glow.addColorStop(.45, `rgba(174, 193, 230, ${eased * .065})`);
+      glow.addColorStop(0, `rgba(207, 220, 247, ${arrival * .13})`);
+      glow.addColorStop(.45, `rgba(174, 193, 230, ${arrival * .055})`);
       glow.addColorStop(1, "rgba(151, 174, 223, 0)");
       context.fillStyle = glow;
       context.fillRect(centerX - glowRadius, centerY - glowRadius, glowRadius * 2, glowRadius * 2);
 
       context.save();
-      context.globalAlpha = eased;
+      context.globalAlpha = arrival;
       context.beginPath();
       context.arc(centerX, centerY, radius, 0, Math.PI * 2);
-      const surface = context.createLinearGradient(centerX - radius, centerY - radius * .6, centerX + radius, centerY + radius * .55);
-      surface.addColorStop(0, "#192031");
-      surface.addColorStop(.3, "#566078");
-      surface.addColorStop(.64, "#b9b8b2");
-      surface.addColorStop(.82, "#ded7c7");
-      surface.addColorStop(1, "#6e7483");
+      const surface = context.createRadialGradient(centerX - radius * .34, centerY - radius * .38, radius * .03, centerX + radius * .08, centerY + radius * .08, radius * 1.35);
+      surface.addColorStop(0, "#e1ddce");
+      surface.addColorStop(.34, "#a9afba");
+      surface.addColorStop(.72, "#646d7d");
+      surface.addColorStop(1, "#20283a");
       context.fillStyle = surface;
       context.shadowColor = "rgba(206, 220, 248, .42)";
       context.shadowBlur = radius * .14;
@@ -2722,8 +2803,8 @@ const LOVE_STORY = {
       context.fillRect(0, 0, width, height);
       drawNebula(time);
       drawStarfield(delta, progress, time);
-      drawSystem(elapsed, 1500, 3900, -1, "207, 191, 151");
-      drawSystem(elapsed, 4100, 6800, 1, "147, 177, 229");
+      drawDust(delta, progress, time);
+      drawPlanets(elapsed);
       drawMoon(time, progress);
       const vignette = context.createRadialGradient(width * .5, height * .48, Math.min(width, height) * .12, width * .5, height * .48, Math.max(width, height) * .78);
       vignette.addColorStop(0, "rgba(3, 4, 10, 0)");
@@ -2736,14 +2817,22 @@ const LOVE_STORY = {
     function finishOpeningSequence() {
       if (finished) return;
       finished = true;
+      openingSequenceComplete = true;
+      openingMoonOpacity = 1;
       if (frameHandle) cancelAnimationFrame(frameHandle);
       window.removeEventListener("resize", resize);
       document.removeEventListener("visibilitychange", onVisibilityChange);
-      skipButton.removeEventListener("click", finishOpeningSequence);
+      skipButton.removeEventListener("click", skipOpeningSequence);
       document.body.classList.remove("is-intro-running");
       screens.welcome.inert = false;
       intro.classList.add("is-leaving");
       window.setTimeout(() => intro.remove(), 1400);
+    }
+
+    function skipOpeningSequence() {
+      if (finished) return;
+      startedAt = performance.now() - duration;
+      draw(performance.now(), 16.7);
     }
 
     function onVisibilityChange() {
@@ -2772,7 +2861,7 @@ const LOVE_STORY = {
       finishOpeningSequence();
       return;
     }
-    skipButton.addEventListener("click", finishOpeningSequence);
+    skipButton.addEventListener("click", skipOpeningSequence);
     window.addEventListener("resize", resize);
     document.addEventListener("visibilitychange", onVisibilityChange);
     frameHandle = requestAnimationFrame(tick);
@@ -2978,13 +3067,14 @@ const LOVE_STORY = {
           displacementScale: .018,
           roughness: 1,
           metalness: 0,
-          transparent: true
+          transparent: true,
+          opacity: openingSequenceComplete ? 1 : openingMoonOpacity
         });
         const moon = new THREE.Mesh(geometry, material);
         const atmosphere = new THREE.Mesh(
           new THREE.PlaneGeometry(4, 4),
           new THREE.ShaderMaterial({
-            uniforms: { glow: { value: .2 }, visibility: { value: 1 } },
+            uniforms: { glow: { value: .2 }, visibility: { value: openingSequenceComplete ? 1 : openingMoonOpacity } },
             vertexShader: `
               varying vec2 vUv;
               void main() {
@@ -3014,14 +3104,12 @@ const LOVE_STORY = {
         scene.add(group);
         let frustumWidth = 1;
         let frustumHeight = 1;
-        const smoothstep = (edge0, edge1, value) => {
-          const progress = Math.max(0, Math.min(1, (value - edge0) / (edge1 - edge0)));
-          return progress * progress * (3 - 2 * progress);
-        };
         const applyLunarTextures = ({ diffuse, bump }) => {
           material.map = diffuse;
           material.bumpMap = bump;
           material.displacementMap = bump;
+          material.opacity = openingSequenceComplete ? 1 : openingMoonOpacity;
+          atmosphere.material.uniforms.visibility.value = openingSequenceComplete ? 1 : openingMoonOpacity;
           material.needsUpdate = true;
           renderer.render(scene, camera);
         };
@@ -3045,23 +3133,14 @@ const LOVE_STORY = {
             const nextFrustumWidth = viewFrustumHeight * camera.aspect;
             frustumWidth = nextFrustumWidth;
             frustumHeight = viewFrustumHeight;
-            const radius = Math.max(.255, Math.min(.465, viewWidth * .0003375));
+            const radius = Math.min(viewWidth, viewHeight) * .1 * viewFrustumHeight / viewHeight;
             group.scale.setScalar(radius);
-            group.position.set(-nextFrustumWidth * .35, viewFrustumHeight * .28, 0);
+            group.position.set(-nextFrustumWidth * .18, viewFrustumHeight * .05, 0);
             renderer.render(scene, camera);
           },
-          render(time) {
+          render(time, visibility = 1) {
             if (!reducedMotion) {
-              moon.rotation.y = time * .00018;
-              group.rotation.x = Math.sin(time * .00011) * .025;
-              const travel = (time % 26000) / 26000;
-              const x = -.1 + travel * 1.2;
-              const y = .60 - .31 * Math.sin(Math.PI * travel);
-              const fadeIn = smoothstep(0, .025, travel);
-              const fadeOut = 1 - smoothstep(.94, .995, travel);
-              const visibility = Math.min(fadeIn, fadeOut);
-              group.position.x = frustumWidth * (x - .5 + Math.sin(time * .00042) * .003);
-              group.position.y = frustumHeight * (.5 - y + Math.sin(time * .00055 + 1.4) * .004);
+              moon.rotation.z = time * .000035;
               moon.material.opacity = visibility;
               atmosphere.material.uniforms.visibility.value = visibility;
               atmosphere.material.uniforms.glow.value = .18 + Math.sin(time * .00014) * .018;
@@ -3207,7 +3286,7 @@ const LOVE_STORY = {
     const drawFrame = (time, moonTime = time) => {
       context.clearRect(0, 0, width, height);
       drawBackground();
-      moonScene?.render(moonTime);
+      moonScene?.render(moonTime, openingSequenceComplete ? 1 : openingMoonOpacity);
       layers.forEach((stars) => drawStarsAt(stars, time));
       dust.forEach((particle) => {
         const alpha = .08 + (Math.sin(time * .00016 + particle.phase) + 1) * .045;
