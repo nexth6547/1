@@ -148,9 +148,9 @@ const LOVE_STORY = {
       subtitle: "Les lettres ont avancé de trois places. Ramène-les chez elles pour lire le message.",
       game: {
         type: "cipher",
-        cipher: "QRXV VRPPHV SOXV EHDXA D GHXA",
+        cipher: "WX HV OD PHLOOHXUH",
         shift: 3,
-        answer: "nous sommes plus beaux a deux",
+        answer: "tu es la meilleure",
         hint: "Indice : pour décoder, recule chaque lettre de trois places dans l'alphabet."
       },
       personalMessage: "Le mois de juin j'ai peur de souvenirs mais du coup tu m'as rappeler la friterie où on était aller et où tu as rencontré ma grande soeur et mon neuve, c'était d'ailleurs vraiment pas fou comme moment parce qu'il avait failli dire de la merde a ce moment 😭, il a eu aussi l'endroit où on était aller manger un couscous et je crois que pour toi c'était pas le meilleur des moments avec toute ma famille mdrrrr 😭😭 mais c'était vraiment sympas aussi comme toute les journées qu'on a passé a deux et ou avait fait des choses ensemble ect."
@@ -163,10 +163,10 @@ const LOVE_STORY = {
       game: {
         type: "polaroids",
         cards: [
-          { front: "Le premier regard", back: "Le début de notre plus belle aventure." },
-          { front: "Notre endroit préféré", back: "Même un lieu ordinaire devient spécial avec toi." },
-          { front: "Un fou rire", back: "J'aimerais garder le son de ton rire dans une petite boîte." },
-          { front: "Juste nous deux", back: "Mon souvenir préféré, c'est celui où tu es là." }
+          { front: "Avant même qu'on soit ensemble", back: "La toute première fois où tu m'as fait un câlin, alors qu'on n'était même pas ensemble, je savais déjà que je ne voulais que toi." },
+          { front: "Ma première visite chez toi", back: "La première fois où je suis venu chez toi, j'étais tellement stressé, mdrrr. Mais au final, j'ai passé un superbe moment avec toi." },
+          { front: "Notre première sortie", back: "La première fois qu'on a fait une sortie, c'était tellement bien, surtout de voir à quel point tu étais heureuse à ce moment-là." },
+          { front: "Un souvenir rien qu'à nous", back: "La toute première fois où on l'a fait, c'était tout aussi bien, et je ne regrette absolument pas de te l'avoir donnée, à toi, la fille que j'aime." }
         ]
       },
       personalMessage: "À venir."
@@ -2125,13 +2125,13 @@ const LOVE_STORY = {
               <path d="M376 323q2-36 37-38h325q32 5 37 39" fill="none" stroke="#b2a09a" stroke-opacity=".43" stroke-width="4"/>
               <path d="M339 355q22-22 52-11l72 52q10 43-14 65H356Z" fill="url(#bedroom-pillow)" stroke="#c5b7a5" stroke-opacity=".35" stroke-width="3"/>
               <path d="M379 365q35 9 58 45M401 355q20 16 34 39" fill="none" stroke="#e1d6c3" stroke-opacity=".32" stroke-width="3"/>
-              <g class="bedroom-cat-illustration" transform="translate(20 -20)">
+              <g class="bedroom-cat-illustration" transform="translate(-8 -16)">
                 <ellipse class="bedroom-cat-halo" cx="746" cy="383" rx="48" ry="35" fill="#f3d9a1" opacity="0"/>
-                <path d="M708 407q-6-27 20-40 24-9 42 13 22 17 10 43-19 19-52 11-22-5-20-27Z" fill="#111622" stroke="#626476" stroke-width="4"/>
-                <path d="M718 382l-2-26 22 15m26 5 14-24 5 35" fill="#252a37" stroke="#777487" stroke-width="4" stroke-linejoin="round"/>
-                <path d="M723 379q17-18 34 1l4 15q-16 15-35 2Z" fill="#4a4b5a"/>
-                <ellipse cx="731" cy="389" rx="3" ry="4" fill="#d6c99c"/>
-                <ellipse cx="750" cy="389" rx="3" ry="4" fill="#d6c99c"/>
+                <path d="M708 407q-6-27 20-40 24-9 42 13 22 17 10 43-19 19-52 11-22-5-20-27Z" fill="#10141e" stroke="#4d5262" stroke-width="4"/>
+                <path d="M718 382l-2-26 22 15m26 5 14-24 5 35" fill="#202532" stroke="#65697a" stroke-width="4" stroke-linejoin="round"/>
+                <path d="M723 379q17-18 34 1l4 15q-16 15-35 2Z" fill="#3c3f4d"/>
+                <ellipse cx="731" cy="389" rx="3" ry="4" fill="#a89d7f"/>
+                <ellipse cx="750" cy="389" rx="3" ry="4" fill="#a89d7f"/>
                 <circle cx="732" cy="389" r="1.5" fill="#171923"/><circle cx="751" cy="389" r="1.5" fill="#171923"/>
                 <path d="M738 396l4 3 4-3m-4 3q-5 6-10 2m10-2q5 6 10 2" fill="none" stroke="#b6a6a0" stroke-width="2" stroke-linecap="round"/>
                 <path d="M727 398l-13-2m13 6-14 3m39-7 12-3m-12 7 14 2" stroke="#a49ba0" stroke-opacity=".75" stroke-width="1.4"/>
@@ -2150,7 +2150,7 @@ const LOVE_STORY = {
               <path d="M651 541l-4 13m26-8-3 14m28-11-2 13" stroke="#c49d96" stroke-opacity=".55" stroke-width="3"/>
             </g>
 
-            <ellipse class="bedroom-cat-target" cx="766" cy="365" rx="58" ry="38" fill="transparent" pointer-events="all" role="button" tabindex="0" aria-label="Inspecter le recoin près du coussin" aria-pressed="false"/>
+            <ellipse class="bedroom-cat-target" cx="738" cy="352" rx="62" ry="42" fill="transparent" pointer-events="all" role="button" tabindex="0" aria-label="Inspecter le recoin près du coussin" aria-pressed="false"/>
             <rect width="1000" height="600" fill="url(#bedroom-vignette)" pointer-events="none"/>
           </svg>
         </div>
@@ -2294,8 +2294,7 @@ const LOVE_STORY = {
       button.type = "button";
       button.className = `polaroid-card polaroid-${index + 1}`;
       button.setAttribute("aria-pressed", "false");
-      button.innerHTML = `<span class="polaroid-inner"><span class="polaroid-face polaroid-front"><span class="polaroid-photo"></span><span class="polaroid-caption"></span></span><span class="polaroid-face polaroid-back"><span class="polaroid-back-star" aria-hidden="true">✦</span><span class="polaroid-message"></span></span></span>`;
-      button.querySelector(".polaroid-photo").textContent = ["☕", "🌙", "☀", "♥"][index % 4];
+      button.innerHTML = `<span class="polaroid-inner"><span class="polaroid-face polaroid-front"><span class="polaroid-photo"><span class="polaroid-moon" aria-hidden="true"></span></span><span class="polaroid-caption"></span></span><span class="polaroid-face polaroid-back"><span class="polaroid-back-star" aria-hidden="true">✦</span><span class="polaroid-message"></span></span></span>`;
       button.querySelector(".polaroid-caption").textContent = card.front;
       button.querySelector(".polaroid-message").textContent = card.back;
       button.addEventListener("click", () => {
@@ -2525,6 +2524,259 @@ const LOVE_STORY = {
     document.onkeydown = null;
     dialog.classList.remove("is-final");
   });
+
+  function runOpeningSequence() {
+    const intro = $("#intro-scene");
+    const canvas = $("#intro-canvas");
+    const skipButton = $("#intro-skip");
+    screens.welcome.inert = true;
+    const context = canvas.getContext("2d");
+    if (!context) {
+      console.error("Impossible de créer le canevas de l’introduction céleste.");
+      finishOpeningSequence();
+      return;
+    }
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const duration = 9200;
+    const stars = Array.from({ length: 460 }, () => ({
+      x: Math.random() * 2 - 1,
+      y: Math.random() * 2 - 1,
+      z: Math.random() * .96 + .04,
+      speed: .18 + Math.random() * .36,
+      warmth: Math.random()
+    }));
+    let width = 0;
+    let height = 0;
+    let pixelRatio = 1;
+    let frameHandle = 0;
+    let startedAt = 0;
+    let pausedAt = 0;
+    let finished = false;
+    let previousFrame = 0;
+
+    const resize = () => {
+      pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.round(width * pixelRatio);
+      canvas.height = Math.round(height * pixelRatio);
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    };
+
+    const drawNebula = (time) => {
+      const clouds = [
+        { x: .2, y: .28, radius: .42, color: "77, 91, 150", phase: .4 },
+        { x: .77, y: .7, radius: .48, color: "126, 87, 118", phase: 2.2 },
+        { x: .52, y: .16, radius: .3, color: "165, 133, 87", phase: 4.1 }
+      ];
+      clouds.forEach((cloud) => {
+        const drift = Math.sin(time * .00008 + cloud.phase) * .035;
+        const centerX = width * (cloud.x + drift);
+        const centerY = height * (cloud.y + Math.cos(time * .00006 + cloud.phase) * .025);
+        const radius = Math.max(width, height) * cloud.radius;
+        const glow = context.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+        glow.addColorStop(0, `rgba(${cloud.color}, .12)`);
+        glow.addColorStop(.42, `rgba(${cloud.color}, .055)`);
+        glow.addColorStop(1, `rgba(${cloud.color}, 0)`);
+        context.fillStyle = glow;
+        context.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
+      });
+    };
+
+    const drawStarfield = (delta, progress, time) => {
+      const speedGain = .34 + progress * 2.8;
+      const focalX = width * .5;
+      const focalY = height * .48;
+      stars.forEach((star) => {
+        const previousZ = star.z;
+        star.z -= delta * .00012 * star.speed * speedGain;
+        if (star.z <= .025) {
+          star.x = Math.random() * 2 - 1;
+          star.y = Math.random() * 2 - 1;
+          star.z = 1;
+        }
+        const x = focalX + star.x / star.z * Math.min(width, height) * .44;
+        const y = focalY + star.y / star.z * Math.min(width, height) * .44;
+        if (x < -40 || x > width + 40 || y < -40 || y > height + 40) return;
+        const size = Math.min(3.2, .45 + (1 - star.z) * 2.6);
+        const alpha = Math.min(.95, .18 + (1 - star.z) * .85);
+        const tailX = focalX + star.x / previousZ * Math.min(width, height) * .44;
+        const tailY = focalY + star.y / previousZ * Math.min(width, height) * .44;
+        const fade = Math.max(0, Math.min(1, (progress - .12) * 2.6));
+        context.beginPath();
+        context.moveTo(x, y);
+        context.lineTo(x + (x - tailX) * fade * 2.4, y + (y - tailY) * fade * 2.4);
+        context.strokeStyle = star.warmth > .78
+          ? `rgba(255, 224, 167, ${alpha * fade})`
+          : `rgba(191, 215, 255, ${alpha * fade})`;
+        context.lineWidth = size;
+        context.lineCap = "round";
+        context.stroke();
+        context.beginPath();
+        context.arc(x, y, size * .5, 0, Math.PI * 2);
+        context.fillStyle = `rgba(240, 244, 255, ${alpha})`;
+        context.fill();
+      });
+    };
+
+    const drawSystem = (time, start, end, side, tint) => {
+      const progress = (time - start) / (end - start);
+      if (progress <= 0 || progress >= 1) return;
+      const eased = progress * progress * (3 - 2 * progress);
+      const x = width * (side < 0 ? .73 - eased * 1.05 : .22 + eased * 1.06);
+      const y = height * (side < 0 ? .38 + eased * .17 : .62 - eased * .2);
+      const radius = Math.min(width, height) * (.018 + eased * .075);
+      const opacity = Math.sin(progress * Math.PI) * .88;
+      context.save();
+      context.translate(x, y);
+      context.rotate(side * -.18);
+      const halo = context.createRadialGradient(0, 0, 0, 0, 0, radius * 2.8);
+      halo.addColorStop(0, `rgba(${tint}, ${opacity * .65})`);
+      halo.addColorStop(.26, `rgba(${tint}, ${opacity * .18})`);
+      halo.addColorStop(1, `rgba(${tint}, 0)`);
+      context.fillStyle = halo;
+      context.fillRect(-radius * 3, -radius * 3, radius * 6, radius * 6);
+      for (let ring = 0; ring < 3; ring++) {
+        context.beginPath();
+        context.ellipse(0, 0, radius * (1.25 + ring * .35), radius * (.26 + ring * .075), ring * .2, 0, Math.PI * 2);
+        context.strokeStyle = `rgba(${tint}, ${opacity * (.48 - ring * .1)})`;
+        context.lineWidth = ring === 0 ? 1.15 : .7;
+        context.stroke();
+      }
+      const core = context.createRadialGradient(-radius * .2, -radius * .2, 0, 0, 0, radius * .55);
+      core.addColorStop(0, `rgba(255, 251, 233, ${opacity})`);
+      core.addColorStop(.45, `rgba(${tint}, ${opacity * .95})`);
+      core.addColorStop(1, `rgba(${tint}, ${opacity * .35})`);
+      context.beginPath();
+      context.arc(0, 0, radius * .42, 0, Math.PI * 2);
+      context.fillStyle = core;
+      context.fill();
+      context.restore();
+    };
+
+    const drawMoon = (time, progress) => {
+      const arrival = Math.max(0, Math.min(1, (progress - .62) / .38));
+      const eased = arrival * arrival * (3 - 2 * arrival);
+      const radius = Math.min(width, height) * (.025 + eased * .11);
+      const centerX = width * (.52 - eased * .205);
+      const centerY = height * (.48 - eased * .03);
+      const glowRadius = radius * 2.6;
+      const glow = context.createRadialGradient(centerX, centerY, radius * .55, centerX, centerY, glowRadius);
+      glow.addColorStop(0, `rgba(207, 220, 247, ${eased * .15})`);
+      glow.addColorStop(.45, `rgba(174, 193, 230, ${eased * .065})`);
+      glow.addColorStop(1, "rgba(151, 174, 223, 0)");
+      context.fillStyle = glow;
+      context.fillRect(centerX - glowRadius, centerY - glowRadius, glowRadius * 2, glowRadius * 2);
+
+      context.save();
+      context.globalAlpha = eased;
+      context.beginPath();
+      context.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      const surface = context.createLinearGradient(centerX - radius, centerY - radius * .6, centerX + radius, centerY + radius * .55);
+      surface.addColorStop(0, "#192031");
+      surface.addColorStop(.3, "#566078");
+      surface.addColorStop(.64, "#b9b8b2");
+      surface.addColorStop(.82, "#ded7c7");
+      surface.addColorStop(1, "#6e7483");
+      context.fillStyle = surface;
+      context.shadowColor = "rgba(206, 220, 248, .42)";
+      context.shadowBlur = radius * .14;
+      context.fill();
+      context.shadowBlur = 0;
+      context.clip();
+      context.translate(centerX, centerY);
+      context.rotate(time * .000035);
+      const craterCount = 52;
+      for (let index = 0; index < craterCount; index++) {
+        const angle = index * 2.39996;
+        const distance = Math.sqrt((index + .5) / craterCount) * radius * .92;
+        const craterX = Math.cos(angle) * distance;
+        const craterY = Math.sin(angle) * distance;
+        const craterRadius = radius * (.012 + ((index * 17) % 9) * .004);
+        const depth = .08 + (index % 4) * .025;
+        context.beginPath();
+        context.ellipse(craterX, craterY, craterRadius * 1.3, craterRadius, angle * .17, 0, Math.PI * 2);
+        context.fillStyle = `rgba(20, 25, 38, ${depth})`;
+        context.fill();
+        context.beginPath();
+        context.ellipse(craterX - craterRadius * .16, craterY - craterRadius * .2, craterRadius * 1.1, craterRadius * .78, angle * .17, Math.PI, Math.PI * 2);
+        context.strokeStyle = `rgba(248, 238, 216, ${depth * .8})`;
+        context.lineWidth = Math.max(.55, radius * .006);
+        context.stroke();
+      }
+      const shadow = context.createLinearGradient(-radius * .25, -radius * .4, radius * .92, radius * .25);
+      shadow.addColorStop(0, "rgba(5, 8, 17, 0)");
+      shadow.addColorStop(.38, "rgba(5, 8, 17, .08)");
+      shadow.addColorStop(1, "rgba(4, 6, 13, .78)");
+      context.fillStyle = shadow;
+      context.fillRect(-radius, -radius, radius * 2, radius * 2);
+      context.restore();
+    };
+
+    const draw = (time, delta) => {
+      const elapsed = Math.min(duration, time - startedAt);
+      const progress = elapsed / duration;
+      context.clearRect(0, 0, width, height);
+      context.fillStyle = "#03040a";
+      context.fillRect(0, 0, width, height);
+      drawNebula(time);
+      drawStarfield(delta, progress, time);
+      drawSystem(elapsed, 1500, 3900, -1, "207, 191, 151");
+      drawSystem(elapsed, 4100, 6800, 1, "147, 177, 229");
+      drawMoon(time, progress);
+      const vignette = context.createRadialGradient(width * .5, height * .48, Math.min(width, height) * .12, width * .5, height * .48, Math.max(width, height) * .78);
+      vignette.addColorStop(0, "rgba(3, 4, 10, 0)");
+      vignette.addColorStop(1, "rgba(0, 0, 0, .56)");
+      context.fillStyle = vignette;
+      context.fillRect(0, 0, width, height);
+      if (elapsed >= duration) finishOpeningSequence();
+    };
+
+    function finishOpeningSequence() {
+      if (finished) return;
+      finished = true;
+      if (frameHandle) cancelAnimationFrame(frameHandle);
+      window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      skipButton.removeEventListener("click", finishOpeningSequence);
+      document.body.classList.remove("is-intro-running");
+      screens.welcome.inert = false;
+      intro.classList.add("is-leaving");
+      window.setTimeout(() => intro.remove(), 1400);
+    }
+
+    function onVisibilityChange() {
+      if (document.hidden) {
+        pausedAt = performance.now();
+        if (frameHandle) cancelAnimationFrame(frameHandle);
+        frameHandle = 0;
+      } else if (!finished) {
+        startedAt += performance.now() - pausedAt;
+        previousFrame = 0;
+        frameHandle = requestAnimationFrame(tick);
+      }
+    }
+
+    function tick(time) {
+      if (finished || document.hidden) return;
+      if (!startedAt) startedAt = time;
+      const delta = previousFrame ? Math.min(time - previousFrame, 50) : 16.7;
+      previousFrame = time;
+      draw(time, delta);
+      if (!finished) frameHandle = requestAnimationFrame(tick);
+    }
+
+    resize();
+    if (reducedMotion) {
+      finishOpeningSequence();
+      return;
+    }
+    skipButton.addEventListener("click", finishOpeningSequence);
+    window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    frameHandle = requestAnimationFrame(tick);
+  }
 
   function drawStars() {
     const canvas = $("#stars");
@@ -3009,5 +3261,6 @@ const LOVE_STORY = {
     resize();
   }
 
+  runOpeningSequence();
   drawStars();
 })();

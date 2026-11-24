@@ -13,8 +13,12 @@
     <script defer src="vendor/three.min.js"></script>
     <script defer src="script.js"></script>
   </head>
-  <body class="has-sky-background">
+  <body class="has-sky-background is-intro-running">
     <main>
+      <div id="intro-scene" class="intro-scene">
+        <canvas id="intro-canvas" aria-hidden="true"></canvas>
+        <button id="intro-skip" class="intro-skip" type="button" aria-label="Passer l’introduction">Passer <span aria-hidden="true">↗</span></button>
+      </div>
       <div class="scene-sky" aria-hidden="true">
         <canvas id="stars"></canvas>
         <canvas id="moon3d"></canvas>

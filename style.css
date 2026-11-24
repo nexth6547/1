@@ -57,7 +57,44 @@ main { position: relative; z-index: 1; }
   text-align: center;
   background: transparent;
 }
-.welcome-content { position: relative; z-index: 2; max-width: 42rem; }
+.welcome-content {
+  position: relative;
+  z-index: 2;
+  max-width: 42rem;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 1100ms ease, transform 1100ms cubic-bezier(.2, .7, .2, 1);
+}
+.is-intro-running .welcome-content { opacity: 0; transform: translateY(1.2rem); pointer-events: none; }
+.intro-scene {
+  position: fixed;
+  z-index: 10;
+  inset: 0;
+  overflow: hidden;
+  background: #03040a;
+  opacity: 1;
+  transition: opacity 1300ms ease;
+}
+.intro-scene.is-leaving { opacity: 0; pointer-events: none; }
+#intro-canvas { display: block; width: 100%; height: 100%; }
+.intro-skip {
+  position: absolute;
+  z-index: 1;
+  top: max(1.25rem, env(safe-area-inset-top));
+  right: max(1.25rem, env(safe-area-inset-right));
+  border: 1px solid rgba(232, 214, 174, .22);
+  border-radius: 999px;
+  background: rgba(7, 10, 19, .45);
+  padding: .58rem .9rem;
+  color: rgba(239, 230, 207, .78);
+  cursor: pointer;
+  font-size: .72rem;
+  letter-spacing: .08em;
+  backdrop-filter: blur(8px);
+  transition: color 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+.intro-skip:hover { border-color: rgba(232, 198, 111, .55); background: rgba(14, 17, 28, .76); color: #f4dfac; }
+.intro-skip span { margin-left: .4rem; color: #e8c66f; }
 .scene-sky { position: fixed; z-index: 0; inset: 0; overflow: hidden; pointer-events: none; visibility: hidden; }
 .has-sky-background .scene-sky { visibility: visible; }
 #stars { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; pointer-events: none; }
@@ -1095,7 +1132,55 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
 .polaroid-card.is-flipped .polaroid-inner { transform: rotateY(180deg); }
 .polaroid-face { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.13); border-radius: .4rem; backface-visibility: hidden; }
 .polaroid-front { background: #e7e0d0; padding: .55rem .55rem .9rem; color: #302d2b; box-shadow: 0 8px 18px rgba(0,0,0,.24); }
-.polaroid-photo { display: grid; width: 100%; flex: 1; place-items: center; background: radial-gradient(circle at 50% 45%, rgba(255,239,190,.27), transparent 42%), linear-gradient(145deg, #333d50, #6b5961 55%, #a67d67); color: #f5dfac; font-size: clamp(2.4rem, 9vw, 5rem); }
+.polaroid-photo {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  width: 100%;
+  flex: 1;
+  overflow: hidden;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.075);
+  background:
+    radial-gradient(circle at 50% 48%, rgba(183,167,133,.13), transparent 34%),
+    repeating-linear-gradient(135deg, rgba(255,255,255,.018) 0 1px, transparent 1px 4px),
+    linear-gradient(145deg, #11131a, #08090e 70%, #15141a);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), inset 0 -18px 34px rgba(0,0,0,.4);
+}
+.polaroid-photo::before {
+  position: absolute;
+  inset: 9px;
+  border: 1px solid rgba(212,197,161,.075);
+  content: "";
+  pointer-events: none;
+}
+.polaroid-moon {
+  position: relative;
+  display: block;
+  width: clamp(3.8rem, 10vw, 5.2rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  filter: drop-shadow(0 5px 8px rgba(0,0,0,.62)) drop-shadow(0 0 14px rgba(223,202,157,.11));
+}
+.polaroid-moon::before,
+.polaroid-moon::after {
+  position: absolute;
+  border-radius: 50%;
+  content: "";
+}
+.polaroid-moon::before {
+  inset: 5%;
+  background: radial-gradient(circle at 34% 26%, #f8efda, #d6c49c 55%, #968363);
+  box-shadow: inset -4px -5px 9px rgba(73,62,47,.3), inset 2px 2px 5px rgba(255,255,255,.58), 0 0 0 1px rgba(255,240,205,.36);
+}
+.polaroid-moon::after {
+  top: -1%;
+  right: -17%;
+  width: 84%;
+  height: 84%;
+  background: linear-gradient(145deg, #11131a, #08090e 72%, #15141a);
+  box-shadow: -2px 2px 5px rgba(0,0,0,.36);
+}
 .polaroid-caption { max-width: 100%; padding-top: .55rem; font-family: "Playfair Display", Georgia, serif; font-size: clamp(.65rem, 2.4vw, .9rem); }
 .polaroid-back { transform: rotateY(180deg); border-color: rgba(232,198,111,.23); background: linear-gradient(145deg, #332e29, #17181d); padding: .8rem; color: #eddfbd; font-family: "Playfair Display", Georgia, serif; font-size: clamp(.72rem, 2.5vw, .95rem); line-height: 1.65; }
 .polaroid-back-star { margin-bottom: .6rem; color: #e8c66f; }
@@ -1240,4 +1325,6 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .intro-scene { display: none; }
+  .is-intro-running .welcome-content { opacity: 1; transform: none; }
 }
