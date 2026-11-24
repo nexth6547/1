@@ -241,8 +241,6 @@ const LOVE_STORY = {
   let starFieldResizeObserver;
   let stopBackgroundAnimation = () => {};
   let startBackgroundAnimation = () => {};
-  let openingSequenceComplete = false;
-  let openingMoonOpacity = 0;
 
   function loadProgress() {
     try {
@@ -2527,365 +2525,24 @@ const LOVE_STORY = {
     dialog.classList.remove("is-final");
   });
 
-  function runOpeningSequence() {
-    const intro = $("#intro-scene");
-    const canvas = $("#intro-canvas");
-    const skipButton = $("#intro-skip");
-    screens.welcome.inert = true;
-    const context = canvas.getContext("2d");
-    if (!context) {
-      console.error("Impossible de créer le canevas de l’introduction céleste.");
-      finishOpeningSequence();
-      return;
-    }
-
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const duration = 9200;
-    const stars = Array.from({ length: 560 }, () => ({
-      x: Math.random() * 2 - 1,
-      y: Math.random() * 2 - 1,
-      z: Math.random() * .96 + .04,
-      speed: .18 + Math.random() * .36,
-      warmth: Math.random()
-    }));
-    const dust = Array.from({ length: 150 }, () => ({
-      x: Math.random() * 2 - 1,
-      y: Math.random() * 2 - 1,
-      z: Math.random() * .9 + .1,
-      speed: .08 + Math.random() * .18,
-      warmth: Math.random(),
-      phase: Math.random() * Math.PI * 2
-    }));
-    const planets = [
-      { start: 1300, end: 4050, fromX: .9, toX: -.14, fromY: .34, toY: .42, size: .13, colors: ["#c2b9a2", "#737b83", "#303847"], seed: 1 },
-      { start: 4200, end: 6850, fromX: .12, toX: 1.15, fromY: .68, toY: .48, size: .105, colors: ["#bdad93", "#706d70", "#343849"], seed: 2 }
-    ].map((planet) => ({
-      ...planet,
-      craters: Array.from({ length: 64 }, () => ({
-        x: Math.random() * 1.5 - .75,
-        y: Math.random() * 1.5 - .75,
-        size: .018 + Math.random() * .045,
-        depth: .1 + Math.random() * .2
-      }))
-    }));
-    let width = 0;
-    let height = 0;
-    let pixelRatio = 1;
-    let frameHandle = 0;
-    let startedAt = 0;
-    let pausedAt = 0;
-    let finished = false;
-    let previousFrame = 0;
-
-    const smoothstep = (start, end, value) => {
-      const progress = Math.max(0, Math.min(1, (value - start) / (end - start)));
-      return progress * progress * (3 - 2 * progress);
-    };
-
-    const resize = () => {
-      pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
-      width = window.innerWidth;
-      height = window.innerHeight;
-      canvas.width = Math.round(width * pixelRatio);
-      canvas.height = Math.round(height * pixelRatio);
-      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-    };
-
-    const drawNebula = (time) => {
-      const clouds = [
-        { x: .2, y: .28, radius: .42, color: "77, 91, 150", phase: .4 },
-        { x: .77, y: .7, radius: .48, color: "126, 87, 118", phase: 2.2 },
-        { x: .52, y: .16, radius: .3, color: "165, 133, 87", phase: 4.1 }
-      ];
-      clouds.forEach((cloud) => {
-        const drift = Math.sin(time * .000035 + cloud.phase) * .025;
-        const centerX = width * (cloud.x + drift);
-        const centerY = height * (cloud.y + Math.cos(time * .00003 + cloud.phase) * .018);
-        const radius = Math.max(width, height) * cloud.radius;
-        const glow = context.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
-        glow.addColorStop(0, `rgba(${cloud.color}, .095)`);
-        glow.addColorStop(.42, `rgba(${cloud.color}, .04)`);
-        glow.addColorStop(1, `rgba(${cloud.color}, 0)`);
-        context.fillStyle = glow;
-        context.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
-      });
-      const atmosphere = context.createRadialGradient(width * .5, height * .48, 0, width * .5, height * .48, Math.max(width, height) * .68);
-      atmosphere.addColorStop(0, "rgba(110, 139, 192, .035)");
-      atmosphere.addColorStop(.58, "rgba(86, 103, 158, .016)");
-      atmosphere.addColorStop(1, "rgba(86, 103, 158, 0)");
-      context.fillStyle = atmosphere;
-      context.fillRect(0, 0, width, height);
-    };
-
-    const drawStarfield = (delta, progress, time) => {
-      const speedGain = .22 + Math.sin(Math.PI * progress) ** 2 * 1.25;
-      const focalX = width * (.5 + Math.sin(progress * Math.PI * 1.4) * .025);
-      const focalY = height * (.48 + Math.sin(progress * Math.PI * 1.1 + .4) * .018);
-      const scale = Math.min(width, height) * .42;
-      stars.forEach((star) => {
-        star.z -= delta * .00022 * star.speed * speedGain;
-        if (star.z <= .035) {
-          star.x = Math.random() * 2 - 1;
-          star.y = Math.random() * 2 - 1;
-          star.z = 1;
-        }
-        const x = focalX + star.x / star.z * scale;
-        const y = focalY + star.y / star.z * scale;
-        if (x < -40 || x > width + 40 || y < -40 || y > height + 40) return;
-        const size = Math.min(2.5, .35 + (1 - star.z) * 1.9);
-        const shimmer = .78 + (Math.sin(time * .001 + star.x * 17 + star.y * 11) + 1) * .11;
-        const alpha = Math.min(.8, (.14 + (1 - star.z) * .55) * shimmer);
-        if (size > 1.2) {
-          const halo = context.createRadialGradient(x, y, 0, x, y, size * 4.5);
-          halo.addColorStop(0, `rgba(216, 226, 248, ${alpha * .32})`);
-          halo.addColorStop(1, "rgba(216, 226, 248, 0)");
-          context.fillStyle = halo;
-          context.fillRect(x - size * 4.5, y - size * 4.5, size * 9, size * 9);
-        }
-        context.beginPath();
-        context.arc(x, y, size * .5, 0, Math.PI * 2);
-        context.fillStyle = star.warmth > .88
-          ? `rgba(255, 230, 190, ${alpha})`
-          : `rgba(225, 233, 250, ${alpha})`;
-        context.fill();
-      });
-    };
-
-    const drawDust = (delta, progress, time) => {
-      const speedGain = .18 + Math.sin(Math.PI * progress) ** 2 * .7;
-      const focalX = width * .5;
-      const focalY = height * .48;
-      const scale = Math.min(width, height) * .38;
-      dust.forEach((particle) => {
-        particle.z -= delta * .00012 * particle.speed * speedGain;
-        if (particle.z <= .08) {
-          particle.x = Math.random() * 2 - 1;
-          particle.y = Math.random() * 2 - 1;
-          particle.z = 1;
-          particle.phase = Math.random() * Math.PI * 2;
-        }
-        const x = focalX + particle.x / particle.z * scale;
-        const y = focalY + particle.y / particle.z * scale;
-        if (x < -12 || x > width + 12 || y < -12 || y > height + 12) return;
-        const radius = .35 + (1 - particle.z) * 1.1;
-        const alpha = (.035 + (1 - particle.z) * .085)
-          * (.72 + (Math.sin(time * .0007 + particle.phase) + 1) * .14);
-        context.beginPath();
-        context.arc(x, y, radius, 0, Math.PI * 2);
-        context.fillStyle = particle.warmth > .72
-          ? `rgba(241, 220, 184, ${alpha})`
-          : `rgba(185, 204, 235, ${alpha})`;
-        context.fill();
-      });
-    };
-
-    const drawPlanet = (planet, time) => {
-      const progress = (time - planet.start) / (planet.end - planet.start);
-      if (progress <= 0 || progress >= 1) return;
-      const travel = smoothstep(0, 1, progress);
-      const envelope = Math.sin(progress * Math.PI);
-      const x = width * (planet.fromX + (planet.toX - planet.fromX) * travel);
-      const y = height * (planet.fromY + (planet.toY - planet.fromY) * travel
-        + Math.sin(progress * Math.PI) * (planet.seed === 1 ? .035 : -.028));
-      const radius = Math.min(width, height) * (.008 + envelope * planet.size);
-      const opacity = Math.min(1, envelope * 1.2);
-      context.save();
-      context.globalAlpha = opacity;
-      context.translate(x, y);
-      const halo = context.createRadialGradient(0, 0, radius * .62, 0, 0, radius * 1.65);
-      halo.addColorStop(0, "rgba(192, 207, 235, .08)");
-      halo.addColorStop(.5, "rgba(153, 177, 219, .035)");
-      halo.addColorStop(1, "rgba(153, 177, 219, 0)");
-      context.fillStyle = halo;
-      context.fillRect(-radius * 2, -radius * 2, radius * 4, radius * 4);
-      context.beginPath();
-      context.arc(0, 0, radius, 0, Math.PI * 2);
-      const [light, mid, dark] = planet.colors;
-      const surface = context.createRadialGradient(-radius * .34, -radius * .38, radius * .04, radius * .12, radius * .1, radius * 1.28);
-      surface.addColorStop(0, light);
-      surface.addColorStop(.35, mid);
-      surface.addColorStop(.74, dark);
-      surface.addColorStop(1, "#161b28");
-      context.fillStyle = surface;
-      context.fill();
-      context.clip();
-      context.rotate(time * .000025 * planet.seed);
-      planet.craters.forEach((crater) => {
-        if (Math.hypot(crater.x, crater.y) > .84) return;
-        const craterX = crater.x * radius;
-        const craterY = crater.y * radius;
-        const craterRadius = crater.size * radius;
-        context.beginPath();
-        context.ellipse(craterX, craterY, craterRadius * 1.35, craterRadius, .18, 0, Math.PI * 2);
-        context.fillStyle = `rgba(16, 20, 29, ${crater.depth})`;
-        context.fill();
-        context.beginPath();
-        context.ellipse(craterX - craterRadius * .18, craterY - craterRadius * .2, craterRadius * 1.15, craterRadius * .76, .18, Math.PI, Math.PI * 2);
-        context.strokeStyle = `rgba(236, 229, 213, ${crater.depth * .48})`;
-        context.lineWidth = Math.max(.45, radius * .009);
-        context.stroke();
-      });
-      const terminator = context.createLinearGradient(-radius * .34, -radius * .44, radius * .82, radius * .44);
-      terminator.addColorStop(0, "rgba(8, 12, 21, 0)");
-      terminator.addColorStop(.44, "rgba(8, 12, 21, .08)");
-      terminator.addColorStop(.76, "rgba(7, 10, 18, .54)");
-      terminator.addColorStop(1, "rgba(4, 6, 12, .88)");
-      context.fillStyle = terminator;
-      context.fillRect(-radius, -radius, radius * 2, radius * 2);
-      context.restore();
-    };
-
-    const drawPlanets = (time) => planets.forEach((planet) => drawPlanet(planet, time));
-
-    const drawMoon = (time, progress) => {
-      const arrival = smoothstep(.58, .88, progress);
-      openingMoonOpacity = smoothstep(.83, 1, progress);
-      const radius = Math.min(width, height) * (.016 + arrival * .084);
-      const centerX = width * (.52 - arrival * .2);
-      const centerY = height * (.48 - arrival * .03);
-      const glowRadius = radius * 2.6;
-      const glow = context.createRadialGradient(centerX, centerY, radius * .55, centerX, centerY, glowRadius);
-      glow.addColorStop(0, `rgba(207, 220, 247, ${arrival * .13})`);
-      glow.addColorStop(.45, `rgba(174, 193, 230, ${arrival * .055})`);
-      glow.addColorStop(1, "rgba(151, 174, 223, 0)");
-      context.fillStyle = glow;
-      context.fillRect(centerX - glowRadius, centerY - glowRadius, glowRadius * 2, glowRadius * 2);
-
-      context.save();
-      context.globalAlpha = arrival;
-      context.beginPath();
-      context.arc(centerX, centerY, radius, 0, Math.PI * 2);
-      const surface = context.createRadialGradient(centerX - radius * .34, centerY - radius * .38, radius * .03, centerX + radius * .08, centerY + radius * .08, radius * 1.35);
-      surface.addColorStop(0, "#e1ddce");
-      surface.addColorStop(.34, "#a9afba");
-      surface.addColorStop(.72, "#646d7d");
-      surface.addColorStop(1, "#20283a");
-      context.fillStyle = surface;
-      context.shadowColor = "rgba(206, 220, 248, .42)";
-      context.shadowBlur = radius * .14;
-      context.fill();
-      context.shadowBlur = 0;
-      context.clip();
-      context.translate(centerX, centerY);
-      context.rotate(time * .000035);
-      const craterCount = 52;
-      for (let index = 0; index < craterCount; index++) {
-        const angle = index * 2.39996;
-        const distance = Math.sqrt((index + .5) / craterCount) * radius * .92;
-        const craterX = Math.cos(angle) * distance;
-        const craterY = Math.sin(angle) * distance;
-        const craterRadius = radius * (.012 + ((index * 17) % 9) * .004);
-        const depth = .08 + (index % 4) * .025;
-        context.beginPath();
-        context.ellipse(craterX, craterY, craterRadius * 1.3, craterRadius, angle * .17, 0, Math.PI * 2);
-        context.fillStyle = `rgba(20, 25, 38, ${depth})`;
-        context.fill();
-        context.beginPath();
-        context.ellipse(craterX - craterRadius * .16, craterY - craterRadius * .2, craterRadius * 1.1, craterRadius * .78, angle * .17, Math.PI, Math.PI * 2);
-        context.strokeStyle = `rgba(248, 238, 216, ${depth * .8})`;
-        context.lineWidth = Math.max(.55, radius * .006);
-        context.stroke();
-      }
-      const shadow = context.createLinearGradient(-radius * .25, -radius * .4, radius * .92, radius * .25);
-      shadow.addColorStop(0, "rgba(5, 8, 17, 0)");
-      shadow.addColorStop(.38, "rgba(5, 8, 17, .08)");
-      shadow.addColorStop(1, "rgba(4, 6, 13, .78)");
-      context.fillStyle = shadow;
-      context.fillRect(-radius, -radius, radius * 2, radius * 2);
-      context.restore();
-    };
-
-    const draw = (time, delta) => {
-      const elapsed = Math.min(duration, time - startedAt);
-      const progress = elapsed / duration;
-      context.clearRect(0, 0, width, height);
-      context.fillStyle = "#03040a";
-      context.fillRect(0, 0, width, height);
-      drawNebula(time);
-      drawStarfield(delta, progress, time);
-      drawDust(delta, progress, time);
-      drawPlanets(elapsed);
-      drawMoon(time, progress);
-      const vignette = context.createRadialGradient(width * .5, height * .48, Math.min(width, height) * .12, width * .5, height * .48, Math.max(width, height) * .78);
-      vignette.addColorStop(0, "rgba(3, 4, 10, 0)");
-      vignette.addColorStop(1, "rgba(0, 0, 0, .56)");
-      context.fillStyle = vignette;
-      context.fillRect(0, 0, width, height);
-      if (elapsed >= duration) finishOpeningSequence();
-    };
-
-    function finishOpeningSequence() {
-      if (finished) return;
-      finished = true;
-      openingSequenceComplete = true;
-      openingMoonOpacity = 1;
-      if (frameHandle) cancelAnimationFrame(frameHandle);
-      window.removeEventListener("resize", resize);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      skipButton.removeEventListener("click", skipOpeningSequence);
-      document.body.classList.remove("is-intro-running");
-      screens.welcome.inert = false;
-      intro.classList.add("is-leaving");
-      window.setTimeout(() => intro.remove(), 1400);
-    }
-
-    function skipOpeningSequence() {
-      if (finished) return;
-      startedAt = performance.now() - duration;
-      draw(performance.now(), 16.7);
-    }
-
-    function onVisibilityChange() {
-      if (document.hidden) {
-        pausedAt = performance.now();
-        if (frameHandle) cancelAnimationFrame(frameHandle);
-        frameHandle = 0;
-      } else if (!finished) {
-        startedAt += performance.now() - pausedAt;
-        previousFrame = 0;
-        frameHandle = requestAnimationFrame(tick);
-      }
-    }
-
-    function tick(time) {
-      if (finished || document.hidden) return;
-      if (!startedAt) startedAt = time;
-      const delta = previousFrame ? Math.min(time - previousFrame, 50) : 16.7;
-      previousFrame = time;
-      draw(time, delta);
-      if (!finished) frameHandle = requestAnimationFrame(tick);
-    }
-
-    resize();
-    if (reducedMotion) {
-      finishOpeningSequence();
-      return;
-    }
-    skipButton.addEventListener("click", skipOpeningSequence);
-    window.addEventListener("resize", resize);
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    frameHandle = requestAnimationFrame(tick);
-  }
-
-  function drawStars() {
-    const canvas = $("#stars");
-    const context = canvas.getContext("2d");
-    if (!context) return;
+  function initializeCelestialScene() {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const welcomeScreen = screens.welcome;
     const hubScreen = screens.hub;
     const moonCanvas = $("#moon3d");
-    const layers = [];
-    const dust = [];
-    const meteors = [];
-    let width = 0;
-    let height = 0;
+    const intro = $("#intro-scene");
+    const skipButton = $("#intro-skip");
+    const introDuration = 9200;
     let frameHandle = 0;
     let isRunning = false;
-    let nextMeteorAt = 0;
     let motionTime = 0;
     let previousFrameTime = 0;
+    let introElapsed = 0;
+    let introActive = !reducedMotion;
+    let width = 1;
+    let height = 1;
     let moonScene = null;
+    welcomeScreen.inert = introActive;
     const isSkyVisible = () => !welcomeScreen.hidden || !hubScreen.hidden;
 
     const randomBetween = (min, max) => min + Math.random() * (max - min);
@@ -3044,21 +2701,277 @@ const LOVE_STORY = {
         return null;
       }
       try {
-        const renderer = new THREE.WebGLRenderer({ canvas: moonCanvas, alpha: true, antialias: true });
+        const renderer = new THREE.WebGLRenderer({ canvas: moonCanvas, alpha: false, antialias: true });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
-        renderer.setClearColor(0x000000, 0);
+        renderer.setClearColor(0x03040a, 1);
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 1.08;
 
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(38, 1, .1, 40);
-        camera.position.z = 5;
-        scene.add(new THREE.HemisphereLight(0xc7d8f4, 0x323949, .42));
-        scene.add(new THREE.AmbientLight(0x7886a3, .2));
-        const sunlight = new THREE.DirectionalLight(0xf1f3ff, 1.75);
+        scene.background = new THREE.Color(0x03040a);
+        const camera = new THREE.PerspectiveCamera(38, 1, .1, 180);
+        const introStartZ = 48;
+        const menuCameraZ = 5;
+        camera.position.z = introStartZ;
+        scene.add(new THREE.HemisphereLight(0xc7d8f4, 0x151925, .3));
+        scene.add(new THREE.AmbientLight(0x7886a3, .08));
+        const sunlight = new THREE.DirectionalLight(0xf1f3ff, 2.2);
         sunlight.position.set(-3.5, 2.3, 4);
         scene.add(sunlight);
+
+        const particleVertexShader = `
+          attribute float aSize;
+          attribute float aPhase;
+          attribute float aAlpha;
+          attribute vec3 aTint;
+          uniform float uTime;
+          uniform float uOpacity;
+          varying float vAlpha;
+          varying vec3 vTint;
+          void main() {
+            vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+            gl_Position = projectionMatrix * viewPosition;
+            gl_PointSize = clamp(aSize * (24.0 / max(1.0, -viewPosition.z)), 0.55, 8.0);
+            vAlpha = aAlpha * uOpacity * (0.78 + 0.22 * sin(uTime * 0.7 + aPhase));
+            vTint = aTint;
+          }
+        `;
+        const particleFragmentShader = `
+          varying float vAlpha;
+          varying vec3 vTint;
+          void main() {
+            float radius = length(gl_PointCoord - vec2(0.5)) * 2.0;
+            float halo = exp(-radius * radius * 5.2);
+            float core = 1.0 - smoothstep(0.0, 0.28, radius);
+            float alpha = (halo * 0.38 + core * 0.62) * vAlpha;
+            if (alpha < 0.008) discard;
+            gl_FragColor = vec4(vTint, alpha);
+          }
+        `;
+        const createParticleLayer = (count, createParticle, opacity = 1) => {
+          const positions = new Float32Array(count * 3);
+          const sizes = new Float32Array(count);
+          const phases = new Float32Array(count);
+          const alphas = new Float32Array(count);
+          const colors = new Float32Array(count * 3);
+          for (let index = 0; index < count; index++) {
+            const particle = createParticle(index);
+            positions.set([particle.x, particle.y, particle.z], index * 3);
+            sizes[index] = particle.size;
+            phases[index] = particle.phase ?? Math.random() * Math.PI * 2;
+            alphas[index] = particle.alpha ?? .7;
+            const color = new THREE.Color(particle.color ?? 0xffffff);
+            colors.set([color.r, color.g, color.b], index * 3);
+          }
+          const geometry = new THREE.BufferGeometry();
+          geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+          geometry.setAttribute("aSize", new THREE.Float32BufferAttribute(sizes, 1));
+          geometry.setAttribute("aPhase", new THREE.Float32BufferAttribute(phases, 1));
+          geometry.setAttribute("aAlpha", new THREE.Float32BufferAttribute(alphas, 1));
+          geometry.setAttribute("aTint", new THREE.Float32BufferAttribute(colors, 3));
+          const material = new THREE.ShaderMaterial({
+            uniforms: { uTime: { value: 0 }, uOpacity: { value: opacity } },
+            vertexShader: particleVertexShader,
+            fragmentShader: particleFragmentShader,
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending
+          });
+          const points = new THREE.Points(geometry, material);
+          scene.add(points);
+          return points;
+        };
+        const gaussian = () => Math.random() + Math.random() + Math.random() - 1.5;
+        const starLayers = [
+          createParticleLayer(2200, () => ({
+            x: (Math.random() * 2 - 1) * 56, y: (Math.random() * 2 - 1) * 34,
+            z: randomBetween(-78, 42), size: randomBetween(.9, 2.3),
+            alpha: randomBetween(.24, .65), color: Math.random() > .88 ? 0xf1d9a7 : 0xb9c9e8
+          }), .78),
+          createParticleLayer(1250, () => ({
+            x: (Math.random() * 2 - 1) * 40, y: (Math.random() * 2 - 1) * 25,
+            z: randomBetween(-48, 34), size: randomBetween(1.3, 3.2),
+            alpha: randomBetween(.25, .72), color: Math.random() > .82 ? 0xf6e4c3 : 0xd9e4fa
+          }), .9)
+        ];
+        const nebulaLayers = [
+          createParticleLayer(2200, () => ({
+            x: -7 + gaussian() * 12, y: 1 + gaussian() * 8, z: 17 + gaussian() * 5,
+            size: randomBetween(3.5, 11), alpha: randomBetween(.035, .12),
+            color: Math.random() > .83 ? 0x9e8258 : 0x536d9e
+          }), .62),
+          createParticleLayer(2800, () => ({
+            x: 8 + gaussian() * 15, y: -3 + gaussian() * 10, z: -7 + gaussian() * 7,
+            size: randomBetween(4, 13), alpha: randomBetween(.025, .09),
+            color: Math.random() > .9 ? 0xb09262 : 0x465b91
+          }), .55),
+          createParticleLayer(1800, () => ({
+            x: -12 + gaussian() * 13, y: -4 + gaussian() * 9, z: -22 + gaussian() * 6,
+            size: randomBetween(4, 12), alpha: randomBetween(.02, .075),
+            color: 0x455986
+          }), .5)
+        ];
+        const galaxyCount = 6200;
+        const galaxy = createParticleLayer(galaxyCount, (index) => {
+          const armCount = 4;
+          const arm = index % armCount;
+          const radius = Math.sqrt(Math.random()) * 14;
+          const angle = radius * .28 + arm * (Math.PI * 2 / armCount) + gaussian() * .11;
+          return {
+            x: Math.cos(angle) * radius * 1.35,
+            y: Math.sin(angle) * radius * .62,
+            z: -36 + gaussian() * .7,
+            size: randomBetween(.65, 2.1) * (1 - radius / 20),
+            alpha: randomBetween(.14, .52) * (1 - radius / 19),
+            color: Math.random() > .86 ? 0xc3a876 : (Math.random() > .5 ? 0x9fb8e5 : 0xe2e7f2)
+          };
+        }, .72);
+        galaxy.rotation.x = -.24;
+        galaxy.rotation.z = .13;
+
+        const createPlanetTextures = (kind) => {
+          const textureWidth = 768;
+          const textureHeight = 384;
+          const colorCanvas = document.createElement("canvas");
+          const bumpCanvas = document.createElement("canvas");
+          colorCanvas.width = bumpCanvas.width = textureWidth;
+          colorCanvas.height = bumpCanvas.height = textureHeight;
+          const colorContext = colorCanvas.getContext("2d");
+          const bumpContext = bumpCanvas.getContext("2d");
+          if (!colorContext || !bumpContext) throw new Error("Impossible de créer les textures procédurales des planètes.");
+          const colorImage = colorContext.createImageData(textureWidth, textureHeight);
+          const bumpImage = bumpContext.createImageData(textureWidth, textureHeight);
+          for (let y = 0; y < textureHeight; y++) {
+            const v = y / textureHeight;
+            for (let x = 0; x < textureWidth; x++) {
+              const u = x / textureWidth;
+              const broad = Math.sin(u * 34 + Math.sin(v * 17) * 1.4)
+                * .38 + Math.sin(v * 81 + Math.cos(u * 19) * 1.1) * .22;
+              const fine = Math.sin(u * 241 + v * 173) * .09
+                + Math.sin(u * 479 - v * 337) * .055;
+              let red;
+              let green;
+              let blue;
+              let relief;
+              if (kind === "gas") {
+                const band = Math.sin(v * Math.PI * 44 + Math.sin(u * Math.PI * 6) * .8 + broad);
+                const cloud = Math.sin(u * Math.PI * 12 + v * Math.PI * 8 + broad * 2) * .12;
+                const stormX = Math.min(Math.abs(u - .29), 1 - Math.abs(u - .29)) / .065;
+                const stormY = (v - .58) / .04;
+                const storm = Math.exp(-(stormX * stormX + stormY * stormY) * 2.2);
+                const tone = band * 22 + cloud * 35 + fine * 42 + storm * 28;
+                red = 151 + tone;
+                green = 112 + tone * .82;
+                blue = 83 + tone * .66;
+                relief = 128 + band * 37 + cloud * 42 + fine * 55 + storm * 24;
+              } else {
+                const terrain = broad * .58 + fine + Math.sin(v * 131 + u * 77) * .13;
+                const tone = 71 + terrain * 54;
+                red = tone * .84;
+                green = tone * .91;
+                blue = tone * 1.08 + 9;
+                relief = 128 + terrain * 112;
+              }
+              const pixel = (y * textureWidth + x) * 4;
+              colorImage.data[pixel] = Math.max(0, Math.min(255, red));
+              colorImage.data[pixel + 1] = Math.max(0, Math.min(255, green));
+              colorImage.data[pixel + 2] = Math.max(0, Math.min(255, blue));
+              colorImage.data[pixel + 3] = 255;
+              const height = Math.max(0, Math.min(255, relief));
+              bumpImage.data[pixel] = bumpImage.data[pixel + 1] = bumpImage.data[pixel + 2] = height;
+              bumpImage.data[pixel + 3] = 255;
+            }
+          }
+          colorContext.putImageData(colorImage, 0, 0);
+          bumpContext.putImageData(bumpImage, 0, 0);
+          if (kind === "rock") {
+            for (let index = 0; index < 180; index++) {
+              const x = Math.random() * textureWidth;
+              const y = Math.random() * textureHeight;
+              const radius = randomBetween(2, 15);
+              const crater = colorContext.createRadialGradient(x - radius * .2, y - radius * .25, radius * .08, x, y, radius);
+              crater.addColorStop(0, "rgba(12, 16, 23, .62)");
+              crater.addColorStop(.58, "rgba(30, 38, 51, .28)");
+              crater.addColorStop(.82, "rgba(176, 184, 193, .22)");
+              crater.addColorStop(1, "rgba(20, 25, 34, 0)");
+              colorContext.fillStyle = crater;
+              colorContext.beginPath();
+              colorContext.arc(x, y, radius, 0, Math.PI * 2);
+              colorContext.fill();
+              const relief = bumpContext.createRadialGradient(x, y, radius * .42, x, y, radius);
+              relief.addColorStop(0, "rgb(82, 82, 82)");
+              relief.addColorStop(.72, "rgb(183, 183, 183)");
+              relief.addColorStop(1, "rgb(128, 128, 128)");
+              bumpContext.fillStyle = relief;
+              bumpContext.beginPath();
+              bumpContext.arc(x, y, radius, 0, Math.PI * 2);
+              bumpContext.fill();
+            }
+          }
+          const diffuse = new THREE.CanvasTexture(colorCanvas);
+          diffuse.colorSpace = THREE.SRGBColorSpace;
+          diffuse.wrapS = THREE.RepeatWrapping;
+          diffuse.anisotropy = renderer.capabilities.getMaxAnisotropy();
+          const bump = new THREE.CanvasTexture(bumpCanvas);
+          bump.wrapS = THREE.RepeatWrapping;
+          bump.anisotropy = renderer.capabilities.getMaxAnisotropy();
+          return { diffuse, bump };
+        };
+        const addPlanet = ({ kind, x, y, z, radius, rimColor }) => {
+          const textures = createPlanetTextures(kind);
+          const group = new THREE.Group();
+          group.position.set(x, y, z);
+          const material = new THREE.MeshStandardMaterial({
+            map: textures.diffuse,
+            bumpMap: textures.bump,
+            bumpScale: kind === "gas" ? .075 : .16,
+            roughness: kind === "gas" ? .72 : .96,
+            metalness: 0
+          });
+          const sphere = new THREE.Mesh(new THREE.SphereGeometry(1, 96, 64), material);
+          group.add(sphere);
+          const atmosphere = new THREE.Mesh(
+            new THREE.SphereGeometry(1.035, 64, 48),
+            new THREE.ShaderMaterial({
+              uniforms: { rim: { value: new THREE.Color(rimColor) }, strength: { value: kind === "gas" ? .28 : .18 } },
+              vertexShader: `
+                varying vec3 vNormalView;
+                varying vec3 vViewDirection;
+                void main() {
+                  vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+                  vNormalView = normalize(normalMatrix * normal);
+                  vViewDirection = normalize(-viewPosition.xyz);
+                  gl_Position = projectionMatrix * viewPosition;
+                }
+              `,
+              fragmentShader: `
+                uniform vec3 rim;
+                uniform float strength;
+                varying vec3 vNormalView;
+                varying vec3 vViewDirection;
+                void main() {
+                  float facing = max(dot(normalize(vNormalView), normalize(vViewDirection)), 0.0);
+                  float edge = pow(1.0 - facing, 3.2);
+                  gl_FragColor = vec4(rim, edge * strength);
+                }
+              `,
+              transparent: true,
+              depthWrite: false,
+              blending: THREE.AdditiveBlending
+            })
+          );
+          group.add(atmosphere);
+          group.scale.setScalar(radius);
+          scene.add(group);
+          return group;
+        };
+        const gasGiant = addPlanet({
+          kind: "gas", x: 5.2, y: 1.8, z: 29, radius: 2.15, rimColor: 0xd8bd94
+        });
+        const rockyPlanet = addPlanet({
+          kind: "rock", x: -3.4, y: -1.3, z: 16, radius: 1.08, rimColor: 0x7d9ecc
+        });
 
         const geometry = new THREE.SphereGeometry(1, 192, 128);
         const material = new THREE.MeshStandardMaterial({
@@ -3067,14 +2980,13 @@ const LOVE_STORY = {
           displacementScale: .018,
           roughness: 1,
           metalness: 0,
-          transparent: true,
-          opacity: openingSequenceComplete ? 1 : openingMoonOpacity
+          transparent: true
         });
         const moon = new THREE.Mesh(geometry, material);
         const atmosphere = new THREE.Mesh(
           new THREE.PlaneGeometry(4, 4),
           new THREE.ShaderMaterial({
-            uniforms: { glow: { value: .2 }, visibility: { value: openingSequenceComplete ? 1 : openingMoonOpacity } },
+            uniforms: { glow: { value: .2 }, visibility: { value: 1 } },
             vertexShader: `
               varying vec2 vUv;
               void main() {
@@ -3102,14 +3014,13 @@ const LOVE_STORY = {
         const group = new THREE.Group();
         group.add(moon, atmosphere);
         scene.add(group);
-        let frustumWidth = 1;
-        let frustumHeight = 1;
+        const frustumHeightAtMenu = 2 * menuCameraZ * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+        const frustumWidthAtMenu = frustumHeightAtMenu;
+        const particleLayers = [...starLayers, ...nebulaLayers, galaxy];
         const applyLunarTextures = ({ diffuse, bump }) => {
           material.map = diffuse;
           material.bumpMap = bump;
           material.displacementMap = bump;
-          material.opacity = openingSequenceComplete ? 1 : openingMoonOpacity;
-          atmosphere.material.uniforms.visibility.value = openingSequenceComplete ? 1 : openingMoonOpacity;
           material.needsUpdate = true;
           renderer.render(scene, camera);
         };
@@ -3129,22 +3040,30 @@ const LOVE_STORY = {
             renderer.setSize(viewWidth, viewHeight, false);
             camera.aspect = viewWidth / viewHeight;
             camera.updateProjectionMatrix();
-            const viewFrustumHeight = 2 * camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-            const nextFrustumWidth = viewFrustumHeight * camera.aspect;
-            frustumWidth = nextFrustumWidth;
-            frustumHeight = viewFrustumHeight;
-            const radius = Math.min(viewWidth, viewHeight) * .1 * viewFrustumHeight / viewHeight;
+            const radius = Math.min(viewWidth, viewHeight) * .1 * frustumHeightAtMenu / viewHeight;
             group.scale.setScalar(radius);
-            group.position.set(-nextFrustumWidth * .18, viewFrustumHeight * .05, 0);
+            group.position.set(-frustumWidthAtMenu * camera.aspect * .4, frustumHeightAtMenu * .04, 0);
+            camera.position.set(0, 0, menuCameraZ);
+            camera.lookAt(0, 0, 0);
             renderer.render(scene, camera);
           },
-          render(time, visibility = 1) {
-            if (!reducedMotion) {
-              moon.rotation.z = time * .000035;
-              moon.material.opacity = visibility;
-              atmosphere.material.uniforms.visibility.value = visibility;
-              atmosphere.material.uniforms.glow.value = .18 + Math.sin(time * .00014) * .018;
-            }
+          render(time, introProgress) {
+            const progress = Number.isFinite(introProgress)
+              ? Math.max(0, Math.min(1, introProgress))
+              : 1;
+            const easeOutCubic = 1 - (1 - progress) ** 3;
+            camera.position.z = introStartZ + (menuCameraZ - introStartZ) * easeOutCubic;
+            camera.position.x = Math.sin(progress * Math.PI) * .16;
+            camera.position.y = Math.sin(progress * Math.PI * 1.4) * Math.sin(progress * Math.PI) * .08;
+            camera.lookAt(0, 0, 0);
+            moon.rotation.y = reducedMotion ? 0 : time * .000018;
+            gasGiant.rotation.y = reducedMotion ? 0 : -time * .000025;
+            rockyPlanet.rotation.y = reducedMotion ? 0 : time * .00004;
+            galaxy.rotation.y = reducedMotion ? 0 : time * .000003;
+            particleLayers.forEach((layer) => {
+              layer.material.uniforms.uTime.value = reducedMotion ? 0 : time * .001;
+            });
+            atmosphere.material.uniforms.glow.value = reducedMotion ? .18 : .18 + Math.sin(time * .00014) * .018;
             renderer.render(scene, camera);
           }
         };
@@ -3156,153 +3075,37 @@ const LOVE_STORY = {
 
     moonScene = createMoonScene();
 
+    let introFinished = false;
+    const finishOpeningSequence = () => {
+      if (introFinished) return;
+      introFinished = true;
+      introActive = false;
+      welcomeScreen.inert = false;
+      skipButton.removeEventListener("click", skipOpeningSequence);
+      document.body.classList.remove("is-intro-running");
+      intro.classList.add("is-leaving");
+      window.setTimeout(() => intro.remove(), 1400);
+      moonScene?.render(motionTime, null);
+    };
+
+    const skipOpeningSequence = () => {
+      if (!introActive) return;
+      introElapsed = introDuration;
+      moonScene?.render(motionTime, 1);
+      finishOpeningSequence();
+    };
+
+    const drawFrame = () => {
+      const progress = introActive ? Math.min(1, introElapsed / introDuration) : null;
+      moonScene?.render(motionTime, progress);
+      if (introActive && progress >= 1) finishOpeningSequence();
+    };
+
     const resize = () => {
-      if (!isSkyVisible()) return;
-      const activeScreen = welcomeScreen.hidden ? hubScreen : welcomeScreen;
-      const bounds = activeScreen.getBoundingClientRect();
-      const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
-      width = Math.max(1, window.innerWidth || bounds.width);
-      height = Math.max(1, window.innerHeight || bounds.height);
+      width = Math.max(1, window.innerWidth);
+      height = Math.max(1, window.innerHeight);
       moonScene?.resize(width, height);
-      canvas.width = width * ratio;
-      canvas.height = height * ratio;
-      context.setTransform(ratio, 0, 0, ratio, 0, 0);
-      const area = width * height;
-      const layerSettings = [
-        { count: Math.min(900, Math.floor(area / 2500)), radius: [.25, .68], alpha: [.25, .52], speed: [.00025, .0008], color: [205, 215, 235] },
-        { count: Math.min(250, Math.floor(area / 7800)), radius: [.58, 1.1], alpha: [.34, .66], speed: [.00035, .0011], color: [245, 236, 214] },
-        { count: Math.min(45, Math.max(10, Math.floor(area / 42000))), radius: [1, 1.7], alpha: [.52, .76], speed: [.00025, .00065], color: [255, 239, 205] }
-      ];
-      layers.length = 0;
-      layerSettings.forEach((settings) => {
-        const stars = Array.from({ length: settings.count }, () => ({
-          x: Math.random() * width,
-          y: Math.random() * height,
-          radius: randomBetween(...settings.radius),
-          baseAlpha: randomBetween(...settings.alpha),
-          amplitude: randomBetween(.12, .28),
-          phase: Math.random() * Math.PI * 2,
-          speed: randomBetween(...settings.speed),
-          color: settings.color
-        }));
-        layers.push(stars);
-      });
-      dust.length = 0;
-      for (let i = 0; i < Math.min(36, Math.floor(area / 36000)); i++) {
-        dust.push({
-          x: Math.random() * width,
-          y: Math.random() * height,
-          radius: randomBetween(.35, .9),
-          phase: Math.random() * Math.PI * 2
-        });
-      }
-      meteors.length = 0;
-      nextMeteorAt = performance.now() + randomBetween(2800, 6200);
-      drawFrame(0);
-      startBackgroundAnimation();
-    };
-
-    const drawBackground = () => {
-      context.fillStyle = "#03040a";
-      context.fillRect(0, 0, width, height);
-      const vignette = context.createRadialGradient(width * .5, height * .42, Math.min(width, height) * .08, width * .5, height * .48, Math.max(width, height) * .8);
-      vignette.addColorStop(0, "rgba(15, 17, 27, .05)");
-      vignette.addColorStop(1, "rgba(0, 0, 0, .28)");
-      context.fillStyle = vignette;
-      context.fillRect(0, 0, width, height);
-    };
-
-    const drawStarsAt = (stars, time) => {
-      stars.forEach((star) => {
-        const shimmer = Math.sin(time * star.speed + star.phase);
-        const alpha = Math.max(.08, Math.min(.95, star.baseAlpha + shimmer * star.amplitude));
-        const [red, green, blue] = star.color;
-        const { x, y } = star;
-        if (star.radius > 1) {
-          const glowRadius = star.radius * 7;
-          const glow = context.createRadialGradient(x, y, 0, x, y, glowRadius);
-          glow.addColorStop(0, `rgba(${red},${green},${blue},${alpha * .46})`);
-          glow.addColorStop(.22, `rgba(${red},${green},${blue},${alpha * .13})`);
-          glow.addColorStop(1, `rgba(${red},${green},${blue},0)`);
-          context.fillStyle = glow;
-          context.fillRect(x - glowRadius, y - glowRadius, glowRadius * 2, glowRadius * 2);
-        }
-        context.beginPath();
-        context.arc(x, y, star.radius, 0, Math.PI * 2);
-        context.fillStyle = `rgba(${red},${green},${blue},${alpha})`;
-        context.fill();
-      });
-    };
-
-    const spawnMeteor = (time) => {
-      const angle = randomBetween(.34, .68);
-      const startX = randomBetween(width * .38, width * 1.08);
-      const startY = randomBetween(-height * .08, height * .62);
-      const distance = randomBetween(.38, .68) * Math.max(width, height);
-      meteors.push({
-        startX,
-        startY,
-        velocityX: -Math.cos(angle),
-        velocityY: Math.sin(angle),
-        distance,
-        tailLength: randomBetween(70, 145),
-        startTime: time,
-        duration: randomBetween(850, 1450)
-      });
-    };
-
-    const drawMeteor = (meteor, time) => {
-      const progress = Math.min(1, (time - meteor.startTime) / meteor.duration);
-      const ease = progress * progress * (3 - 2 * progress);
-      const headX = meteor.startX + meteor.velocityX * meteor.distance * ease;
-      const headY = meteor.startY + meteor.velocityY * meteor.distance * ease;
-      const tailX = headX - meteor.velocityX * meteor.tailLength;
-      const tailY = headY - meteor.velocityY * meteor.tailLength;
-      const fade = Math.sin(progress * Math.PI) ** .7;
-      const tail = context.createLinearGradient(tailX, tailY, headX, headY);
-      tail.addColorStop(0, "rgba(255, 222, 157, 0)");
-      tail.addColorStop(.68, `rgba(255, 222, 157, ${fade * .24})`);
-      tail.addColorStop(1, `rgba(255, 248, 224, ${fade * .95})`);
-      context.beginPath();
-      context.moveTo(tailX, tailY);
-      context.lineTo(headX, headY);
-      context.strokeStyle = tail;
-      context.lineWidth = 1.25;
-      context.lineCap = "round";
-      context.shadowColor = `rgba(255, 229, 174, ${fade * .82})`;
-      context.shadowBlur = 9;
-      context.stroke();
-      context.shadowBlur = 0;
-
-      const headGlow = context.createRadialGradient(headX, headY, 0, headX, headY, 8);
-      headGlow.addColorStop(0, `rgba(255, 255, 242, ${fade})`);
-      headGlow.addColorStop(.22, `rgba(255, 229, 174, ${fade * .6})`);
-      headGlow.addColorStop(1, "rgba(255, 229, 174, 0)");
-      context.fillStyle = headGlow;
-      context.fillRect(headX - 8, headY - 8, 16, 16);
-      return progress < 1;
-    };
-
-    const drawFrame = (time, moonTime = time) => {
-      context.clearRect(0, 0, width, height);
-      drawBackground();
-      moonScene?.render(moonTime, openingSequenceComplete ? 1 : openingMoonOpacity);
-      layers.forEach((stars) => drawStarsAt(stars, time));
-      dust.forEach((particle) => {
-        const alpha = .08 + (Math.sin(time * .00016 + particle.phase) + 1) * .045;
-        context.beginPath();
-        context.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
-        context.fillStyle = `rgba(229, 211, 176, ${alpha})`;
-        context.fill();
-      });
-      if (reducedMotion) return;
-      if (time >= nextMeteorAt) {
-        spawnMeteor(time);
-        nextMeteorAt = time + randomBetween(5200, 11500);
-      }
-      for (let index = meteors.length - 1; index >= 0; index--) {
-        if (!drawMeteor(meteors[index], time)) meteors.splice(index, 1);
-      }
+      drawFrame();
     };
 
     stopBackgroundAnimation = () => {
@@ -3313,17 +3116,19 @@ const LOVE_STORY = {
     };
 
     startBackgroundAnimation = () => {
-      if (reducedMotion || isRunning || document.hidden || !isSkyVisible()) return;
+      if (reducedMotion || !moonScene || isRunning || document.hidden || !isSkyVisible()) return;
       isRunning = true;
       const tick = (time) => {
         if (document.hidden || !isSkyVisible()) {
           stopBackgroundAnimation();
           return;
         }
-        if (previousFrameTime) motionTime += Math.min(time - previousFrameTime, 100);
+        const delta = previousFrameTime ? Math.min(time - previousFrameTime, 50) : 16.7;
         previousFrameTime = time;
-        drawFrame(time, motionTime);
-        frameHandle = requestAnimationFrame(tick);
+        motionTime += delta;
+        if (introActive) introElapsed += delta;
+        drawFrame();
+        if (isRunning) frameHandle = requestAnimationFrame(tick);
       };
       frameHandle = requestAnimationFrame(tick);
     };
@@ -3332,14 +3137,14 @@ const LOVE_STORY = {
       if (document.hidden) stopBackgroundAnimation();
       else startBackgroundAnimation();
     };
-    const observer = new ResizeObserver(resize);
-    observer.observe(welcomeScreen);
-    observer.observe(hubScreen);
+
+    skipButton.addEventListener("click", skipOpeningSequence);
     window.addEventListener("resize", resize);
     document.addEventListener("visibilitychange", onVisibilityChange);
     resize();
+    if (reducedMotion || !moonScene) finishOpeningSequence();
+    startBackgroundAnimation();
   }
 
-  runOpeningSequence();
-  drawStars();
+  initializeCelestialScene();
 })();
