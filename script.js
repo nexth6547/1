@@ -2732,8 +2732,8 @@ const LOVE_STORY = {
           void main() {
             vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
             gl_Position = projectionMatrix * viewPosition;
-            gl_PointSize = clamp(aSize * (24.0 / max(1.0, -viewPosition.z)), 0.55, 8.0);
-            vAlpha = aAlpha * uOpacity * (0.78 + 0.22 * sin(uTime * 0.7 + aPhase));
+            gl_PointSize = clamp(aSize * (24.0 / max(1.0, -viewPosition.z)), 0.55, 6.0);
+            vAlpha = aAlpha * uOpacity * (0.88 + 0.12 * sin(uTime * 0.7 + aPhase));
             vTint = aTint;
           }
         `;
@@ -2784,16 +2784,21 @@ const LOVE_STORY = {
         };
         const gaussian = () => Math.random() + Math.random() + Math.random() - 1.5;
         const starLayers = [
-          createParticleLayer(2200, () => ({
+          createParticleLayer(4200, () => ({
             x: (Math.random() * 2 - 1) * 56, y: (Math.random() * 2 - 1) * 34,
-            z: randomBetween(-78, 42), size: randomBetween(.9, 2.3),
-            alpha: randomBetween(.24, .65), color: Math.random() > .88 ? 0xf1d9a7 : 0xb9c9e8
+            z: randomBetween(-82, 42), size: randomBetween(.75, 2),
+            alpha: randomBetween(.18, .52), color: Math.random() > .92 ? 0xf1d9a7 : 0xb9c9e8
           }), .78),
-          createParticleLayer(1250, () => ({
+          createParticleLayer(2400, () => ({
             x: (Math.random() * 2 - 1) * 40, y: (Math.random() * 2 - 1) * 25,
-            z: randomBetween(-48, 34), size: randomBetween(1.3, 3.2),
-            alpha: randomBetween(.25, .72), color: Math.random() > .82 ? 0xf6e4c3 : 0xd9e4fa
-          }), .9)
+            z: randomBetween(-54, 34), size: randomBetween(1, 2.7),
+            alpha: randomBetween(.18, .58), color: Math.random() > .9 ? 0xf6e4c3 : 0xd9e4fa
+          }), .84),
+          createParticleLayer(1900, () => ({
+            x: (Math.random() * 2 - 1) * 50, y: (Math.random() * 2 - 1) * 30,
+            z: randomBetween(-96, 38), size: randomBetween(.45, 1.25),
+            alpha: randomBetween(.12, .32), color: Math.random() > .94 ? 0xdac394 : 0xe7edf8
+          }), .68)
         ];
         const nebulaLayers = [
           createParticleLayer(2200, () => ({
@@ -2829,10 +2834,53 @@ const LOVE_STORY = {
         }, .72);
         galaxy.rotation.x = -.24;
         galaxy.rotation.z = .13;
+        const milkyWay = new THREE.Mesh(
+          new THREE.PlaneGeometry(100, 58),
+          new THREE.ShaderMaterial({
+            uniforms: { uTime: { value: 0 } },
+            vertexShader: `
+              varying vec2 vUv;
+              void main() {
+                vUv = uv;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+              }
+            `,
+            fragmentShader: `
+              uniform float uTime;
+              varying vec2 vUv;
+              void main() {
+                vec2 p = (vUv - 0.5) * vec2(5.2, 2.8);
+                float drift = uTime * 0.006;
+                float broad = sin(p.x * 1.35 + sin(p.y * 1.9 + drift) * 0.8) * 0.5
+                  + sin(p.y * 2.2 - drift * 0.4) * 0.25
+                  + sin((p.x + p.y) * 0.65) * 0.25;
+                float filaments = sin(p.x * 4.3 + p.y * 3.1
+                  + sin(p.x * 1.4 - p.y * 2.2) * 0.7 + drift) * 0.5;
+                float ridge = sin(p.x * 0.82) * 0.17 + sin(p.x * 1.73 + 0.6) * 0.055;
+                float bandOffset = (p.y - ridge) * 1.5;
+                float band = exp(-bandOffset * bandOffset);
+                float clouds = smoothstep(-0.2, 0.52, broad + filaments * 0.18);
+                float wisps = smoothstep(0.34, 0.82, broad + filaments * 0.32);
+                float density = band * clouds * 0.105 + band * wisps * 0.018;
+                float edge = smoothstep(0.0, 0.16, vUv.x) * (1.0 - smoothstep(0.84, 1.0, vUv.x));
+                vec3 cool = vec3(0.14, 0.2, 0.34);
+                vec3 warm = vec3(0.28, 0.22, 0.13);
+                vec3 color = mix(cool, warm, smoothstep(0.22, 0.7, broad));
+                gl_FragColor = vec4(color, density * edge * 0.72);
+              }
+            `,
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending,
+            side: THREE.DoubleSide
+          })
+        );
+        milkyWay.position.set(0, 0, -44);
+        scene.add(milkyWay);
 
         const createPlanetTextures = (kind) => {
-          const textureWidth = 768;
-          const textureHeight = 384;
+          const textureWidth = 1024;
+          const textureHeight = 512;
           const colorCanvas = document.createElement("canvas");
           const bumpCanvas = document.createElement("canvas");
           colorCanvas.width = bumpCanvas.width = textureWidth;
@@ -2846,32 +2894,38 @@ const LOVE_STORY = {
             const v = y / textureHeight;
             for (let x = 0; x < textureWidth; x++) {
               const u = x / textureWidth;
-              const broad = Math.sin(u * 34 + Math.sin(v * 17) * 1.4)
-                * .38 + Math.sin(v * 81 + Math.cos(u * 19) * 1.1) * .22;
-              const fine = Math.sin(u * 241 + v * 173) * .09
-                + Math.sin(u * 479 - v * 337) * .055;
+              const broad = Math.sin(u * 27 + Math.sin(v * 13) * 1.2) * .3
+                + Math.sin(v * 53 + Math.cos(u * 15) * .8) * .18
+                + Math.sin((u + v) * 19) * .09;
+              const fine = Math.sin(u * 241 + v * 173) * .055
+                + Math.sin(u * 479 - v * 337) * .035;
               let red;
               let green;
               let blue;
               let relief;
               if (kind === "gas") {
-                const band = Math.sin(v * Math.PI * 44 + Math.sin(u * Math.PI * 6) * .8 + broad);
-                const cloud = Math.sin(u * Math.PI * 12 + v * Math.PI * 8 + broad * 2) * .12;
+                const flow = Math.sin(u * 24 + Math.sin(v * 11) * 2.1) * .52
+                  + Math.sin(u * 57 - v * 19) * .18;
+                const band = Math.sin(v * Math.PI * 32 + flow * 1.7 + broad);
+                const cloud = Math.sin(u * Math.PI * 12 + v * Math.PI * 8 + broad * 2) * .2
+                  + Math.sin(u * 31 + v * 18 + flow) * .08;
                 const stormX = Math.min(Math.abs(u - .29), 1 - Math.abs(u - .29)) / .065;
                 const stormY = (v - .58) / .04;
                 const storm = Math.exp(-(stormX * stormX + stormY * stormY) * 2.2);
-                const tone = band * 22 + cloud * 35 + fine * 42 + storm * 28;
+                const tone = band * 10 + cloud * 22 + fine * 27 + storm * 16;
                 red = 151 + tone;
                 green = 112 + tone * .82;
                 blue = 83 + tone * .66;
-                relief = 128 + band * 37 + cloud * 42 + fine * 55 + storm * 24;
+                relief = 128 + band * 14 + cloud * 20 + fine * 26 + storm * 9;
               } else {
-                const terrain = broad * .58 + fine + Math.sin(v * 131 + u * 77) * .13;
-                const tone = 71 + terrain * 54;
+                const terrain = broad * .65 + fine * .55
+                  + Math.sin(v * 41 + u * 27) * .045
+                  + Math.cos(u * 73 - v * 54) * .035;
+                const tone = 72 + terrain * 44;
                 red = tone * .84;
                 green = tone * .91;
                 blue = tone * 1.08 + 9;
-                relief = 128 + terrain * 112;
+                relief = 128 + terrain * 78;
               }
               const pixel = (y * textureWidth + x) * 4;
               colorImage.data[pixel] = Math.max(0, Math.min(255, red));
@@ -2886,14 +2940,14 @@ const LOVE_STORY = {
           colorContext.putImageData(colorImage, 0, 0);
           bumpContext.putImageData(bumpImage, 0, 0);
           if (kind === "rock") {
-            for (let index = 0; index < 180; index++) {
+            for (let index = 0; index < 95; index++) {
               const x = Math.random() * textureWidth;
               const y = Math.random() * textureHeight;
-              const radius = randomBetween(2, 15);
+              const radius = randomBetween(1.5, 10);
               const crater = colorContext.createRadialGradient(x - radius * .2, y - radius * .25, radius * .08, x, y, radius);
-              crater.addColorStop(0, "rgba(12, 16, 23, .62)");
-              crater.addColorStop(.58, "rgba(30, 38, 51, .28)");
-              crater.addColorStop(.82, "rgba(176, 184, 193, .22)");
+              crater.addColorStop(0, "rgba(12, 16, 23, .38)");
+              crater.addColorStop(.58, "rgba(30, 38, 51, .17)");
+              crater.addColorStop(.82, "rgba(176, 184, 193, .14)");
               crater.addColorStop(1, "rgba(20, 25, 34, 0)");
               colorContext.fillStyle = crater;
               colorContext.beginPath();
@@ -2925,23 +2979,30 @@ const LOVE_STORY = {
           const material = new THREE.MeshStandardMaterial({
             map: textures.diffuse,
             bumpMap: textures.bump,
-            bumpScale: kind === "gas" ? .075 : .16,
-            roughness: kind === "gas" ? .72 : .96,
+            bumpScale: kind === "gas" ? .042 : .085,
+            roughness: kind === "gas" ? .88 : .98,
             metalness: 0
           });
           const sphere = new THREE.Mesh(new THREE.SphereGeometry(1, 96, 64), material);
           group.add(sphere);
           const atmosphere = new THREE.Mesh(
-            new THREE.SphereGeometry(1.035, 64, 48),
+            new THREE.SphereGeometry(1.02, 64, 48),
             new THREE.ShaderMaterial({
-              uniforms: { rim: { value: new THREE.Color(rimColor) }, strength: { value: kind === "gas" ? .28 : .18 } },
+              uniforms: {
+                rim: { value: new THREE.Color(rimColor) },
+                strength: { value: kind === "gas" ? .22 : .12 },
+                lightDirection: { value: new THREE.Vector3(-3.5, 2.3, 4).normalize() }
+              },
               vertexShader: `
+                uniform vec3 lightDirection;
                 varying vec3 vNormalView;
                 varying vec3 vViewDirection;
+                varying vec3 vLightDirectionView;
                 void main() {
                   vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
                   vNormalView = normalize(normalMatrix * normal);
                   vViewDirection = normalize(-viewPosition.xyz);
+                  vLightDirectionView = normalize(mat3(viewMatrix) * lightDirection);
                   gl_Position = projectionMatrix * viewPosition;
                 }
               `,
@@ -2950,9 +3011,12 @@ const LOVE_STORY = {
                 uniform float strength;
                 varying vec3 vNormalView;
                 varying vec3 vViewDirection;
+                varying vec3 vLightDirectionView;
                 void main() {
-                  float facing = max(dot(normalize(vNormalView), normalize(vViewDirection)), 0.0);
-                  float edge = pow(1.0 - facing, 3.2);
+                  vec3 normal = normalize(vNormalView);
+                  float facing = max(dot(normal, normalize(vViewDirection)), 0.0);
+                  float illuminatedRim = smoothstep(-0.2, 0.45, dot(normal, normalize(vLightDirectionView)));
+                  float edge = pow(1.0 - facing, 3.8) * illuminatedRim;
                   gl_FragColor = vec4(rim, edge * strength);
                 }
               `,
@@ -3060,6 +3124,7 @@ const LOVE_STORY = {
             gasGiant.rotation.y = reducedMotion ? 0 : -time * .000025;
             rockyPlanet.rotation.y = reducedMotion ? 0 : time * .00004;
             galaxy.rotation.y = reducedMotion ? 0 : time * .000003;
+            milkyWay.material.uniforms.uTime.value = reducedMotion ? 0 : time * .001;
             particleLayers.forEach((layer) => {
               layer.material.uniforms.uTime.value = reducedMotion ? 0 : time * .001;
             });
