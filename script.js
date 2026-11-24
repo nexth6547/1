@@ -123,7 +123,7 @@ const LOVE_STORY = {
       game: {
         type: "astrolabe",
         prompt: "Aligne les six lumières avec l'axe doré. Clique sur une étoile, ou utilise les flèches gauche et droite.",
-        initialRotations: [120, 180, 240, 300, 60, 180],
+        initialRotations: [90, 210, 60, 180, 210, 330],
         message: "Six mois déjà, et pourtant j'ai encore l'impression de découvrir chaque jour une nouvelle petite chose à aimer chez toi.\n\nMerci d'être ma mélodie préférée."
       },
       personalMessage: ""
@@ -132,21 +132,12 @@ const LOVE_STORY = {
       title: "Le cherche et trouve",
       calendarMonth: "Mai",
       label: "Le petit chat",
-      subtitle: "Cette chambre est pleine de petits détails… mais un invité s'y est caché.",
+      subtitle: "Une chambre s'endort sous la lune. Retrouve le petit chat caché dans le décor.",
       game: {
         type: "seek",
         target: "chat",
-        targetGlyph: "🐈",
         targetLabel: "le petit chat",
-        objects: [
-          { glyph: "🪴", left: "12%", top: "27%" }, { glyph: "📚", left: "28%", top: "20%" },
-          { glyph: "🧸", left: "47%", top: "25%" }, { glyph: "🕯️", left: "72%", top: "18%" },
-          { glyph: "🪟", left: "88%", top: "32%" }, { glyph: "🌷", left: "18%", top: "55%" },
-          { glyph: "🧦", left: "37%", top: "74%" }, { glyph: "☕", left: "63%", top: "72%" },
-          { glyph: "🪴", left: "82%", top: "61%" }, { glyph: "💌", left: "92%", top: "79%" },
-          { glyph: "🌙", left: "52%", top: "43%" }, { glyph: "🐈", left: "31%", top: "48%", id: "chat" },
-          { glyph: "🧶", left: "75%", top: "43%" }, { glyph: "🪻", left: "10%", top: "83%" }
-        ]
+        hint: "Regarde près du grand coussin, à droite du lit. Le chat s'est blotti dans la pénombre."
       },
       personalMessage: ""
     },
@@ -279,6 +270,12 @@ const LOVE_STORY = {
     toastTimer = setTimeout(() => toast.classList.remove("is-visible"), 2600);
   }
 
+  function unlockGameFinishButton(selector) {
+    const button = $(selector);
+    button.disabled = false;
+    button.classList.add("is-unlocked");
+  }
+
   function showScreen(name) {
     if (name !== "game") {
       starFieldResizeObserver?.disconnect();
@@ -356,6 +353,7 @@ const LOVE_STORY = {
     const month = LOVE_STORY.months[index];
     gameContent.classList.toggle("is-hunt", month.game.type === "hunt");
     gameContent.classList.toggle("is-stars", month.game.type === "stars");
+    gameContent.classList.toggle("is-seek", month.game.type === "seek");
     $("#game-counter").textContent = `SOUVENIR ${String(index + 1).padStart(2, "0")} / 12`;
     $("#game-eyebrow").textContent = `Mois ${index + 1} · ${month.calendarMonth} · ${completed.includes(index) ? "À relire" : "À découvrir"}`;
     $("#game-title").textContent = month.title;
@@ -1093,6 +1091,25 @@ const LOVE_STORY = {
     return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("fr").replace(/[’']/g, " ").replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ").trim();
   }
 
+  function isCloseAnswer(value, expected) {
+    const threshold = 2;
+    if (Math.abs(value.length - expected.length) > threshold) return false;
+    let previousRow = Array.from({ length: expected.length + 1 }, (_, index) => index);
+    for (let rowIndex = 1; rowIndex <= value.length; rowIndex += 1) {
+      const currentRow = [rowIndex];
+      for (let columnIndex = 1; columnIndex <= expected.length; columnIndex += 1) {
+        const substitutionCost = value[rowIndex - 1] === expected[columnIndex - 1] ? 0 : 1;
+        currentRow[columnIndex] = Math.min(
+          currentRow[columnIndex - 1] + 1,
+          previousRow[columnIndex] + 1,
+          previousRow[columnIndex - 1] + substitutionCost
+        );
+      }
+      previousRow = currentRow;
+    }
+    return previousRow[expected.length] <= threshold;
+  }
+
   function renderRiddle(config) {
     const fields = config.fields?.length ? config.fields : [{
       label: "Ta réponse",
@@ -1651,7 +1668,7 @@ const LOVE_STORY = {
 
   function renderStars(config) {
     starFieldResizeObserver?.disconnect();
-    gameContent.innerHTML = `<div class="game-panel stars-panel"><p class="activity-kicker">La constellation attend son poème</p><p class="star-order-label">L'ordre à suivre</p><div class="star-order" aria-label="Séquence des six signes"></div><div class="shooting-star-field" role="group" aria-label="Étoiles filantes à cliquer dans l'ordre"><div class="starfield-nebula" aria-hidden="true"></div><div class="starfield-sparkles" aria-hidden="true"></div><svg class="star-constellation" aria-hidden="true" focusable="false"><path class="star-constellation-glow"></path><path class="star-constellation-line"></path><g class="star-constellation-nodes"></g></svg></div><p class="activity-feedback star-feedback" aria-live="polite">Repère les signes blancs et suis-les dans l'ordre de la constellation.</p><div class="star-progress" aria-label="Progression du poème"></div><div class="revealed-poem" hidden></div><button class="button button-primary star-finish" type="button" hidden>Garder ce poème ↗</button></div>`;
+    gameContent.innerHTML = `<div class="game-panel stars-panel"><p class="activity-kicker">La constellation attend son poème</p><p class="star-order-label">L'ordre à suivre</p><div class="star-order" aria-label="Séquence des six signes"></div><div class="shooting-star-field" role="group" aria-label="Étoiles filantes à cliquer dans l'ordre"><div class="starfield-nebula" aria-hidden="true"></div><div class="starfield-sparkles" aria-hidden="true"></div><svg class="star-constellation" aria-hidden="true" focusable="false"><path class="star-constellation-glow"></path><path class="star-constellation-line"></path><g class="star-constellation-nodes"></g></svg></div><p class="activity-feedback star-feedback" aria-live="polite">Repère les signes blancs et suis-les dans l'ordre de la constellation.</p><div class="star-progress" aria-label="Progression du poème"></div><div class="revealed-poem" hidden></div><button class="button button-primary game-finish-button star-finish" type="button" disabled>Garder ce poème ↗</button></div>`;
     const field = $(".shooting-star-field");
     const progress = $(".star-progress");
     const order = $(".star-order");
@@ -1764,8 +1781,8 @@ const LOVE_STORY = {
       const button = document.createElement("button");
       button.type = "button";
       button.className = `shooting-target${isDecoy ? " is-decoy" : ""}`;
-      button.style.setProperty("--star-duration", `${9 + index % 5 * 1.35}s`);
-      button.style.setProperty("--star-delay", `${-index * 1.37}s`);
+      button.style.setProperty("--star-duration", `${14 + index % 4 * 1.6}s`);
+      button.style.setProperty("--star-delay", `${-index * 1.83}s`);
       button.style.setProperty("--star-trail-duration", `${1.6 + index % 5 * .24}s`);
       button.setAttribute(
         "aria-label",
@@ -1830,7 +1847,7 @@ const LOVE_STORY = {
             poem.append(paragraph);
           });
           poem.hidden = false;
-          $(".star-finish").hidden = false;
+          unlockGameFinishButton(".star-finish");
           feedback.textContent = "Le poème est apparu. Prends le temps de le lire.";
         }
       });
@@ -1884,9 +1901,10 @@ const LOVE_STORY = {
             <div class="astrolabe-core" aria-hidden="true"><span>VI</span></div>
           </div>
         </div>
-        <p class="activity-feedback astrolabe-feedback" aria-live="polite">6 lumières attendent leur alignement.</p>
+        <p class="astrolabe-objective" aria-live="polite">Objectif : aligner les 6 lumières sur les axes dorés · 0/6</p>
+        <p class="activity-feedback astrolabe-feedback" aria-live="polite">Choisis une lumière, puis tourne-la par pas de 30°.</p>
         <div class="astrolabe-message" hidden></div>
-        <button class="button button-primary astrolabe-finish" type="button" hidden>Garder ce morceau ↗</button>
+        <button class="button button-primary game-finish-button astrolabe-finish" type="button" disabled>Garder ce morceau ↗</button>
       </div>`;
 
     $(".astrolabe-kicker").textContent = config.prompt;
@@ -1909,14 +1927,15 @@ const LOVE_STORY = {
     });
 
     const targets = rotations.map((_, index) => index * 60);
+    const alignmentAngles = [270, 90, 0, 180, 270, 90];
+    const orbitRadii = [.52, .52, .52, .52, .87, .87];
     const markers = rotations.map((rotation, index) => {
       const marker = document.createElement("button");
       marker.type = "button";
       marker.className = "astrolabe-marker";
       marker.dataset.index = String(index);
-      marker.setAttribute("aria-label", `Repère céleste ${index + 1}, tourner avec les touches gauche ou droite`);
+      marker.setAttribute("aria-label", `Repère céleste ${index + 1}, alignement ${index + 1} sur 6`);
       marker.innerHTML = `<span class="astrolabe-ring"></span><span class="astrolabe-light">✦</span><span class="astrolabe-month">${index + 1}</span>`;
-      marker.style.setProperty("--marker-angle", `${targets[index]}deg`);
       stars.append(marker);
       return marker;
     });
@@ -1924,11 +1943,19 @@ const LOVE_STORY = {
     function updateMarker(index) {
       const marker = markers[index];
       const rotation = rotations[index];
-      const alignedOnAxis = ((targets[index] + rotation) % 360 + 360) % 360 === 270;
-      marker.style.setProperty("--marker-angle", `${targets[index] + rotation}deg`);
+      const angle = ((targets[index] + rotation) % 360 + 360) % 360;
+      const radians = angle * Math.PI / 180;
+      const radius = orbitRadii[index] * 50;
+      const alignedOnAxis = angle === alignmentAngles[index];
+      marker.style.left = `${50 + Math.sin(radians) * radius}%`;
+      marker.style.top = `${50 - Math.cos(radians) * radius}%`;
       marker.classList.toggle("is-aligned", alignedOnAxis);
       marker.classList.toggle("is-selected", selected === index);
       marker.setAttribute("aria-pressed", alignedOnAxis ? "true" : "false");
+      marker.setAttribute(
+        "aria-label",
+        `Repère céleste ${index + 1}, ${alignedOnAxis ? "aligné" : "à aligner"} sur l’axe doré. Utilise les flèches gauche et droite pour tourner.`
+      );
     }
 
     function playAlignmentTone(index) {
@@ -1960,25 +1987,26 @@ const LOVE_STORY = {
       selected = index;
       rotations[index] = (rotations[index] + direction * step + 360) % 360;
       updateMarker(index);
-      if (((targets[index] + rotations[index]) % 360 + 360) % 360 === 270) {
+      if (((targets[index] + rotations[index]) % 360 + 360) % 360 === alignmentAngles[index]) {
         aligned += 1;
         markers[index].disabled = true;
         playAlignmentTone(index);
-        markers[index].animate(
-          [{ transform: "scale(1)" }, { transform: "scale(1.42)" }, { transform: "scale(1)" }],
+        markers[index].querySelector(".astrolabe-ring").animate(
+          [{ opacity: .48, transform: "scale(.65)" }, { opacity: 1, transform: "scale(1.12)" }, { opacity: 1, transform: "scale(1)" }],
           { duration: 620, easing: "cubic-bezier(.2,.8,.3,1)" }
         );
-        feedback.textContent = `${aligned} sur 6 lumières alignées.`;
+        feedback.textContent = `La lumière ${index + 1} se cale sur l’axe doré.`;
       } else {
         feedback.textContent = "Tourne encore cette étoile vers l’axe doré.";
       }
+      $(".astrolabe-objective").textContent = `Objectif : aligner les 6 lumières sur les axes dorés · ${aligned}/6`;
 
       if (aligned === markers.length) {
         dial.classList.add("is-complete");
         $(".astrolabe-panel").classList.add("is-complete");
         $(".astrolabe-message").textContent = config.message;
         $(".astrolabe-message").hidden = false;
-        $(".astrolabe-finish").hidden = false;
+        unlockGameFinishButton(".astrolabe-finish");
         feedback.textContent = "Les six lumières forment enfin une seule constellation.";
         particleDots.forEach((dot) => dot.classList.add("is-lit"));
       }
@@ -2014,53 +2042,252 @@ const LOVE_STORY = {
   }
 
   function renderSeek(config) {
-    gameContent.innerHTML = `<div class="game-panel seek-panel"><p class="activity-kicker">Un petit intrus s'est caché dans le décor…</p><div class="seek-scene" role="group" aria-label="Illustration cherche et trouve"></div><p class="activity-feedback" aria-live="polite">Retrouve ${config.targetLabel} parmi tous ces petits détails.</p></div>`;
-    const scene = $(".seek-scene");
-    config.objects.forEach((item, index) => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = `seek-object${item.id === config.target ? " seek-target" : ""}`;
-      button.style.left = item.left;
-      button.style.top = item.top;
-      button.style.setProperty("--float-delay", `${-(index % 5) * .45}s`);
-      button.setAttribute("aria-label", item.id === config.target ? `Trouver ${config.targetLabel}` : "Détail du décor");
-      button.textContent = item.glyph;
-      button.addEventListener("click", () => {
-        if (item.id === config.target) {
-          button.classList.add("is-found");
-          $(".activity-feedback").textContent = `Trouvé ! ${config.targetLabel} était bien là.`;
-          completeMonth();
-        } else {
-          button.classList.remove("is-bump");
-          requestAnimationFrame(() => button.classList.add("is-bump"));
-          $(".activity-feedback").textContent = "Un joli détail, mais ce n'est pas celui que l'on cherche.";
+    gameContent.innerHTML = `
+      <div class="game-panel seek-panel">
+        <p class="activity-kicker">La chambre s'endort sous la lune</p>
+        <p class="bedroom-objective">Retrouve le petit chat caché dans la chambre.</p>
+        <div class="bedroom-scene" role="group" aria-label="Chambre nocturne à explorer">
+          <svg class="bedroom-art" viewBox="0 0 1000 600" role="group" aria-labelledby="bedroom-title bedroom-description" preserveAspectRatio="xMidYMid slice">
+            <title id="bedroom-title">Une chambre cosy éclairée par la lune et une bougie</title>
+            <desc id="bedroom-description">Une fenêtre ouverte sur une nuit étoilée, une bibliothèque, un lit, une table et un tapis. Un petit chat se cache près d'un coussin.</desc>
+            <defs>
+              <linearGradient id="bedroom-wall" x2="0" y2="1"><stop stop-color="#1b2639"/><stop offset="1" stop-color="#111a2a"/></linearGradient>
+              <linearGradient id="bedroom-floor" x2="0" y2="1"><stop stop-color="#29282d"/><stop offset="1" stop-color="#14171f"/></linearGradient>
+              <linearGradient id="bedroom-window" x2=".8" y2="1"><stop stop-color="#101e39"/><stop offset="1" stop-color="#263b5a"/></linearGradient>
+              <linearGradient id="bedroom-curtain" x2="1" y2=".2"><stop stop-color="#343148"/><stop offset=".5" stop-color="#51415a"/><stop offset="1" stop-color="#292b40"/></linearGradient>
+              <linearGradient id="bedroom-wood" x2="0" y2="1"><stop stop-color="#765743"/><stop offset="1" stop-color="#3a2c2a"/></linearGradient>
+              <linearGradient id="bedroom-quilt" x2=".2" y2="1"><stop stop-color="#718096"/><stop offset=".45" stop-color="#45546b"/><stop offset="1" stop-color="#303b50"/></linearGradient>
+              <linearGradient id="bedroom-pillow" x2=".5" y2="1"><stop stop-color="#c1b6a5"/><stop offset="1" stop-color="#77788a"/></linearGradient>
+              <radialGradient id="bedroom-moon-glow"><stop stop-color="#f8e9ba" stop-opacity=".48"/><stop offset="1" stop-color="#a8c9ef" stop-opacity="0"/></radialGradient>
+              <radialGradient id="bedroom-candle-glow"><stop stop-color="#ffd993" stop-opacity=".42"/><stop offset="1" stop-color="#ffbf70" stop-opacity="0"/></radialGradient>
+              <radialGradient id="bedroom-vignette"><stop offset=".48" stop-color="#02040a" stop-opacity="0"/><stop offset="1" stop-color="#02040a" stop-opacity=".62"/></radialGradient>
+              <pattern id="bedroom-wall-grain" width="56" height="48" patternUnits="userSpaceOnUse"><path d="M4 13h18M32 37h15M25 5v8M10 31v9" stroke="#b3bdd0" stroke-opacity=".035" stroke-width="1"/></pattern>
+              <pattern id="bedroom-rug-weave" width="18" height="14" patternUnits="userSpaceOnUse"><path d="M0 3h18M0 10h18M4 0v14M13 0v14" stroke="#c1a17f" stroke-opacity=".22" stroke-width="1"/><path d="M0 6h18" stroke="#111723" stroke-opacity=".24"/></pattern>
+              <filter id="bedroom-shadow" x="-.3" y="-.3" width="1.7" height="1.8"><feGaussianBlur stdDeviation="11"/></filter>
+              <filter id="bedroom-soft-glow" x="-.8" y="-.8" width="2.6" height="2.6"><feGaussianBlur stdDeviation="16"/></filter>
+              <filter id="bedroom-cat-glow" x="-.8" y="-.8" width="2.6" height="2.6"><feGaussianBlur stdDeviation="5"/></filter>
+            </defs>
+            <rect width="1000" height="600" fill="url(#bedroom-wall)"/>
+            <rect width="1000" height="423" fill="url(#bedroom-wall-grain)"/>
+            <path d="M0 421H1000V600H0Z" fill="url(#bedroom-floor)"/>
+            <path d="M0 421H1000" stroke="#b5a5a0" stroke-opacity=".17"/>
+            <ellipse cx="517" cy="522" rx="383" ry="89" fill="#060911" opacity=".6" filter="url(#bedroom-shadow)"/>
+
+            <g class="room-detail" data-room-message="La nuit est calme derrière la vitre." role="button" tabindex="0" aria-label="Observer la fenêtre">
+              <ellipse cx="197" cy="194" rx="201" ry="197" fill="url(#bedroom-moon-glow)"/>
+              <rect x="68" y="58" width="260" height="255" rx="4" fill="#0b1019" stroke="#967b69" stroke-width="12"/>
+              <rect x="82" y="72" width="232" height="225" fill="url(#bedroom-window)"/>
+              <path d="M83 253Q139 218 197 243T313 226V298H83Z" fill="#10182a"/>
+              <circle cx="258" cy="119" r="32" fill="#e1d7bc" opacity=".88"/>
+              <circle cx="270" cy="109" r="31" fill="#1e2d48"/>
+              <g fill="#e6e2d5">
+                <circle cx="122" cy="113" r="1.8"/><circle cx="164" cy="158" r="1.5"/><circle cx="215" cy="92" r="1.4"/>
+                <circle cx="286" cy="178" r="1.8"/><circle cx="110" cy="212" r="1.3"/><circle cx="225" cy="202" r="1.5"/>
+              </g>
+              <path d="M198 73v224M83 185h231" stroke="#887968" stroke-width="8"/>
+              <path d="M72 55h252M64 315h268" stroke="#b2977d" stroke-width="7" stroke-linecap="round"/>
+              <path d="M59 52C83 74 75 119 83 152s-4 110-23 160c23 13 43 8 55-2 14-50 13-84 10-128s10-99 4-128c-14-10-47-10-70-2Z" fill="url(#bedroom-curtain)" stroke="#706077" stroke-opacity=".55" stroke-width="2"/>
+              <path d="M336 54c-21 34-12 77-13 115s9 92 25 139c-21 14-39 15-54 4 11-51 8-88 5-130s8-92 3-119c8-8 22-11 34-9Z" fill="url(#bedroom-curtain)" stroke="#706077" stroke-opacity=".55" stroke-width="2"/>
+              <path d="M71 68q18 14 35 1M315 66q-12 13-28 4" fill="none" stroke="#a28a8b" stroke-opacity=".45" stroke-width="3"/>
+            </g>
+
+            <g class="room-detail" data-room-message="Les livres gardent leurs histoires pour demain." role="button" tabindex="0" aria-label="Observer les livres">
+              <rect x="794" y="82" width="153" height="299" rx="5" fill="#17191f" stroke="#766150" stroke-width="8"/>
+              <path d="M797 173h147M797 267h147M797 360h147" stroke="#9b795a" stroke-width="9"/>
+              <path d="M812 164V113q4-18 17-11v62ZM835 163v-61h17v61ZM858 164v-47h19v47ZM883 164v-65q22-8 24 11v54ZM810 258v-62h16v62ZM832 258v-52q18-15 24 0v52ZM861 258v-68h20v68ZM887 258v-47q20-18 28 3v44Z" fill="#737082" stroke="#b29a78" stroke-opacity=".5" stroke-width="2"/>
+              <path d="M813 249v-46h17v46M839 249v-61h16v61" fill="#82715f"/>
+              <path d="M821 164v-37M866 257v-50M901 257v-27" stroke="#d4bd90" stroke-opacity=".45" stroke-width="2"/>
+              <path d="M811 350q18-42 36 0M829 350q16-52 33 0M852 350q13-34 25 0" fill="#53634f" stroke="#8c9a70" stroke-width="2"/>
+              <path d="M826 350h31l-4 12h-23Z" fill="#a87e65"/>
+            </g>
+
+            <ellipse cx="496" cy="502" rx="286" ry="76" fill="#343746" stroke="#8c7c75" stroke-opacity=".4" stroke-width="3"/>
+            <ellipse cx="496" cy="502" rx="271" ry="64" fill="url(#bedroom-rug-weave)" opacity=".75"/>
+            <path d="M231 502q12 18 24 0m18 4q12 18 24 0m392 2q12 18 24 0m18-2q12 18 24 0" fill="none" stroke="#b89a7b" stroke-opacity=".4" stroke-width="3"/>
+
+            <g class="room-detail" data-room-message="La petite flamme réchauffe doucement la chambre." role="button" tabindex="0" aria-label="Observer la bougie et la tasse">
+              <ellipse cx="277" cy="401" rx="118" ry="113" fill="url(#bedroom-candle-glow)"/>
+              <path d="M146 391h155l-12 19H158Z" fill="#382a29"/>
+              <path d="M156 410h136l-13 91H169Z" fill="url(#bedroom-wood)" stroke="#9e7757" stroke-width="3"/>
+              <path d="M166 424h115M171 490h112" stroke="#c19972" stroke-opacity=".26" stroke-width="3"/>
+              <circle cx="221" cy="462" r="4" fill="#b89169"/>
+              <path d="M182 387q-3-30 4-38h17q7 8 4 38Z" fill="#c0a986"/>
+              <path d="M193 349q-2-9 4-15 8 8 1 16" fill="#ffbf70" filter="url(#bedroom-soft-glow)" opacity=".8"/>
+              <path d="M193 351q-2-8 4-13 5 7 0 14" fill="#ffdb91"/>
+              <path d="M251 384h33l-4 20h-25Z" fill="#c6bdad"/>
+              <path d="M284 388q14 0 10 12-2 7-11 5" fill="none" stroke="#c6bdad" stroke-width="5"/>
+              <path d="M258 383q9-5 18 0" fill="none" stroke="#725b49" stroke-width="3"/>
+            </g>
+
+            <g class="room-detail">
+              <ellipse cx="591" cy="437" rx="263" ry="104" fill="#090d16" opacity=".62" filter="url(#bedroom-shadow)"/>
+              <path d="M350 309q8-46 46-48h360q43 8 49 53v149H350Z" fill="#363541" stroke="#897b76" stroke-width="5"/>
+              <path d="M376 323q2-36 37-38h325q32 5 37 39" fill="none" stroke="#b2a09a" stroke-opacity=".43" stroke-width="4"/>
+              <path d="M339 355q22-22 52-11l72 52q10 43-14 65H356Z" fill="url(#bedroom-pillow)" stroke="#c5b7a5" stroke-opacity=".35" stroke-width="3"/>
+              <path d="M379 365q35 9 58 45M401 355q20 16 34 39" fill="none" stroke="#e1d6c3" stroke-opacity=".32" stroke-width="3"/>
+              <g class="bedroom-cat-illustration" transform="translate(20 -20)">
+                <ellipse class="bedroom-cat-halo" cx="746" cy="383" rx="48" ry="35" fill="#f3d9a1" opacity="0"/>
+                <path d="M708 407q-6-27 20-40 24-9 42 13 22 17 10 43-19 19-52 11-22-5-20-27Z" fill="#111622" stroke="#626476" stroke-width="4"/>
+                <path d="M718 382l-2-26 22 15m26 5 14-24 5 35" fill="#252a37" stroke="#777487" stroke-width="4" stroke-linejoin="round"/>
+                <path d="M723 379q17-18 34 1l4 15q-16 15-35 2Z" fill="#4a4b5a"/>
+                <ellipse cx="731" cy="389" rx="3" ry="4" fill="#d6c99c"/>
+                <ellipse cx="750" cy="389" rx="3" ry="4" fill="#d6c99c"/>
+                <circle cx="732" cy="389" r="1.5" fill="#171923"/><circle cx="751" cy="389" r="1.5" fill="#171923"/>
+                <path d="M738 396l4 3 4-3m-4 3q-5 6-10 2m10-2q5 6 10 2" fill="none" stroke="#b6a6a0" stroke-width="2" stroke-linecap="round"/>
+                <path d="M727 398l-13-2m13 6-14 3m39-7 12-3m-12 7 14 2" stroke="#a49ba0" stroke-opacity=".75" stroke-width="1.4"/>
+                <path d="M708 414q18 8 38 1" fill="none" stroke="#353846" stroke-width="8"/>
+              </g>
+              <path d="M616 342q38-27 79-2l38 49-33 42q-52 8-93-25Z" fill="url(#bedroom-pillow)" stroke="#c5b7a5" stroke-opacity=".38" stroke-width="3"/>
+              <path d="M642 350q32 10 61 39m-43-48q19 15 37 36" fill="none" stroke="#e1d6c3" stroke-opacity=".3" stroke-width="3"/>
+              <path d="M329 402q120-48 247-25 125 20 251-7l-4 115q-144 52-272 27-102-20-222 12Z" fill="url(#bedroom-quilt)" stroke="#8e99a7" stroke-opacity=".45" stroke-width="4"/>
+              <path d="M343 420q132-41 239-19 121 24 231-3M346 469q115-31 228-9 108 20 247-3" fill="none" stroke="#c3c6c4" stroke-opacity=".19" stroke-width="3"/>
+              <path d="M396 426q12-12 25 0t25 0m-50 41q12-12 25 0t25 0m306-53q12-12 25 0t25 0" fill="none" stroke="#d4d0c4" stroke-opacity=".16" stroke-width="2"/>
+            </g>
+
+            <g class="room-detail" data-room-message="Un plaid tout doux a glissé au bord du lit." role="button" tabindex="0" aria-label="Observer le plaid">
+              <path d="M617 471q48-18 91 0l38 68q-37 18-88 9Z" fill="#6a5360" stroke="#aa8792" stroke-opacity=".55" stroke-width="3"/>
+              <path d="M637 481l25 64m2-70 26 70m3-66 26 57" stroke="#d1a7a5" stroke-opacity=".25" stroke-width="3"/>
+              <path d="M651 541l-4 13m26-8-3 14m28-11-2 13" stroke="#c49d96" stroke-opacity=".55" stroke-width="3"/>
+            </g>
+
+            <ellipse class="bedroom-cat-target" cx="766" cy="365" rx="58" ry="38" fill="transparent" pointer-events="all" role="button" tabindex="0" aria-label="Inspecter le recoin près du coussin" aria-pressed="false"/>
+            <rect width="1000" height="600" fill="url(#bedroom-vignette)" pointer-events="none"/>
+          </svg>
+        </div>
+        <div class="bedroom-controls">
+          <p class="activity-feedback seek-feedback" aria-live="polite">Explore la chambre à la souris ou au toucher. Le halo révèle les détails dans la pénombre.</p>
+          <button class="text-button bedroom-hint" type="button">Indice</button>
+        </div>
+        <button class="button button-primary game-finish-button seek-finish" type="button" disabled>Garder ce souvenir ↗</button>
+      </div>`;
+    const scene = $(".bedroom-scene");
+    const feedback = $(".seek-feedback");
+    const cat = $(".bedroom-cat-target");
+    let found = false;
+
+    const playRoomChime = (isFound = false) => {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return;
+      try {
+        const context = new AudioContextClass();
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        const start = context.currentTime;
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(isFound ? 523.25 : 392, start);
+        if (isFound) oscillator.frequency.exponentialRampToValueAtTime(659.25, start + .28);
+        gain.gain.setValueAtTime(.0001, start);
+        gain.gain.exponentialRampToValueAtTime(isFound ? .045 : .018, start + .035);
+        gain.gain.exponentialRampToValueAtTime(.0001, start + (isFound ? .42 : .2));
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+        oscillator.start(start);
+        oscillator.stop(start + (isFound ? .44 : .22));
+        oscillator.addEventListener("ended", () => context.close(), { once: true });
+      } catch (error) {
+        console.warn("Le son de la chambre n'est pas disponible.", error);
+      }
+    };
+
+    const explore = (event) => {
+      const bounds = scene.getBoundingClientRect();
+      scene.style.setProperty("--light-x", `${((event.clientX - bounds.left) / bounds.width) * 100}%`);
+      scene.style.setProperty("--light-y", `${((event.clientY - bounds.top) / bounds.height) * 100}%`);
+      scene.classList.add("is-exploring");
+    };
+    scene.addEventListener("pointermove", explore);
+    scene.addEventListener("pointerdown", explore);
+    scene.addEventListener("pointerleave", (event) => {
+      if (event.pointerType === "mouse") scene.classList.remove("is-exploring");
+    });
+
+    scene.querySelectorAll("[data-room-message]").forEach((detail) => {
+      const inspect = () => {
+        if (found) return;
+        feedback.textContent = detail.dataset.roomMessage;
+        detail.classList.remove("is-inspected");
+        requestAnimationFrame(() => detail.classList.add("is-inspected"));
+        playRoomChime();
+      };
+      detail.addEventListener("click", inspect);
+      detail.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          inspect();
         }
       });
-      scene.append(button);
     });
+
+    const findCat = () => {
+      if (found) return;
+      found = true;
+      foundFragments.add(config.target);
+      cat.classList.add("is-found");
+      cat.setAttribute("aria-pressed", "true");
+      cat.setAttribute("aria-label", "Le petit chat est retrouvé");
+      scene.classList.add("has-found-cat");
+      feedback.textContent = `Trouvé ! ${config.targetLabel} était blotti près du coussin.`;
+      unlockGameFinishButton(".seek-finish");
+      playRoomChime(true);
+    };
+    cat.addEventListener("click", findCat);
+    cat.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        findCat();
+      }
+    });
+
+    $(".bedroom-hint").addEventListener("click", () => {
+      if (found) return;
+      scene.classList.add("is-hint-active");
+      feedback.textContent = config.hint;
+    });
+    $(".seek-finish").addEventListener("click", completeMonth);
   }
 
   function renderCipher(config) {
-    gameContent.innerHTML = `<div class="game-panel cipher-panel"><div class="cipher-seal" aria-hidden="true">⌘</div><p class="activity-kicker">Le message intercepté</p><p class="cipher-text"></p><p class="cipher-instructions">Décale les lettres dans l'alphabet pour retrouver le message.</p><form class="answer-form"><input class="answer-input" type="text" autocomplete="off" placeholder="Le message secret…" aria-label="Message décodé"><button class="button button-primary" type="submit">Déchiffrer ↗</button></form><p class="feedback" aria-live="polite"></p><p class="hint-copy" aria-live="polite"></p></div>`;
+    gameContent.innerHTML = `<div class="game-panel cipher-panel"><div class="cipher-seal" aria-hidden="true">⌘</div><p class="activity-kicker">Le message intercepté</p><p class="cipher-text"></p><div class="cipher-helper"><label for="cipher-helper-input">Petit outil · recul de 3 lettres</label><div class="cipher-helper-control"><input id="cipher-helper-input" class="cipher-helper-input" type="text" maxlength="1" autocomplete="off" autocapitalize="characters" aria-label="Lettre à décaler de trois places"><span aria-hidden="true">−3 →</span><output class="cipher-helper-result" for="cipher-helper-input" aria-live="polite">?</output></div></div><p class="cipher-instructions">Décale chaque lettre de trois places vers l'arrière dans l'alphabet.<br><span>Exemple : Q → N, R → O, D → A — on recule de 3 lettres.</span></p><form class="answer-form"><input class="answer-input" type="text" autocomplete="off" placeholder="Le message secret…" aria-label="Message décodé"><button class="button button-primary" type="submit">Déchiffrer ↗</button></form><p class="feedback" aria-live="polite"></p><p class="hint-copy" aria-live="polite"></p></div>`;
     $(".cipher-text").textContent = config.cipher;
+    const helperInput = $(".cipher-helper-input");
+    const helperResult = $(".cipher-helper-result");
+    helperInput.addEventListener("input", () => {
+      const letter = helperInput.value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleUpperCase("fr").match(/[A-Z]/)?.[0];
+      if (!letter) {
+        helperResult.textContent = "?";
+        return;
+      }
+      const code = letter.charCodeAt(0) - 65;
+      helperResult.textContent = String.fromCharCode((code - config.shift + 26) % 26 + 65);
+    });
     $(".answer-form").addEventListener("submit", (event) => {
       event.preventDefault();
       const answer = normalizeAnswer($(".answer-input").value);
       if (answer === normalizeAnswer(config.answer)) {
         $(".feedback").textContent = "Le message est déchiffré.";
         $(".feedback").classList.add("is-correct");
+        $(".feedback").classList.remove("is-partial", "is-incorrect");
         completeMonth();
         return;
       }
       attempts += 1;
-      $(".feedback").textContent = "Les lettres ne sont pas encore à leur place.";
+      const expected = normalizeAnswer(config.answer);
+      const feedback = $(".feedback");
+      if (isCloseAnswer(answer, expected)) {
+        feedback.textContent = "Tu es tout près : quelques lettres restent à corriger. Ta proposition est conservée.";
+        feedback.classList.add("is-partial");
+        feedback.classList.remove("is-incorrect");
+      } else {
+        feedback.textContent = "Ce n’est pas encore le bon message. Ta proposition reste en place pour que tu puisses la corriger.";
+        feedback.classList.add("is-incorrect");
+        feedback.classList.remove("is-partial");
+      }
       if (attempts >= 2) $(".hint-copy").textContent = config.hint;
-      $(".answer-input").select();
     });
   }
 
   function renderPolaroids(config) {
-    gameContent.innerHTML = `<div class="game-panel polaroid-panel"><p class="activity-kicker">Un album de petits instants</p><div class="polaroid-grid"></div><p class="activity-feedback" aria-live="polite">Retourne les photos pour découvrir ce qui se cache au dos.</p><button class="button button-primary polaroid-finish" type="button" hidden>Refermer l'album ↗</button></div>`;
+    gameContent.innerHTML = `<div class="game-panel polaroid-panel"><p class="activity-kicker">Un album de petits instants</p><div class="polaroid-grid"></div><p class="activity-feedback" aria-live="polite">Retourne les photos pour découvrir ce qui se cache au dos.</p><button class="button button-primary game-finish-button polaroid-finish" type="button" disabled>Refermer l'album ↗</button></div>`;
     const grid = $(".polaroid-grid");
     config.cards.forEach((card, index) => {
       const button = document.createElement("button");
@@ -2079,7 +2306,7 @@ const LOVE_STORY = {
         $(".activity-feedback").textContent = `${matchedPairs.size} sur ${config.cards.length} souvenirs retournés.`;
         if (matchedPairs.size === config.cards.length) {
           $(".activity-feedback").textContent = "Tous les petits instants sont retrouvés.";
-          $(".polaroid-finish").hidden = false;
+          unlockGameFinishButton(".polaroid-finish");
         }
       });
       grid.append(button);
@@ -2204,7 +2431,7 @@ const LOVE_STORY = {
   }
 
   function renderBouquet(config) {
-    gameContent.innerHTML = `<div class="game-panel bouquet-panel"><div class="bouquet-illustration" aria-hidden="true"><span>✿</span><span>✿</span><span>✿</span><span class="bouquet-ribbon">♥</span></div><p class="activity-kicker">Un bouquet pour nos douze mois</p><p class="activity-feedback" aria-live="polite">Choisis les fleurs une à une pour composer le bouquet final.</p><div class="bouquet-flowers"></div><button class="button button-primary bouquet-finish" type="button" hidden>Ouvrir la dernière lettre ↗</button></div>`;
+    gameContent.innerHTML = `<div class="game-panel bouquet-panel"><div class="bouquet-illustration" aria-hidden="true"><span>✿</span><span>✿</span><span>✿</span><span class="bouquet-ribbon">♥</span></div><p class="activity-kicker">Un bouquet pour nos douze mois</p><p class="activity-feedback" aria-live="polite">Choisis les fleurs une à une pour composer le bouquet final.</p><div class="bouquet-flowers"></div><button class="button button-primary game-finish-button bouquet-finish" type="button" disabled>Ouvrir la dernière lettre ↗</button></div>`;
     const flowers = $(".bouquet-flowers");
     config.flowers.forEach((flower, index) => {
       const button = document.createElement("button");
@@ -2222,7 +2449,7 @@ const LOVE_STORY = {
         $(".activity-feedback").textContent = `${matchedPairs.size} sur ${config.flowers.length} fleurs dans le bouquet.`;
         if (matchedPairs.size === config.flowers.length) {
           $(".activity-feedback").textContent = "Le bouquet est prêt. La dernière lettre peut s'ouvrir.";
-          $(".bouquet-finish").hidden = false;
+          unlockGameFinishButton(".bouquet-finish");
         }
       });
       flowers.append(button);
