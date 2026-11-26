@@ -2732,8 +2732,8 @@ const LOVE_STORY = {
           void main() {
             vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
             gl_Position = projectionMatrix * viewPosition;
-            gl_PointSize = clamp(aSize * (30.0 / max(1.0, -viewPosition.z)), 0.55, 6.5);
-            vAlpha = aAlpha * uOpacity * (0.9 + 0.1 * sin(uTime * 0.7 + aPhase));
+            gl_PointSize = clamp(aSize * (33.0 / max(1.0, -viewPosition.z)), 0.55, 6.5);
+            vAlpha = aAlpha * uOpacity * (0.92 + 0.08 * sin(uTime * 0.7 + aPhase));
             vTint = aTint;
           }
         `;
@@ -2786,19 +2786,19 @@ const LOVE_STORY = {
         const starLayers = [
           createParticleLayer(5000, () => ({
             x: (Math.random() * 2 - 1) * 56, y: (Math.random() * 2 - 1) * 34,
-            z: randomBetween(-90, 43), size: randomBetween(.8, 2.2),
-            alpha: randomBetween(.25, .6), color: Math.random() > .91 ? 0xf1d9a7 : 0xb9c9e8
-          }), .78),
+            z: randomBetween(-90, 43), size: randomBetween(.85, 2.2),
+            alpha: randomBetween(.3, .65), color: Math.random() > .91 ? 0xf1d9a7 : 0xb9c9e8
+          }), .9),
           createParticleLayer(3000, () => ({
             x: (Math.random() * 2 - 1) * 40, y: (Math.random() * 2 - 1) * 25,
             z: randomBetween(-60, 35), size: randomBetween(1.05, 2.8),
-            alpha: randomBetween(.25, .62), color: Math.random() > .9 ? 0xf6e4c3 : 0xd9e4fa
-          }), .84),
+            alpha: randomBetween(.3, .67), color: Math.random() > .9 ? 0xf6e4c3 : 0xd9e4fa
+          }), .94),
           createParticleLayer(2200, () => ({
             x: (Math.random() * 2 - 1) * 50, y: (Math.random() * 2 - 1) * 30,
             z: randomBetween(-105, 40), size: randomBetween(.5, 1.45),
-            alpha: randomBetween(.17, .4), color: Math.random() > .92 ? 0xdac394 : 0xe7edf8
-          }), .68)
+            alpha: randomBetween(.2, .44), color: Math.random() > .92 ? 0xdac394 : 0xe7edf8
+          }), .78)
         ];
         const dustLayer = createParticleLayer(1600, () => ({
           x: (Math.random() * 2 - 1) * 11,
@@ -3153,12 +3153,12 @@ const LOVE_STORY = {
           kind: "ice", x: 3.1, y: 1.15, z: 40.5, radius: .78, rimColor: 0x9bbbe0, opacity: 0
         });
         const gasGiant = addPlanet({
-          kind: "gas", x: -3.3, y: 1.2, z: 27, radius: 1.72, rimColor: 0xd8bd94
+          kind: "gas", x: -5.2, y: 1.7, z: 27, radius: 1.45, rimColor: 0xd8bd94
         });
         const rings = new THREE.Mesh(
-          new THREE.RingGeometry(1.22, 2.55, 256, 4),
+          new THREE.RingGeometry(1.18, 1.92, 256, 4),
           new THREE.ShaderMaterial({
-            uniforms: { innerRadius: { value: 1.22 }, outerRadius: { value: 2.55 }, opacity: { value: 0 } },
+            uniforms: { innerRadius: { value: 1.18 }, outerRadius: { value: 1.92 }, opacity: { value: 0 } },
             vertexShader: `
               varying vec3 vRingPosition;
               void main() {
@@ -3277,8 +3277,8 @@ const LOVE_STORY = {
               const value = THREE.MathUtils.clamp((progress - start) / (end - start), 0, 1);
               return value * value * (3 - 2 * value);
             };
-            const firstPlanetOpacity = ramp(0, .018) * (1 - ramp(.055, .085));
-            const ringPlanetOpacity = ramp(.07, .12) * (1 - ramp(.21, .255));
+            const firstPlanetOpacity = ramp(0, .045) * (1 - ramp(.06, .085));
+            const ringPlanetOpacity = ramp(.09, .14) * (1 - ramp(.205, .25));
             distantMoon.userData.setOpacity(firstPlanetOpacity);
             gasGiant.userData.setOpacity(ringPlanetOpacity);
             rings.material.uniforms.opacity.value = ringPlanetOpacity;

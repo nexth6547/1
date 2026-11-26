@@ -84,6 +84,7 @@ main { position: relative; z-index: 1; }
 }
 .intro-scene.is-leaving { opacity: 0; pointer-events: none; }
 .intro-scene.is-leaving .intro-skip { opacity: 0; visibility: hidden; }
+.intro-skip[hidden] { display: none !important; }
 .intro-skip {
   position: absolute;
   z-index: 1;
