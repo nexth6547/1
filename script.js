@@ -2532,7 +2532,7 @@ const LOVE_STORY = {
     const moonCanvas = $("#moon3d");
     const intro = $("#intro-scene");
     const skipButton = $("#intro-skip");
-    const introDuration = 9200;
+    const introDuration = 15000;
     let frameHandle = 0;
     let isRunning = false;
     let motionTime = 0;
@@ -2694,6 +2694,33 @@ const LOVE_STORY = {
       ]).then(([diffuse, bump]) => ({ diffuse, bump }));
     };
 
+    const loadPlanetTextures = (THREE, anisotropy) => {
+      const loader = new THREE.TextureLoader();
+      const loadTexture = (path, colorSpace) => loader.loadAsync(new URL(path, document.baseURI).href)
+        .then((texture) => {
+          texture.colorSpace = colorSpace;
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.ClampToEdgeWrapping;
+          texture.anisotropy = anisotropy;
+          return texture;
+        })
+        .catch((error) => {
+          console.warn(`Texture locale indisponible (${path}) ; le rendu procédural sera conservé.`, error);
+          return null;
+        });
+      return Promise.all([
+        loadTexture("assets/neptune-color.jpg", THREE.SRGBColorSpace),
+        loadTexture("assets/neptune-bump.jpg", THREE.NoColorSpace),
+        loadTexture("assets/saturn-color.jpg", THREE.SRGBColorSpace),
+        loadTexture("assets/saturn-bump.jpg", THREE.NoColorSpace),
+        loadTexture("assets/saturn-rings.png", THREE.SRGBColorSpace)
+      ]).then(([neptuneColor, neptuneBump, saturnColor, saturnBump, saturnRings]) => ({
+        neptune: { color: neptuneColor, bump: neptuneBump },
+        saturn: { color: saturnColor, bump: saturnBump },
+        rings: saturnRings
+      }));
+    };
+
     const createMoonScene = () => {
       const THREE = window.THREE;
       if (!THREE) {
@@ -2744,7 +2771,7 @@ const LOVE_STORY = {
             float radius = length(gl_PointCoord - vec2(0.5)) * 2.0;
             float halo = exp(-radius * radius * 5.2);
             float core = 1.0 - smoothstep(0.0, 0.28, radius);
-            float alpha = (halo * 0.38 + core * 0.62) * vAlpha;
+            float alpha = (halo * 0.24 + core * 0.76) * vAlpha;
             if (alpha < 0.008) discard;
             gl_FragColor = vec4(vTint, alpha);
           }
@@ -2786,19 +2813,22 @@ const LOVE_STORY = {
         const starLayers = [
           createParticleLayer(5000, () => ({
             x: (Math.random() * 2 - 1) * 56, y: (Math.random() * 2 - 1) * 34,
-            z: randomBetween(-90, 43), size: randomBetween(.85, 2.2),
-            alpha: randomBetween(.3, .65), color: Math.random() > .91 ? 0xf1d9a7 : 0xb9c9e8
-          }), .9),
+            z: randomBetween(-90, 43), size: randomBetween(.9, 2.4),
+            alpha: randomBetween(.32, .72),
+            color: Math.random() > .9 ? 0xf1d9a7 : Math.random() > .48 ? 0xdfe9fb : 0xb9c9e8
+          }), 1.02),
           createParticleLayer(3000, () => ({
             x: (Math.random() * 2 - 1) * 40, y: (Math.random() * 2 - 1) * 25,
-            z: randomBetween(-60, 35), size: randomBetween(1.05, 2.8),
-            alpha: randomBetween(.3, .67), color: Math.random() > .9 ? 0xf6e4c3 : 0xd9e4fa
-          }), .94),
+            z: randomBetween(-60, 35), size: randomBetween(1.15, 2.9),
+            alpha: randomBetween(.34, .74),
+            color: Math.random() > .88 ? 0xf6e4c3 : Math.random() > .44 ? 0xf3f6ff : 0xd9e4fa
+          }), 1.04),
           createParticleLayer(2200, () => ({
             x: (Math.random() * 2 - 1) * 50, y: (Math.random() * 2 - 1) * 30,
-            z: randomBetween(-105, 40), size: randomBetween(.5, 1.45),
-            alpha: randomBetween(.2, .44), color: Math.random() > .92 ? 0xdac394 : 0xe7edf8
-          }), .78)
+            z: randomBetween(-105, 40), size: randomBetween(.55, 1.6),
+            alpha: randomBetween(.22, .48),
+            color: Math.random() > .9 ? 0xdac394 : Math.random() > .5 ? 0xcbdaf3 : 0xe7edf8
+          }), .88)
         ];
         const dustLayer = createParticleLayer(1600, () => ({
           x: (Math.random() * 2 - 1) * 11,
@@ -3082,14 +3112,14 @@ const LOVE_STORY = {
           return { diffuse, bump };
         };
         const addPlanet = ({ kind, x, y, z, radius, rimColor, opacity = 1 }) => {
-          const textures = createPlanetTextures(kind);
+          const textures = createPlanetTextures(kind === "neptune" ? "ice" : kind);
           const group = new THREE.Group();
           group.position.set(x, y, z);
           const material = new THREE.MeshStandardMaterial({
             map: textures.diffuse,
             bumpMap: textures.bump,
-            bumpScale: kind === "gas" ? .042 : kind === "ice" ? .12 : .085,
-            roughness: kind === "gas" ? .88 : kind === "ice" ? .94 : .98,
+            bumpScale: kind === "gas" ? .042 : kind === "neptune" ? .12 : .085,
+            roughness: kind === "gas" ? .88 : kind === "neptune" ? .94 : .98,
             metalness: 0,
             transparent: true,
             opacity,
@@ -3146,19 +3176,44 @@ const LOVE_STORY = {
             material.depthWrite = value >= .999;
             atmosphere.material.uniforms.opacity.value = value;
           };
+          group.userData.applyTextures = ({ color, bump }) => {
+            if (color && material.map !== color) {
+              material.map?.dispose();
+              material.map = color;
+            }
+            if (bump) {
+              material.bumpMap?.dispose();
+              material.bumpMap = bump;
+              material.bumpScale = kind === "gas" ? .018 : .012;
+            }
+            material.needsUpdate = true;
+          };
           scene.add(group);
           return group;
         };
         const distantMoon = addPlanet({
-          kind: "ice", x: 3.1, y: 1.15, z: 40.5, radius: .78, rimColor: 0x9bbbe0, opacity: 0
+          kind: "neptune", x: 3.1, y: 1.15, z: 40.5, radius: .78, rimColor: 0x9bbbe0, opacity: 0
         });
         const gasGiant = addPlanet({
           kind: "gas", x: -5.2, y: 1.7, z: 27, radius: 1.45, rimColor: 0xd8bd94
         });
+        const fallbackRingMap = new THREE.DataTexture(
+          new Uint8Array([255, 255, 255, 255]),
+          1,
+          1,
+          THREE.RGBAFormat
+        );
+        fallbackRingMap.needsUpdate = true;
         const rings = new THREE.Mesh(
           new THREE.RingGeometry(1.18, 1.92, 256, 4),
           new THREE.ShaderMaterial({
-            uniforms: { innerRadius: { value: 1.18 }, outerRadius: { value: 1.92 }, opacity: { value: 0 } },
+            uniforms: {
+              innerRadius: { value: 1.18 },
+              outerRadius: { value: 1.92 },
+              opacity: { value: 0 },
+              ringMap: { value: fallbackRingMap },
+              hasRingMap: { value: 0 }
+            },
             vertexShader: `
               varying vec3 vRingPosition;
               void main() {
@@ -3170,6 +3225,8 @@ const LOVE_STORY = {
               uniform float innerRadius;
               uniform float outerRadius;
               uniform float opacity;
+              uniform sampler2D ringMap;
+              uniform float hasRingMap;
               varying vec3 vRingPosition;
               void main() {
                 float radius = length(vRingPosition.xy);
@@ -3180,9 +3237,13 @@ const LOVE_STORY = {
                 vec2 shadowOffset = vRingPosition.xy - vec2(-1.5, 1.0);
                 float planetShadow = 1.0 - 0.78 * (1.0 - smoothstep(0.35, 1.15, length(shadowOffset)));
                 vec3 warmDust = mix(vec3(0.32, 0.3, 0.27), vec3(0.78, 0.68, 0.53), bands);
-                float alpha = edge * gaps * (0.2 + bands * 0.34) * planetShadow * opacity;
+                vec2 ringUv = vRingPosition.xy / outerRadius * 0.5 + 0.5;
+                vec4 mappedRing = texture2D(ringMap, ringUv);
+                vec3 ringColor = mix(warmDust, mappedRing.rgb, hasRingMap);
+                float ringAlpha = mix(1.0, mappedRing.a, hasRingMap);
+                float alpha = edge * gaps * (0.2 + bands * 0.34) * ringAlpha * planetShadow * opacity;
                 if (alpha < 0.015) discard;
-                gl_FragColor = vec4(warmDust, alpha);
+                gl_FragColor = vec4(ringColor, alpha);
               }
             `,
             transparent: true,
@@ -3193,6 +3254,16 @@ const LOVE_STORY = {
         rings.rotation.set(1.1, 0, -.28);
         rings.position.z = -.025;
         gasGiant.add(rings);
+        loadPlanetTextures(THREE, renderer.capabilities.getMaxAnisotropy()).then((textures) => {
+          distantMoon.userData.applyTextures(textures.neptune);
+          gasGiant.userData.applyTextures(textures.saturn);
+          if (textures.rings) {
+            fallbackRingMap.dispose();
+            rings.material.uniforms.ringMap.value = textures.rings;
+            rings.material.uniforms.hasRingMap.value = 1;
+          }
+          renderer.render(scene, camera);
+        });
 
         const geometry = new THREE.SphereGeometry(1, 192, 128);
         const material = new THREE.MeshStandardMaterial({
@@ -3277,12 +3348,14 @@ const LOVE_STORY = {
               const value = THREE.MathUtils.clamp((progress - start) / (end - start), 0, 1);
               return value * value * (3 - 2 * value);
             };
-            const firstPlanetOpacity = ramp(0, .045) * (1 - ramp(.06, .085));
-            const ringPlanetOpacity = ramp(.09, .14) * (1 - ramp(.205, .25));
+            const firstPlanetOpacity = ramp(0, .04) * (1 - ramp(.075, .1));
+            const ringPlanetOpacity = ramp(.1, .16) * (1 - ramp(.37, .44));
             distantMoon.userData.setOpacity(firstPlanetOpacity);
             gasGiant.userData.setOpacity(ringPlanetOpacity);
             rings.material.uniforms.opacity.value = ringPlanetOpacity;
-            camera.position.z = introStartZ + (menuCameraZ - introStartZ) * easeOutCubic;
+            const approachToPlanets = ramp(0, .2);
+            const approachToMoon = ramp(.42, 1);
+            camera.position.z = introStartZ - 17 * approachToPlanets - 26 * approachToMoon;
             camera.position.x = Math.sin(progress * Math.PI) * .16;
             camera.position.y = Math.sin(progress * Math.PI * 1.4) * Math.sin(progress * Math.PI) * .08;
             camera.lookAt(0, 0, 0);
