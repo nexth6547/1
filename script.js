@@ -2901,41 +2901,139 @@ const LOVE_STORY = {
           if (!colorContext || !bumpContext) throw new Error("Impossible de créer les textures procédurales des planètes.");
           const colorImage = colorContext.createImageData(textureWidth, textureHeight);
           const bumpImage = bumpContext.createImageData(textureWidth, textureHeight);
+          const smooth = (value) => {
+            const t = Math.max(0, Math.min(1, value));
+            return t * t * (3 - 2 * t);
+          };
+          const noiseLayers = [4, 8, 16, 32, 64, 128, 256, 512].map((columns) => {
+            const rows = columns / 2;
+            return {
+              columns,
+              rows,
+              values: Float32Array.from({ length: columns * rows }, Math.random)
+            };
+          });
+          const noiseAt = (layer, u, v) => {
+            const x = ((u % 1) + 1) % 1 * layer.columns;
+            const y = ((v % 1) + 1) % 1 * layer.rows;
+            const x0 = Math.floor(x);
+            const y0 = Math.floor(y);
+            const x1 = (x0 + 1) % layer.columns;
+            const y1 = (y0 + 1) % layer.rows;
+            const tx = smooth(x - x0);
+            const ty = smooth(y - y0);
+            const top = layer.values[y0 * layer.columns + x0] * (1 - tx)
+              + layer.values[y0 * layer.columns + x1] * tx;
+            const bottom = layer.values[y1 * layer.columns + x0] * (1 - tx)
+              + layer.values[y1 * layer.columns + x1] * tx;
+            return top * (1 - ty) + bottom * ty;
+          };
+          const fbm = (u, v, firstLayer = 0, count = 6) => {
+            let value = 0;
+            let weight = 0;
+            for (let octave = 0; octave < count; octave++) {
+              const amplitude = 1 / (2 ** octave);
+              value += noiseAt(noiseLayers[firstLayer + octave], u, v) * amplitude;
+              weight += amplitude;
+            }
+            return value / weight;
+          };
+          const plateColumns = 36;
+          const plateRows = 18;
+          const platePoints = Array.from({ length: plateColumns * plateRows }, () => ({
+            x: .2 + Math.random() * .6,
+            y: .2 + Math.random() * .6
+          }));
+          const plateEdgeAt = (u, v) => {
+            const x = u * plateColumns;
+            const y = v * plateRows;
+            const cellX = Math.floor(x);
+            const cellY = Math.floor(y);
+            const localX = x - cellX;
+            const localY = y - cellY;
+            let nearest = Infinity;
+            let secondNearest = Infinity;
+            for (let offsetY = -1; offsetY <= 1; offsetY++) {
+              const pointY = cellY + offsetY;
+              const wrappedY = (pointY + plateRows) % plateRows;
+              for (let offsetX = -1; offsetX <= 1; offsetX++) {
+                const pointX = cellX + offsetX;
+                const wrappedX = (pointX + plateColumns) % plateColumns;
+                const point = platePoints[wrappedY * plateColumns + wrappedX];
+                const distance = Math.hypot(offsetX + point.x - localX, offsetY + point.y - localY);
+                if (distance < nearest) {
+                  secondNearest = nearest;
+                  nearest = distance;
+                } else if (distance < secondNearest) {
+                  secondNearest = distance;
+                }
+              }
+            }
+            return { edge: secondNearest - nearest, nearest };
+          };
           for (let y = 0; y < textureHeight; y++) {
             const v = y / textureHeight;
             for (let x = 0; x < textureWidth; x++) {
               const u = x / textureWidth;
-              const broad = Math.sin(u * 27 + Math.sin(v * 13) * 1.2) * .3
-                + Math.sin(v * 53 + Math.cos(u * 15) * .8) * .18
-                + Math.sin((u + v) * 19) * .09;
-              const fine = Math.sin(u * 241 + v * 173) * .055
-                + Math.sin(u * 479 - v * 337) * .035;
               let red;
               let green;
               let blue;
               let relief;
               if (kind === "gas") {
-                const flow = Math.sin(u * 24 + Math.sin(v * 11) * 2.1) * .52
-                  + Math.sin(u * 57 - v * 19) * .18;
-                const band = Math.sin(v * Math.PI * 32 + flow * 1.7 + broad);
-                const cloud = Math.sin(u * Math.PI * 12 + v * Math.PI * 8 + broad * 2) * .2
-                  + Math.sin(u * 31 + v * 18 + flow) * .08;
-                const stormX = Math.min(Math.abs(u - .29), 1 - Math.abs(u - .29)) / .065;
-                const stormY = (v - .58) / .04;
-                const storm = Math.exp(-(stormX * stormX + stormY * stormY) * 2.2);
-                const tone = band * 10 + cloud * 22 + fine * 27 + storm * 16;
-                red = 151 + tone;
-                green = 112 + tone * .82;
-                blue = 83 + tone * .66;
-                relief = 128 + band * 14 + cloud * 20 + fine * 26 + storm * 9;
+                const broad = fbm(u, v, 0, 5);
+                const cloudDetail = fbm(u, v, 3, 5);
+                const warp = (broad - .5) * .055;
+                const warpedU = u + (cloudDetail - .5) * .032;
+                const warpedV = v + warp;
+                const latitude = (warpedV - .5) * Math.PI;
+                const flow = fbm(warpedU * 1.7 + .13, warpedV * 1.2, 1, 5) - .5;
+                const bandPhase = latitude * 31 + flow * 2.7 + Math.sin(warpedU * 11 + cloudDetail * 3) * .34;
+                const bands = Math.sin(bandPhase);
+                const turbulence = fbm(warpedU * 1.4, warpedV * 1.8 + bands * .009, 2, 5);
+                const cloud = bands * .16 + (turbulence - .5) * .68 + (broad - .5) * .46;
+                const vortexDx = Math.min(Math.abs(warpedU - .29), 1 - Math.abs(warpedU - .29)) / .07;
+                const vortexDy = (warpedV - .58) / .047;
+                const vortexRadius = Math.hypot(vortexDx, vortexDy);
+                const vortex = Math.exp(-vortexRadius * vortexRadius * 1.45);
+                const vortexSwirl = Math.sin(Math.atan2(vortexDy, vortexDx) * 5 + vortexRadius * 8);
+                const cloudTone = Math.max(0, Math.min(1, .52 + cloud + vortex * (.16 + vortexSwirl * .055)));
+                const cream = smooth(cloudTone + (broad - .5) * .2);
+                const copper = smooth(.58 + turbulence * .35 + bands * .08);
+                const fine = fbm(u, v, 5, 3) - .5;
+                red = 119 + cream * 69 + copper * 17 + fine * 13;
+                green = 82 + cream * 66 + copper * 14 + fine * 12;
+                blue = 61 + cream * 57 + copper * 8 + fine * 11;
+                relief = 128 + (cloud - .5) * 34 + (turbulence - .5) * 38 + vortex * 12 + fine * 24;
+              } else if (kind === "ice") {
+                const broad = fbm(u, v, 0, 5);
+                const warpX = (fbm(u, v, 2, 3) - .5) * .045;
+                const warpY = (fbm(u + .31, v + .17, 1, 4) - .5) * .035;
+                const warpedU = u + warpX;
+                const warpedV = v + warpY;
+                const plates = plateEdgeAt(warpedU, warpedV);
+                const crack = 1 - smooth((plates.edge - .018) / .105);
+                const rimDistance = Math.abs(plates.edge - .13);
+                const raisedRim = Math.exp(-((rimDistance / .075) ** 2));
+                const fineNoise = fbm(warpedU * 1.8, warpedV * 1.8, 4, 4);
+                const fractureNoise = fbm(warpedU * 2.7, warpedV * 2.7, 5, 3);
+                const hairline = 1 - smooth((Math.abs(fractureNoise - .5) - .018) / .055);
+                const mineral = smooth((broad + fineNoise * .35 - .48) * 4.4);
+                const plateTone = .46 + (broad - .5) * .55 + (fineNoise - .5) * .3
+                  + raisedRim * .18 - crack * .52 - hairline * .075 - mineral * .2;
+                const tone = Math.max(.08, Math.min(.9, plateTone));
+                red = 49 + tone * 139 + mineral * 12;
+                green = 66 + tone * 153 - mineral * 3;
+                blue = 84 + tone * 164 - mineral * 10;
+                relief = 118 + (broad - .5) * 46 + (fineNoise - .5) * 38
+                  + raisedRim * 48 - crack * 96 - hairline * 20 + mineral * 12;
               } else {
-                const terrain = broad * .65 + fine * .55
-                  + Math.sin(v * 41 + u * 27) * .045
-                  + Math.cos(u * 73 - v * 54) * .035;
+                const broad = fbm(u, v, 0, 5);
+                const fine = fbm(u, v, 4, 4) - .5;
+                const terrain = (broad - .5) * .65 + fine * .55;
                 const tone = 72 + terrain * 44;
-                red = tone * (kind === "ice" ? .75 : .84);
-                green = tone * (kind === "ice" ? .96 : .91);
-                blue = tone * (kind === "ice" ? 1.28 : 1.08) + (kind === "ice" ? 18 : 9);
+                red = tone * .84;
+                green = tone * .91;
+                blue = tone * 1.08 + 9;
                 relief = 128 + terrain * 78;
               }
               const pixel = (y * textureWidth + x) * 4;
@@ -2990,8 +3088,8 @@ const LOVE_STORY = {
           const material = new THREE.MeshStandardMaterial({
             map: textures.diffuse,
             bumpMap: textures.bump,
-            bumpScale: kind === "gas" ? .042 : kind === "ice" ? .055 : .085,
-            roughness: kind === "gas" ? .88 : kind === "ice" ? .82 : .98,
+            bumpScale: kind === "gas" ? .042 : kind === "ice" ? .12 : .085,
+            roughness: kind === "gas" ? .88 : kind === "ice" ? .94 : .98,
             metalness: 0,
             transparent: true,
             opacity,
@@ -3004,7 +3102,7 @@ const LOVE_STORY = {
             new THREE.ShaderMaterial({
               uniforms: {
                 rim: { value: new THREE.Color(rimColor) },
-                strength: { value: kind === "gas" ? .22 : .12 },
+                strength: { value: kind === "gas" ? .22 : kind === "ice" ? .2 : .12 },
                 lightDirection: { value: new THREE.Vector3(-3.5, 2.3, 4).normalize() },
                 opacity: { value: opacity }
               },
