@@ -2983,7 +2983,7 @@ const LOVE_STORY = {
           bump.anisotropy = renderer.capabilities.getMaxAnisotropy();
           return { diffuse, bump };
         };
-        const addPlanet = ({ kind, x, y, z, radius, rimColor }) => {
+        const addPlanet = ({ kind, x, y, z, radius, rimColor, opacity = 1 }) => {
           const textures = createPlanetTextures(kind);
           const group = new THREE.Group();
           group.position.set(x, y, z);
@@ -2992,7 +2992,10 @@ const LOVE_STORY = {
             bumpMap: textures.bump,
             bumpScale: kind === "gas" ? .042 : kind === "ice" ? .055 : .085,
             roughness: kind === "gas" ? .88 : kind === "ice" ? .82 : .98,
-            metalness: 0
+            metalness: 0,
+            transparent: true,
+            opacity,
+            depthWrite: opacity >= .999
           });
           const sphere = new THREE.Mesh(new THREE.SphereGeometry(1, 96, 64), material);
           group.add(sphere);
@@ -3002,7 +3005,8 @@ const LOVE_STORY = {
               uniforms: {
                 rim: { value: new THREE.Color(rimColor) },
                 strength: { value: kind === "gas" ? .22 : .12 },
-                lightDirection: { value: new THREE.Vector3(-3.5, 2.3, 4).normalize() }
+                lightDirection: { value: new THREE.Vector3(-3.5, 2.3, 4).normalize() },
+                opacity: { value: opacity }
               },
               vertexShader: `
                 uniform vec3 lightDirection;
@@ -3020,6 +3024,7 @@ const LOVE_STORY = {
               fragmentShader: `
                 uniform vec3 rim;
                 uniform float strength;
+                uniform float opacity;
                 varying vec3 vNormalView;
                 varying vec3 vViewDirection;
                 varying vec3 vLightDirectionView;
@@ -3028,7 +3033,7 @@ const LOVE_STORY = {
                   float facing = max(dot(normal, normalize(vViewDirection)), 0.0);
                   float illuminatedRim = smoothstep(-0.2, 0.45, dot(normal, normalize(vLightDirectionView)));
                   float edge = pow(1.0 - facing, 3.8) * illuminatedRim;
-                  gl_FragColor = vec4(rim, edge * strength);
+                  gl_FragColor = vec4(rim, edge * strength * opacity);
                 }
               `,
               transparent: true,
@@ -3038,18 +3043,58 @@ const LOVE_STORY = {
           );
           group.add(atmosphere);
           group.scale.setScalar(radius);
+          group.userData.setOpacity = (value) => {
+            material.opacity = value;
+            material.depthWrite = value >= .999;
+            atmosphere.material.uniforms.opacity.value = value;
+          };
           scene.add(group);
           return group;
         };
-        const gasGiant = addPlanet({
-          kind: "gas", x: 5.2, y: 1.8, z: 29, radius: 2.15, rimColor: 0xd8bd94
-        });
         const distantMoon = addPlanet({
-          kind: "ice", x: -4.2, y: 2.4, z: 38, radius: .72, rimColor: 0x9bbbe0
+          kind: "ice", x: 3.1, y: 1.15, z: 40.5, radius: .78, rimColor: 0x9bbbe0, opacity: 0
         });
-        const rockyPlanet = addPlanet({
-          kind: "rock", x: -3.4, y: -1.3, z: 16, radius: 1.08, rimColor: 0x7d9ecc
+        const gasGiant = addPlanet({
+          kind: "gas", x: -3.3, y: 1.2, z: 27, radius: 1.72, rimColor: 0xd8bd94
         });
+        const rings = new THREE.Mesh(
+          new THREE.RingGeometry(1.22, 2.55, 256, 4),
+          new THREE.ShaderMaterial({
+            uniforms: { innerRadius: { value: 1.22 }, outerRadius: { value: 2.55 }, opacity: { value: 0 } },
+            vertexShader: `
+              varying vec3 vRingPosition;
+              void main() {
+                vRingPosition = position;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+              }
+            `,
+            fragmentShader: `
+              uniform float innerRadius;
+              uniform float outerRadius;
+              uniform float opacity;
+              varying vec3 vRingPosition;
+              void main() {
+                float radius = length(vRingPosition.xy);
+                float edge = smoothstep(innerRadius, innerRadius + 0.09, radius)
+                  * (1.0 - smoothstep(outerRadius - 0.1, outerRadius, radius));
+                float bands = 0.62 + 0.2 * sin(radius * 74.0) + 0.1 * sin(radius * 191.0);
+                float gaps = smoothstep(0.08, 0.28, abs(sin(radius * 13.5)));
+                vec2 shadowOffset = vRingPosition.xy - vec2(-1.5, 1.0);
+                float planetShadow = 1.0 - 0.78 * (1.0 - smoothstep(0.35, 1.15, length(shadowOffset)));
+                vec3 warmDust = mix(vec3(0.32, 0.3, 0.27), vec3(0.78, 0.68, 0.53), bands);
+                float alpha = edge * gaps * (0.2 + bands * 0.34) * planetShadow * opacity;
+                if (alpha < 0.015) discard;
+                gl_FragColor = vec4(warmDust, alpha);
+              }
+            `,
+            transparent: true,
+            depthWrite: false,
+            side: THREE.DoubleSide
+          })
+        );
+        rings.rotation.set(1.1, 0, -.28);
+        rings.position.z = -.025;
+        gasGiant.add(rings);
 
         const geometry = new THREE.SphereGeometry(1, 192, 128);
         const material = new THREE.MeshStandardMaterial({
@@ -3130,6 +3175,15 @@ const LOVE_STORY = {
               ? Math.max(0, Math.min(1, introProgress))
               : 1;
             const easeOutCubic = 1 - (1 - progress) ** 3;
+            const ramp = (start, end) => {
+              const value = THREE.MathUtils.clamp((progress - start) / (end - start), 0, 1);
+              return value * value * (3 - 2 * value);
+            };
+            const firstPlanetOpacity = ramp(0, .018) * (1 - ramp(.055, .085));
+            const ringPlanetOpacity = ramp(.07, .12) * (1 - ramp(.21, .255));
+            distantMoon.userData.setOpacity(firstPlanetOpacity);
+            gasGiant.userData.setOpacity(ringPlanetOpacity);
+            rings.material.uniforms.opacity.value = ringPlanetOpacity;
             camera.position.z = introStartZ + (menuCameraZ - introStartZ) * easeOutCubic;
             camera.position.x = Math.sin(progress * Math.PI) * .16;
             camera.position.y = Math.sin(progress * Math.PI * 1.4) * Math.sin(progress * Math.PI) * .08;
@@ -3137,7 +3191,6 @@ const LOVE_STORY = {
             moon.rotation.y = reducedMotion ? 0 : time * .000018;
             gasGiant.rotation.y = reducedMotion ? 0 : -time * .000025;
             distantMoon.rotation.y = reducedMotion ? 0 : time * .00003;
-            rockyPlanet.rotation.y = reducedMotion ? 0 : time * .00004;
             galaxy.rotation.y = reducedMotion ? 0 : time * .000003;
             dustField.position.z = -43 * easeOutCubic;
             dustField.position.x = Math.sin(progress * Math.PI) * .24;
