@@ -2517,6 +2517,21 @@ const LOVE_STORY = {
     const isSkyVisible = () => !welcomeScreen.hidden || !hubScreen.hidden;
 
     const randomBetween = (min, max) => min + Math.random() * (max - min);
+    const loadLocalTexture = (THREE, loader, path, colorSpace, anisotropy) => {
+      const baseName = path.split("/").pop();
+      const load = loader.loadAsync(new URL(path, document.baseURI).href)
+        .catch((error) => {
+          if (baseName === path) throw error;
+          return loader.loadAsync(new URL(baseName, document.baseURI).href);
+        });
+      return load.then((texture) => {
+        texture.colorSpace = colorSpace;
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.ClampToEdgeWrapping;
+        texture.anisotropy = anisotropy;
+        return texture;
+      });
+    };
 
     const createLunarTextures = (THREE) => {
       const textureCanvas = document.createElement("canvas");
@@ -2651,30 +2666,15 @@ const LOVE_STORY = {
     const loadLunarTextures = (THREE, anisotropy) => {
       const loader = new THREE.TextureLoader();
       loader.setCrossOrigin("anonymous");
-      const loadTexture = (path, colorSpace) => loader.loadAsync(new URL(path, document.baseURI).href)
-        .then((texture) => {
-          texture.colorSpace = colorSpace;
-          texture.wrapS = THREE.RepeatWrapping;
-          texture.wrapT = THREE.ClampToEdgeWrapping;
-          texture.anisotropy = anisotropy;
-          return texture;
-        });
       return Promise.all([
-        loadTexture("assets/lunar-color.jpg", THREE.SRGBColorSpace),
-        loadTexture("assets/lunar-height.jpg", THREE.NoColorSpace)
+        loadLocalTexture(THREE, loader, "assets/lunar-color.jpg", THREE.SRGBColorSpace, anisotropy),
+        loadLocalTexture(THREE, loader, "assets/lunar-height.jpg", THREE.NoColorSpace, anisotropy)
       ]).then(([diffuse, bump]) => ({ diffuse, bump }));
     };
 
     const loadPlanetTextures = (THREE, anisotropy) => {
       const loader = new THREE.TextureLoader();
-      const loadTexture = (path, colorSpace) => loader.loadAsync(new URL(path, document.baseURI).href)
-        .then((texture) => {
-          texture.colorSpace = colorSpace;
-          texture.wrapS = THREE.RepeatWrapping;
-          texture.wrapT = THREE.ClampToEdgeWrapping;
-          texture.anisotropy = anisotropy;
-          return texture;
-        })
+      const loadTexture = (path, colorSpace) => loadLocalTexture(THREE, loader, path, colorSpace, anisotropy)
         .catch((error) => {
           console.warn(`Texture locale indisponible (${path}) ; le rendu procédural sera conservé.`, error);
           return null;
@@ -2694,7 +2694,8 @@ const LOVE_STORY = {
     const createMoonScene = () => {
       const THREE = window.THREE;
       if (!THREE) {
-        console.error("Three.js n'a pas pu être chargé depuis le CDN ; la lune 3D est indisponible.");
+        document.body.classList.add("is-sky-fallback");
+        console.error("Three.js n'a pas pu être chargé depuis les ressources locales.");
         return null;
       }
       try {
@@ -3355,6 +3356,7 @@ const LOVE_STORY = {
           }
         };
       } catch (error) {
+        document.body.classList.add("is-sky-fallback");
         console.error("Impossible d'initialiser le rendu WebGL de la lune.", error);
         return null;
       }
@@ -3435,5 +3437,13 @@ const LOVE_STORY = {
     startBackgroundAnimation();
   }
 
-  initializeCelestialScene();
+  window.threeReady
+    .then(initializeCelestialScene)
+    .catch((error) => {
+      console.error("Impossible de démarrer la scène céleste.", error);
+      document.body.classList.add("is-sky-fallback");
+      document.body.classList.remove("is-intro-running");
+      $("#welcome-screen").inert = false;
+      $("#intro-scene").remove();
+    });
 })();

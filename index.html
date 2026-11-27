@@ -6,11 +6,31 @@
     <meta name="theme-color" content="#05060a">
     <meta name="description" content="Une année entière qui m'a éclairé.">
     <title>Pour nos 1 ans</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <script defer src="vendor/three.min.js"></script>
+    <script>
+      window.threeReady = new Promise((resolve) => {
+        const sources = ["vendor/three.min.js", "three.min.js"];
+        const loadThree = (index) => {
+          if (index >= sources.length) {
+            console.error("Three.js est introuvable dans les ressources locales.");
+            resolve(null);
+            return;
+          }
+          const script = document.createElement("script");
+          script.src = sources[index];
+          script.onload = () => {
+            if (window.THREE) resolve(window.THREE);
+            else {
+              console.error(`Three.js n'a pas exposé son API après le chargement de ${sources[index]}.`);
+              resolve(null);
+            }
+          };
+          script.onerror = () => loadThree(index + 1);
+          document.head.append(script);
+        };
+        loadThree(0);
+      });
+    </script>
     <script defer src="script.js"></script>
   </head>
   <body class="has-sky-background is-intro-running">
