@@ -104,12 +104,12 @@ const LOVE_STORY = {
         type: "stars",
         sequence: ["ring", "diamond", "cross", "spark", "orbit", "asterisk"],
         stars: [
-          { id: "ring", sign: "○", name: "anneau" },
-          { id: "diamond", sign: "◇", name: "losange" },
-          { id: "cross", sign: "✛", name: "croix" },
-          { id: "spark", sign: "✧", name: "étoile fine" },
-          { id: "orbit", sign: "⊙", name: "orbite" },
-          { id: "asterisk", sign: "✣", name: "étoile à quatre branches" }
+          { id: "ring", sign: "◦", name: "anneau" },
+          { id: "diamond", sign: "◊", name: "losange" },
+          { id: "cross", sign: "+", name: "croix" },
+          { id: "spark", sign: "✦", name: "étoile" },
+          { id: "orbit", sign: "◦", name: "petit cercle" },
+          { id: "asterisk", sign: "+", name: "croix finale" }
         ],
         poem: ["Une étoile pour notre rencontre,", "une autre pour chacun de nos rires,", "et toutes celles du ciel", "pour les rêves qu'il nous reste à vivre."]
       },
@@ -1765,12 +1765,12 @@ const LOVE_STORY = {
       const phase = seed * 1.21;
       const centerX = 50 + Math.sin(seed * 2.7) * 6;
       const centerY = 50 + Math.cos(seed * 1.9) * 5;
-      const radiusX = 32 + seed % 3 * 2;
-      const radiusY = 28 + seed % 4 * 2;
+      const radiusX = 12 + seed % 3 * 2;
+      const radiusY = 10 + seed % 4 * 2;
       return Array.from({ length: 5 }, (_, step) => {
         const angle = phase + step * Math.PI * .48;
-        const x = centerX + Math.cos(angle) * radiusX + Math.sin(angle * 1.55 + phase) * 6;
-        const y = centerY + Math.sin(angle * .82 + phase) * radiusY + Math.cos(angle * 1.4 - phase) * 6;
+        const x = centerX + Math.cos(angle) * radiusX + Math.sin(angle * 1.55 + phase) * 2.5;
+        const y = centerY + Math.sin(angle * .82 + phase) * radiusY + Math.cos(angle * 1.4 - phase) * 2.5;
         return {
           x: Math.max(14, Math.min(86, x)),
           y: Math.max(14, Math.min(86, y))
@@ -1792,7 +1792,7 @@ const LOVE_STORY = {
       const button = document.createElement("button");
       button.type = "button";
       button.className = `shooting-target${isDecoy ? " is-decoy" : " is-sequence"}`;
-      button.style.setProperty("--star-duration", `${24 + index % 4 * 3}s`);
+      button.style.setProperty("--star-duration", `${48 + index % 4 * 8}s`);
       button.style.setProperty("--star-delay", `${-index * 1.25}s`);
       button.style.setProperty("--star-trail-duration", `${1.6 + index % 5 * .24}s`);
       button.setAttribute(
