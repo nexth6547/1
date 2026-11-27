@@ -3,7 +3,7 @@
 const LOVE_STORY = {
   title: "Pour nos 1 ans",
   subtitle: "Une année entière qui m'a éclairé.",
-  finalMessage: "À venir.\n\nÉcris ici ta déclaration finale.",
+  finalMessage: "Et finalement, mon plus beau cadeau, c’est d’être là.",
   months: [
     {
       title: "La fouille de zone",
