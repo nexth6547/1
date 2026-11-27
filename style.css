@@ -616,26 +616,27 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   position: absolute;
   top: var(--meteor-y);
   left: -18%;
-  width: clamp(11rem, 25vw, 20rem);
-  height: 2px;
+  width: clamp(7rem, 16vw, 12rem);
+  height: 1px;
   border-radius: 999px;
-  background: linear-gradient(90deg, transparent, rgba(210,226,255,.18) 38%, rgba(244,248,255,.85) 88%, #fff 100%);
-  box-shadow: 0 0 8px rgba(219,232,255,.86), 0 0 20px rgba(175,203,255,.58);
+  background: linear-gradient(90deg, transparent, rgba(210,226,255,.08) 38%, rgba(244,248,255,.4) 88%, rgba(255,255,255,.68) 100%);
+  box-shadow: 0 0 5px rgba(219,232,255,.44), 0 0 12px rgba(175,203,255,.26);
   opacity: 0;
   transform-origin: right center;
-  animation: meteor-cross 5.2s linear infinite;
+  animation: meteor-cross 28s linear infinite;
   animation-delay: var(--meteor-delay);
+  pointer-events: none;
   will-change: transform, opacity;
 }
 .shooting-meteor::after {
   position: absolute;
   top: 50%;
   right: -2px;
-  width: 7px;
-  height: 7px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 0 8px 3px rgba(244,248,255,.95), 0 0 22px 8px rgba(184,210,255,.7);
+  box-shadow: 0 0 5px 2px rgba(244,248,255,.64), 0 0 12px 4px rgba(184,210,255,.36);
   content: "";
   transform: translateY(-50%);
 }
@@ -684,8 +685,8 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   top: 0;
   left: 0;
   display: grid;
-  width: clamp(5rem, 8vw, 6.5rem);
-  height: clamp(5rem, 8vw, 6.5rem);
+  width: clamp(5.5rem, 8vw, 7rem);
+  height: clamp(5.5rem, 8vw, 7rem);
   place-items: center;
   border: 1px solid transparent;
   border-radius: 50%;
@@ -693,7 +694,7 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   color: #fff7e8;
   cursor: pointer;
   filter: drop-shadow(0 0 12px currentColor);
-  animation: star-flight var(--star-duration, 48s) ease-in-out infinite alternate;
+  animation: star-float var(--star-duration, 9s) ease-in-out infinite alternate;
   animation-delay: var(--star-delay);
   transition: background 180ms ease, border-color 180ms ease, filter 180ms ease, opacity 460ms ease;
   pointer-events: auto;
@@ -702,35 +703,6 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
 }
 .shooting-target.is-sequence { z-index: 3; }
 .shooting-target.is-sequence.is-next { z-index: 4; }
-.shooting-star-trail {
-  position: absolute;
-  top: 27%;
-  right: 52%;
-  width: clamp(9rem, 19vw, 15rem);
-  height: 3rem;
-  border-bottom: 2px solid rgba(255,252,242,.92);
-  border-radius: 0 0 76% 54%;
-  background: radial-gradient(ellipse at 94% 84%, rgba(255,255,255,.8), rgba(232,239,250,.3) 38%, transparent 72%);
-  opacity: 1;
-  filter: blur(.2px) drop-shadow(0 0 10px rgba(255,250,231,.9));
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 76%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 76%, transparent);
-  transform: rotate(var(--star-trail-angle, -16deg));
-  transform-origin: right center;
-  animation: star-tail-drift var(--star-trail-duration, 2s) ease-in-out infinite alternate;
-  pointer-events: none;
-}
-.shooting-star-trail::before {
-  position: absolute;
-  inset: 20% 0 0;
-  background:
-    radial-gradient(1.5px 1.5px at 22% 72%, rgba(255,250,235,.8) 55%, transparent),
-    radial-gradient(1px 1px at 48% 45%, rgba(230,239,255,.68) 55%, transparent),
-    radial-gradient(1px 1px at 76% 75%, rgba(255,250,235,.55) 55%, transparent);
-  content: "";
-  animation: star-tail-particles 2.4s ease-in-out infinite alternate;
-  pointer-events: none;
-}
 .shooting-star-core {
   position: relative;
   z-index: 1;
@@ -780,19 +752,6 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   text-shadow: 0 0 8px #fff, 0 0 16px rgba(255,255,255,.82);
   box-shadow: 0 0 0 2px rgba(255,255,255,.12), 0 0 16px rgba(230,241,255,.84);
 }
-.shooting-star-particles {
-  position: absolute;
-  inset: 20%;
-  border-radius: 50%;
-  background:
-    radial-gradient(1.5px 1.5px at 20% 27%, #fff 60%, transparent),
-    radial-gradient(1px 1px at 73% 18%, rgba(255,247,226,.9) 60%, transparent),
-    radial-gradient(1px 1px at 82% 72%, #fff 60%, transparent),
-    radial-gradient(1px 1px at 32% 85%, rgba(255,247,226,.9) 60%, transparent);
-  opacity: .75;
-  animation: star-particle-spin 5s linear infinite;
-  pointer-events: none;
-}
 .shooting-target.is-next .shooting-star-core::after {
   position: absolute;
   inset: -14px;
@@ -800,12 +759,7 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   border-radius: 50%;
   box-shadow: 0 0 12px currentColor, inset 0 0 10px rgba(255,255,255,.16);
   content: "";
-  animation: star-next-pulse 1.6s ease-in-out infinite;
 }
-.shooting-target.is-next .shooting-star-particles { opacity: 1; }
-.shooting-target.is-decoy { opacity: .84; filter: drop-shadow(0 0 10px currentColor); }
-.shooting-target.is-decoy:hover,
-.shooting-target.is-decoy:focus-visible { opacity: 1; }
 .shooting-target:hover,
 .shooting-target:focus-visible,
 .shooting-target:active {
@@ -828,29 +782,23 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
 .shooting-target.is-wrong .shooting-star-core { animation: star-wrong 540ms ease; }
 .shooting-target.is-wrong { background: radial-gradient(circle, rgba(133,167,229,.2), transparent 72%); }
 .star-feedback.is-error { color: #b9c9e8; text-shadow: 0 0 12px rgba(133,167,229,.3); }
-@keyframes star-flight {
-  0% { transform: translate3d(var(--flight-x0), var(--flight-y0), 0) translate(-50%, -50%); }
-  25% { transform: translate3d(var(--flight-x1), var(--flight-y1), 0) translate(-50%, -50%); }
-  50% { transform: translate3d(var(--flight-x2), var(--flight-y2), 0) translate(-50%, -50%); }
-  75% { transform: translate3d(var(--flight-x3), var(--flight-y3), 0) translate(-50%, -50%); }
-  100% { transform: translate3d(var(--flight-x4), var(--flight-y4), 0) translate(-50%, -50%); }
+@keyframes star-float {
+  from { transform: translate(-50%, -50%) translateY(3px) scale(.99); }
+  to { transform: translate(-50%, -50%) translateY(-3px) scale(1.01); }
 }
 @keyframes meteor-cross {
   0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(var(--meteor-angle)) scaleX(.62); }
-  7% { opacity: 1; }
-  54% { opacity: .92; }
+  7% { opacity: .38; }
+  54% { opacity: .32; }
   62% { opacity: 0; transform: translate3d(155vw, 0, 0) rotate(var(--meteor-angle)) scaleX(1); }
   100% { opacity: 0; transform: translate3d(155vw, 0, 0) rotate(var(--meteor-angle)) scaleX(1); }
 }
-@keyframes star-tail-drift { from { opacity: .43; scale: .88 .78; } to { opacity: .88; scale: 1.05 1.08; } }
-@keyframes star-tail-particles { from { opacity: .22; transform: translate(-4px, 2px); } to { opacity: .9; transform: translate(3px, -2px); } }
 @keyframes star-wrong { 15%, 55%, 85% { transform: translateX(-6px) rotate(-6deg) scale(1.1); } 35%, 70% { transform: translateX(6px) rotate(6deg) scale(1.1); } }
 @keyframes star-caught { 0% { opacity: 1; transform: scale(1); } 35% { opacity: 1; transform: scale(1.8); } 100% { opacity: 0; transform: scale(.2); } }
 @keyframes star-next-pulse { 0%, 100% { opacity: .58; transform: scale(.88); } 50% { opacity: 1; transform: scale(1.12); } }
 @keyframes star-twinkle { 0%, 100% { opacity: .18; transform: scale(.7); } 50% { opacity: .9; transform: scale(1.25); } }
 @keyframes starfield-breathe { from { opacity: .3; } to { opacity: .68; } }
 @keyframes star-nebula-drift { from { transform: translate(-2%, 1%) scale(.98); } to { transform: translate(2%, -1%) scale(1.04); } }
-@keyframes star-particle-spin { to { transform: rotate(360deg); } }
 @keyframes constellation-draw { from { stroke-dasharray: 0 1000; } to { stroke-dasharray: 1000 0; } }
 .star-progress { display: flex; justify-content: center; gap: .45rem; min-height: 1.6rem; margin-top: 1rem; }
 .star-progress-dot { color: #e8c66f; text-shadow: 0 0 12px rgba(232,198,111,.65); }
@@ -1403,7 +1351,7 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-  .shooting-meteor { animation-duration: 10.4s !important; animation-delay: var(--meteor-reduced-delay) !important; animation-iteration-count: infinite !important; }
+  .shooting-meteor { animation-duration: 56s !important; animation-delay: var(--meteor-reduced-delay) !important; animation-iteration-count: infinite !important; }
   .intro-scene { display: none; }
   .is-intro-running .welcome-content > * { opacity: 1; transform: none; transition-delay: 0s; }
 }

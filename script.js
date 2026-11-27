@@ -1681,15 +1681,9 @@ const LOVE_STORY = {
     const constellationNodes = $(".star-constellation-nodes");
     const constellationPoints = [];
     const movingTargets = [];
-    const decoyStars = [
-      { sign: "•", name: "point" },
-      { sign: "△", name: "triangle" },
-      { sign: "×", name: "croix fine" },
-      { sign: "☾", name: "croissant" },
-      { sign: "∞", name: "infini" },
-      { sign: "☆", name: "étoile vide" },
-      { sign: "≋", name: "vagues" },
-      { sign: "⊗", name: "cercle croisé" }
+    const targetPositions = [
+      { x: 17, y: 30 }, { x: 50, y: 30 }, { x: 83, y: 30 },
+      { x: 17, y: 70 }, { x: 50, y: 70 }, { x: 83, y: 70 }
     ];
 
     for (let index = 0; index < 38; index += 1) {
@@ -1702,36 +1696,19 @@ const LOVE_STORY = {
       sparkleLayer.append(sparkle);
     }
 
-    for (let index = 0; index < 5; index += 1) {
+    for (let index = 0; index < 3; index += 1) {
       const meteor = document.createElement("span");
       meteor.className = "shooting-meteor";
-      meteor.style.setProperty("--meteor-y", `${12 + index * 18}%`);
+      meteor.style.setProperty("--meteor-y", `${24 + index * 26}%`);
       meteor.style.setProperty("--meteor-angle", `${index % 2 ? -25 : -18}deg`);
-      meteor.style.setProperty("--meteor-delay", `${-index * 1.04}s`);
-      meteor.style.setProperty("--meteor-reduced-delay", `${-index * 2.08}s`);
+      meteor.style.setProperty("--meteor-delay", `${-index * 9.33}s`);
+      meteor.style.setProperty("--meteor-reduced-delay", `${-index * 18.67}s`);
       meteorLayer.append(meteor);
-    }
-
-    function updateStarRoutes(width, height) {
-      movingTargets.forEach(({ element, route }) => {
-        route.forEach((point, index) => {
-          element.style.setProperty(`--flight-x${index}`, `${point.x * width}px`);
-          element.style.setProperty(`--flight-y${index}`, `${point.y * height}px`);
-        });
-        const direction = route[1];
-        const origin = route[0];
-        const trailAngle = Math.atan2(
-          (direction.y - origin.y) * height,
-          (direction.x - origin.x) * width
-        ) * 180 / Math.PI;
-        element.style.setProperty("--star-trail-angle", `${trailAngle}deg`);
-      });
     }
 
     function updateConstellation() {
       const width = field.clientWidth;
       const height = field.clientHeight;
-      updateStarRoutes(width, height);
       constellation.setAttribute("viewBox", `0 0 ${width} ${height}`);
       const path = constellationPoints.map((point, index) => `${index ? "L" : "M"} ${point.x * width} ${point.y * height}`).join(" ");
       constellationGlow.setAttribute("d", path);
@@ -1760,48 +1737,28 @@ const LOVE_STORY = {
       order.append(orderDot);
     });
 
-    function createRoute(index) {
-      const seed = index + 1;
-      const phase = seed * 1.21;
-      const centerX = 50 + Math.sin(seed * 2.7) * 6;
-      const centerY = 50 + Math.cos(seed * 1.9) * 5;
-      const radiusX = 12 + seed % 3 * 2;
-      const radiusY = 10 + seed % 4 * 2;
-      return Array.from({ length: 5 }, (_, step) => {
-        const angle = phase + step * Math.PI * .48;
-        const x = centerX + Math.cos(angle) * radiusX + Math.sin(angle * 1.55 + phase) * 2.5;
-        const y = centerY + Math.sin(angle * .82 + phase) * radiusY + Math.cos(angle * 1.4 - phase) * 2.5;
-        return {
-          x: Math.max(14, Math.min(86, x)),
-          y: Math.max(14, Math.min(86, y))
-        };
-      });
-    }
-
     function updateNextStar() {
       order.querySelectorAll(".star-order-dot").forEach((dot, index) => {
         dot.classList.toggle("is-next", index === foundFragments.size);
       });
-      movingTargets.forEach(({ element }) => {
+      movingTargets.forEach((element) => {
         element.classList.toggle("is-next", Number(element.dataset.sequenceIndex) === foundFragments.size);
       });
     }
 
     function createTarget(starConfig, sequenceIndex, index) {
-      const isDecoy = sequenceIndex === null;
       const button = document.createElement("button");
       button.type = "button";
-      button.className = `shooting-target${isDecoy ? " is-decoy" : " is-sequence"}`;
-      button.style.setProperty("--star-duration", `${48 + index % 4 * 8}s`);
-      button.style.setProperty("--star-delay", `${-index * 1.25}s`);
-      button.style.setProperty("--star-trail-duration", `${1.6 + index % 5 * .24}s`);
+      button.className = "shooting-target is-sequence";
+      button.style.left = `${targetPositions[index].x}%`;
+      button.style.top = `${targetPositions[index].y}%`;
+      button.style.setProperty("--star-duration", `${9 + index % 3 * 2}s`);
+      button.style.setProperty("--star-delay", `${-index * .8}s`);
       button.setAttribute(
         "aria-label",
-        isDecoy
-          ? `Étoile leurre, signe ${starConfig.sign}`
-          : `Étoile ${starConfig.name}, signe ${starConfig.sign}, étape ${sequenceIndex + 1} sur ${config.sequence.length}`
+        `Étoile ${starConfig.name}, signe ${starConfig.sign}, étape ${sequenceIndex + 1} sur ${config.sequence.length}`
       );
-      if (!isDecoy) button.dataset.sequenceIndex = String(sequenceIndex);
+      button.dataset.sequenceIndex = String(sequenceIndex);
       const core = document.createElement("span");
       core.className = "shooting-star-core";
       core.textContent = "✦";
@@ -1809,15 +1766,8 @@ const LOVE_STORY = {
       sign.className = "shooting-star-symbol";
       sign.textContent = starConfig.sign;
       sign.setAttribute("aria-hidden", "true");
-      const trail = document.createElement("span");
-      trail.className = "shooting-star-trail";
-      trail.setAttribute("aria-hidden", "true");
-      const particles = document.createElement("span");
-      particles.className = "shooting-star-particles";
-      particles.setAttribute("aria-hidden", "true");
-      button.append(trail, core, sign, particles);
-      const route = createRoute(index);
-      movingTargets.push({ element: button, route });
+      button.append(core, sign);
+      movingTargets.push(button);
       button.addEventListener("click", () => {
         if (button.disabled) return;
         if (sequenceIndex !== foundFragments.size) {
@@ -1868,9 +1818,6 @@ const LOVE_STORY = {
     config.sequence.forEach((starId, index) => {
       const starConfig = config.stars.find((star) => star.id === starId);
       if (starConfig) createTarget(starConfig, index, index);
-    });
-    decoyStars.forEach((star, index) => {
-      createTarget(star, null, config.sequence.length + index);
     });
     updateNextStar();
     updateConstellation();
