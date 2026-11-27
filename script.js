@@ -2437,8 +2437,9 @@ const LOVE_STORY = {
     const month = LOVE_STORY.months[activeMonth];
     $("#reveal-title").textContent = `Mois ${activeMonth + 1} · ${month.calendarMonth} · ${month.title}`;
     const revealCopy = $("#reveal-copy");
-    const hasPersonalMessage = month.personalMessage.trim().length > 0;
-    revealCopy.textContent = month.personalMessage;
+    const personalMessage = month.personalMessage.trim();
+    const hasPersonalMessage = personalMessage.length > 0 && normalizeAnswer(personalMessage) !== "a venir";
+    revealCopy.textContent = hasPersonalMessage ? personalMessage : "";
     revealCopy.hidden = !hasPersonalMessage;
     $(".reveal-card .letter-divider").hidden = !hasPersonalMessage;
     $("#continue-button").textContent = activeMonth < LOVE_STORY.months.length - 1
