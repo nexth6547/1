@@ -322,14 +322,8 @@ const LOVE_STORY = {
   function openFinalMessage() {
     if (completed.length !== LOVE_STORY.months.length) return;
     $("#reveal-title").textContent = "Le grand mot final";
-    const recap = LOVE_STORY.months
-      .map((month, index) => {
-        const heading = `Mois ${index + 1} · ${month.calendarMonth} · ${month.title}`;
-        return month.personalMessage.trim() ? `${heading}\n${month.personalMessage}` : heading;
-      })
-      .join("\n\n");
     const revealCopy = $("#reveal-copy");
-    revealCopy.textContent = `${LOVE_STORY.finalMessage}\n\n✦ Notre année en quelques mots ✦\n\n${recap}`;
+    revealCopy.textContent = LOVE_STORY.finalMessage;
     revealCopy.hidden = false;
     $(".reveal-card .letter-divider").hidden = false;
     dialog.classList.add("is-final");

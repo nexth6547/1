@@ -1250,8 +1250,8 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
 .reveal-card { padding: 2.7rem clamp(1.4rem, 6vw, 3.4rem) 2rem; text-align: center; }
 .letter-seal { display: grid; width: 3rem; height: 3rem; place-items: center; margin: 0 auto 1.2rem; border: 1px solid rgba(244,114,182,.36); border-radius: 50%; background: rgba(244,114,182,.1); color: var(--pink); }
 .reveal-dialog:not(.is-final) .letter-seal { border-color: rgba(232,198,111,.36); background: rgba(232,198,111,.1); color: #e8c66f; }
-.reveal-dialog:not(.is-final) .button-primary { background: linear-gradient(115deg, #f8e6ae, #dfbd62); box-shadow: 0 8px 30px rgba(223,189,98,.24); color: #302713; }
-.reveal-dialog:not(.is-final) .button-primary:hover { box-shadow: 0 12px 36px rgba(223,189,98,.3); }
+.reveal-dialog .button-primary { background: linear-gradient(115deg, #f8e6ae, #dfbd62); box-shadow: 0 8px 30px rgba(223,189,98,.24); color: #302713; }
+.reveal-dialog .button-primary:hover { box-shadow: 0 12px 36px rgba(223,189,98,.3); }
 .reveal-card h2 { margin-top: .8rem; font-size: clamp(2rem, 6vw, 3rem); }
 .letter-divider { display: flex; align-items: center; gap: .8rem; margin: 1.4rem 0; color: var(--gold); }
 .letter-divider::before, .letter-divider::after { height: 1px; flex: 1; background: linear-gradient(90deg, transparent, rgba(251,191,36,.35)); content: ""; }
