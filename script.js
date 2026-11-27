@@ -179,9 +179,9 @@ const LOVE_STORY = {
       game: {
         type: "quiz",
         questions: [
-          { question: "Quelle est notre petite boisson préférée à partager ?", answers: ["un chocolat chaud", "chocolat chaud", "un chocolat chaud à deux"] },
-          { question: "Qu'est-ce qui me fait toujours sourire chez toi ?", answers: ["ton rire", "son rire", "ton sourire"] },
-          { question: "Quel serait mon programme parfait avec toi ?", answers: ["une soirée ensemble", "rester avec toi", "une balade à deux"] }
+          { question: "Quelle est la date où on s'est mis ensemble ?", answers: ["25 novembre", "le 25 novembre", "25 11"] },
+          { question: "À qui est-ce que je tiens le plus ?", answers: ["moi", "léa", "moi léa"] },
+          { question: "Quelle sortie ai-je le plus aimé faire avec toi ?", answers: ["la sortie à Pairi Daiza", "sortie à Pairi Daiza", "une sortie à Pairi Daiza", "Pairi Daiza", "la sortie à Prairi Daiza", "Prairi Daiza"] }
         ]
       },
       personalMessage: "À venir."
