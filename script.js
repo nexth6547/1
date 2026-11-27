@@ -2532,7 +2532,7 @@ const LOVE_STORY = {
     const moonCanvas = $("#moon3d");
     const intro = $("#intro-scene");
     const skipButton = $("#intro-skip");
-    const introDuration = 15000;
+    const introDuration = 11000;
     let frameHandle = 0;
     let isRunning = false;
     let motionTime = 0;
@@ -2813,22 +2813,22 @@ const LOVE_STORY = {
         const starLayers = [
           createParticleLayer(5000, () => ({
             x: (Math.random() * 2 - 1) * 56, y: (Math.random() * 2 - 1) * 34,
-            z: randomBetween(-90, 43), size: randomBetween(.9, 2.4),
-            alpha: randomBetween(.32, .72),
+            z: randomBetween(-90, 43), size: randomBetween(1.15, 2.9),
+            alpha: randomBetween(.44, .82),
             color: Math.random() > .9 ? 0xf1d9a7 : Math.random() > .48 ? 0xdfe9fb : 0xb9c9e8
-          }), 1.02),
+          }), 1.16),
           createParticleLayer(3000, () => ({
             x: (Math.random() * 2 - 1) * 40, y: (Math.random() * 2 - 1) * 25,
-            z: randomBetween(-60, 35), size: randomBetween(1.15, 2.9),
-            alpha: randomBetween(.34, .74),
+            z: randomBetween(-60, 35), size: randomBetween(1.35, 3.2),
+            alpha: randomBetween(.46, .84),
             color: Math.random() > .88 ? 0xf6e4c3 : Math.random() > .44 ? 0xf3f6ff : 0xd9e4fa
-          }), 1.04),
+          }), 1.18),
           createParticleLayer(2200, () => ({
             x: (Math.random() * 2 - 1) * 50, y: (Math.random() * 2 - 1) * 30,
-            z: randomBetween(-105, 40), size: randomBetween(.55, 1.6),
-            alpha: randomBetween(.22, .48),
+            z: randomBetween(-105, 40), size: randomBetween(.8, 1.9),
+            alpha: randomBetween(.3, .58),
             color: Math.random() > .9 ? 0xdac394 : Math.random() > .5 ? 0xcbdaf3 : 0xe7edf8
-          }), .88)
+          }), 1.02)
         ];
         const dustLayer = createParticleLayer(1600, () => ({
           x: (Math.random() * 2 - 1) * 11,
@@ -3192,10 +3192,10 @@ const LOVE_STORY = {
           return group;
         };
         const distantMoon = addPlanet({
-          kind: "neptune", x: 3.1, y: 1.15, z: 40.5, radius: .78, rimColor: 0x9bbbe0, opacity: 0
+          kind: "neptune", x: 2.2, y: 1.15, z: 35.5, radius: .78, rimColor: 0x9bbbe0, opacity: 0
         });
         const gasGiant = addPlanet({
-          kind: "gas", x: -5.2, y: 1.7, z: 27, radius: 1.45, rimColor: 0xd8bd94
+          kind: "gas", x: -2.15, y: 1.7, z: 19, radius: 1.45, rimColor: 0xd8bd94
         });
         const fallbackRingMap = new THREE.DataTexture(
           new Uint8Array([255, 255, 255, 255]),
@@ -3272,7 +3272,9 @@ const LOVE_STORY = {
           displacementScale: .018,
           roughness: 1,
           metalness: 0,
-          transparent: true
+          transparent: true,
+          depthWrite: false,
+          opacity: 0
         });
         const moon = new THREE.Mesh(geometry, material);
         const atmosphere = new THREE.Mesh(
@@ -3349,12 +3351,16 @@ const LOVE_STORY = {
               return value * value * (3 - 2 * value);
             };
             const firstPlanetOpacity = ramp(0, .04) * (1 - ramp(.075, .1));
-            const ringPlanetOpacity = ramp(.1, .16) * (1 - ramp(.37, .44));
+            const ringPlanetOpacity = ramp(.1, .14) * (1 - ramp(.32, .38));
+            const finalMoonOpacity = ramp(.58, .86);
             distantMoon.userData.setOpacity(firstPlanetOpacity);
             gasGiant.userData.setOpacity(ringPlanetOpacity);
             rings.material.uniforms.opacity.value = ringPlanetOpacity;
+            material.opacity = finalMoonOpacity;
+            atmosphere.material.uniforms.visibility.value = finalMoonOpacity;
             const approachToPlanets = ramp(0, .2);
-            const approachToMoon = ramp(.42, 1);
+            const moonApproachProgress = THREE.MathUtils.clamp((progress - .42) / .58, 0, 1);
+            const approachToMoon = moonApproachProgress ** 1.35;
             camera.position.z = introStartZ - 17 * approachToPlanets - 26 * approachToMoon;
             camera.position.x = Math.sin(progress * Math.PI) * .16;
             camera.position.y = Math.sin(progress * Math.PI * 1.4) * Math.sin(progress * Math.PI) * .08;
