@@ -1772,8 +1772,8 @@ const LOVE_STORY = {
         const x = centerX + Math.cos(angle) * radiusX + Math.sin(angle * 1.55 + phase) * 6;
         const y = centerY + Math.sin(angle * .82 + phase) * radiusY + Math.cos(angle * 1.4 - phase) * 6;
         return {
-          x: Math.max(8, Math.min(92, x)),
-          y: Math.max(8, Math.min(92, y))
+          x: Math.max(14, Math.min(86, x)),
+          y: Math.max(14, Math.min(86, y))
         };
       });
     }
@@ -1792,7 +1792,7 @@ const LOVE_STORY = {
       const button = document.createElement("button");
       button.type = "button";
       button.className = `shooting-target${isDecoy ? " is-decoy" : " is-sequence"}`;
-      button.style.setProperty("--star-duration", `${10 + index % 4 * 1.2}s`);
+      button.style.setProperty("--star-duration", `${24 + index % 4 * 3}s`);
       button.style.setProperty("--star-delay", `${-index * 1.25}s`);
       button.style.setProperty("--star-trail-duration", `${1.6 + index % 5 * .24}s`);
       button.setAttribute(

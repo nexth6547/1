@@ -696,8 +696,12 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   animation: star-flight var(--star-duration, 12s) ease-in-out infinite alternate;
   animation-delay: var(--star-delay);
   transition: background 180ms ease, border-color 180ms ease, filter 180ms ease, opacity 460ms ease;
+  pointer-events: auto;
+  touch-action: manipulation;
   will-change: transform;
 }
+.shooting-target.is-sequence { z-index: 3; }
+.shooting-target.is-sequence.is-next { z-index: 4; }
 .shooting-star-trail {
   position: absolute;
   top: 27%;
@@ -740,6 +744,7 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   font-size: 1.55rem;
   text-shadow: 0 0 9px #fff, 0 0 24px rgba(255,250,237,1);
   transition: transform 180ms ease, filter 180ms ease;
+  pointer-events: none;
 }
 .shooting-star-symbol {
   position: absolute;
@@ -761,11 +766,11 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   pointer-events: none;
 }
 .shooting-target.is-sequence .shooting-star-symbol {
-  min-width: 1.65rem;
-  height: 1.65rem;
+  min-width: 2rem;
+  height: 2rem;
   border-color: rgba(255,244,211,.9);
   background: rgba(8,12,22,.96);
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   box-shadow: 0 0 12px rgba(255,244,211,.72);
 }
 .shooting-star-particles {
@@ -779,6 +784,7 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
     radial-gradient(1px 1px at 32% 85%, rgba(255,247,226,.9) 60%, transparent);
   opacity: .75;
   animation: star-particle-spin 5s linear infinite;
+  pointer-events: none;
 }
 .shooting-target.is-next .shooting-star-core::after {
   position: absolute;
@@ -794,12 +800,16 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
 .shooting-target.is-decoy:hover,
 .shooting-target.is-decoy:focus-visible { opacity: 1; }
 .shooting-target:hover,
-.shooting-target:focus-visible {
+.shooting-target:focus-visible,
+.shooting-target:active {
   z-index: 4;
   border-color: rgba(255,240,201,.56);
   background: radial-gradient(circle, rgba(255,239,190,.23), rgba(122,151,214,.08) 58%, transparent 75%);
   filter: drop-shadow(0 0 18px currentColor);
 }
+.shooting-target:hover,
+.shooting-target:focus-visible,
+.shooting-target:active { animation-play-state: paused; }
 .shooting-target:hover .shooting-star-core,
 .shooting-target:focus-visible .shooting-star-core {
   transform: scale(1.32);
