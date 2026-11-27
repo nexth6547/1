@@ -184,7 +184,7 @@ const LOVE_STORY = {
           { question: "Quelle sortie ai-je le plus aimé faire avec toi ?", answers: ["la sortie à Pairi Daiza", "sortie à Pairi Daiza", "une sortie à Pairi Daiza", "Pairi Daiza", "la sortie à Prairi Daiza", "Prairi Daiza"] }
         ]
       },
-      personalMessage: "À venir."
+      personalMessage: ""
     },
     {
       title: "La traînée de lumière",
@@ -192,7 +192,7 @@ const LOVE_STORY = {
       label: "Le cœur lumineux",
       subtitle: "Trace un cœur d'un seul geste pour laisser une petite lumière dans la nuit.",
       game: { type: "trace", shape: "heart" },
-      personalMessage: "À venir."
+      personalMessage: "Un cœur qui représente tout l’amour que j’ai pour toi."
     },
     {
       title: "Le bouquet final",
@@ -210,7 +210,7 @@ const LOVE_STORY = {
           { glyph: "🌷", label: "fleur 11" }, { glyph: "💐", label: "fleur 12" }
         ]
       },
-      personalMessage: "À venir."
+      personalMessage: ""
     }
   ]
 };
