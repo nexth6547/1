@@ -1222,7 +1222,11 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
 .bouquet-flower.is-picked { border-color: rgba(232,198,111,.38); background: rgba(232,198,111,.07); color: #efd994; }
 .bouquet-flower.is-picked .bouquet-flower-glyph { filter: none; opacity: 1; }
 .bouquet-flower:disabled { cursor: default; }
-.reveal-dialog.is-final { width: min(820px, calc(100% - 2rem)); }
+.reveal-dialog.is-final {
+  width: min(820px, calc(100% - 2rem));
+  border-color: rgba(255,255,255,.12);
+  background: rgba(20,20,22,.97);
+}
 .reveal-dialog.is-final .reveal-copy { max-width: 44rem; max-height: min(55vh, 36rem); overflow-y: auto; }
 .reveal-dialog.is-final .reveal-card h2 { color: #f0d892; }
 
