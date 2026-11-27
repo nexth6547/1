@@ -13,9 +13,8 @@
       "../assets/lunar-height.jpg",
       "../assets/neptune-color.jpg",
       "../assets/neptune-bump.jpg",
-      "../assets/saturn-color.jpg",
-      "../assets/saturn-bump.jpg",
       "../assets/saturn-rings.png",
+      "../assets/saturn-color.svg",
       "../assets/CREDITS.txt",
       "../vendor/THREE-LICENSE.txt"
     ]

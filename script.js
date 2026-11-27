@@ -2711,12 +2711,11 @@ const LOVE_STORY = {
       return Promise.all([
         loadTexture("assets/neptune-color.jpg", THREE.SRGBColorSpace),
         loadTexture("assets/neptune-bump.jpg", THREE.NoColorSpace),
-        loadTexture("assets/saturn-color.jpg", THREE.SRGBColorSpace),
-        loadTexture("assets/saturn-bump.jpg", THREE.NoColorSpace),
+        loadTexture("assets/saturn-color.svg", THREE.SRGBColorSpace),
         loadTexture("assets/saturn-rings.png", THREE.SRGBColorSpace)
-      ]).then(([neptuneColor, neptuneBump, saturnColor, saturnBump, saturnRings]) => ({
+      ]).then(([neptuneColor, neptuneBump, saturnColor, saturnRings]) => ({
         neptune: { color: neptuneColor, bump: neptuneBump },
-        saturn: { color: saturnColor, bump: saturnBump },
+        saturn: { color: saturnColor },
         rings: saturnRings
       }));
     };
@@ -3192,10 +3191,10 @@ const LOVE_STORY = {
           return group;
         };
         const distantMoon = addPlanet({
-          kind: "neptune", x: 2.2, y: 1.15, z: 35.5, radius: .78, rimColor: 0x9bbbe0, opacity: 0
+          kind: "neptune", x: 2.8, y: 1.15, z: 35.5, radius: .78, rimColor: 0x9bbbe0, opacity: 0
         });
         const gasGiant = addPlanet({
-          kind: "gas", x: -2.15, y: 1.7, z: 19, radius: 1.45, rimColor: 0xd8bd94
+          kind: "gas", x: -3.2, y: 1.7, z: 19, radius: 1.45, rimColor: 0xd8bd94
         });
         const fallbackRingMap = new THREE.DataTexture(
           new Uint8Array([255, 255, 255, 255]),
@@ -3237,7 +3236,10 @@ const LOVE_STORY = {
                 vec2 shadowOffset = vRingPosition.xy - vec2(-1.5, 1.0);
                 float planetShadow = 1.0 - 0.78 * (1.0 - smoothstep(0.35, 1.15, length(shadowOffset)));
                 vec3 warmDust = mix(vec3(0.32, 0.3, 0.27), vec3(0.78, 0.68, 0.53), bands);
-                vec2 ringUv = vRingPosition.xy / outerRadius * 0.5 + 0.5;
+                vec2 ringUv = vec2(
+                  (radius - innerRadius) / (outerRadius - innerRadius),
+                  atan(vRingPosition.y, vRingPosition.x) * 0.159154943 + 0.5
+                );
                 vec4 mappedRing = texture2D(ringMap, ringUv);
                 vec3 ringColor = mix(warmDust, mappedRing.rgb, hasRingMap);
                 float ringAlpha = mix(1.0, mappedRing.a, hasRingMap);
@@ -3259,6 +3261,8 @@ const LOVE_STORY = {
           gasGiant.userData.applyTextures(textures.saturn);
           if (textures.rings) {
             fallbackRingMap.dispose();
+            textures.rings.wrapS = THREE.ClampToEdgeWrapping;
+            textures.rings.wrapT = THREE.RepeatWrapping;
             rings.material.uniforms.ringMap.value = textures.rings;
             rings.material.uniforms.hasRingMap.value = 1;
           }
@@ -3352,14 +3356,14 @@ const LOVE_STORY = {
             };
             const firstPlanetOpacity = ramp(0, .04) * (1 - ramp(.075, .1));
             const ringPlanetOpacity = ramp(.1, .14) * (1 - ramp(.32, .38));
-            const finalMoonOpacity = ramp(.58, .86);
+            const finalMoonOpacity = ramp(.34, .7);
             distantMoon.userData.setOpacity(firstPlanetOpacity);
             gasGiant.userData.setOpacity(ringPlanetOpacity);
             rings.material.uniforms.opacity.value = ringPlanetOpacity;
             material.opacity = finalMoonOpacity;
             atmosphere.material.uniforms.visibility.value = finalMoonOpacity;
             const approachToPlanets = ramp(0, .2);
-            const moonApproachProgress = THREE.MathUtils.clamp((progress - .42) / .58, 0, 1);
+            const moonApproachProgress = THREE.MathUtils.clamp((progress - .2) / .55, 0, 1);
             const approachToMoon = moonApproachProgress ** 1.35;
             camera.position.z = introStartZ - 17 * approachToPlanets - 26 * approachToMoon;
             camera.position.x = Math.sin(progress * Math.PI) * .16;

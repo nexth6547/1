@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2048" height="1024" viewBox="0 0 2048 1024">
+  <defs>
+    <linearGradient id="atmosphere" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#473a2d"/>
+      <stop offset=".08" stop-color="#85745a"/>
+      <stop offset=".15" stop-color="#c1aa7f"/>
+      <stop offset=".2" stop-color="#79664c"/>
+      <stop offset=".25" stop-color="#c6b28d"/>
+      <stop offset=".31" stop-color="#9a8361"/>
+      <stop offset=".36" stop-color="#d5c29b"/>
+      <stop offset=".42" stop-color="#927a58"/>
+      <stop offset=".48" stop-color="#cbb590"/>
+      <stop offset=".54" stop-color="#887252"/>
+      <stop offset=".59" stop-color="#d2bd96"/>
+      <stop offset=".65" stop-color="#a18a67"/>
+      <stop offset=".7" stop-color="#d0bc95"/>
+      <stop offset=".76" stop-color="#857052"/>
+      <stop offset=".82" stop-color="#c1a982"/>
+      <stop offset=".88" stop-color="#806a4d"/>
+      <stop offset=".94" stop-color="#b39a72"/>
+      <stop offset="1" stop-color="#42372b"/>
+    </linearGradient>
+    <linearGradient id="haze" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e4d3ae" stop-opacity=".04"/>
+      <stop offset=".19" stop-color="#f0dfb8" stop-opacity=".22"/>
+      <stop offset=".27" stop-color="#493b2c" stop-opacity=".3"/>
+      <stop offset=".37" stop-color="#f0dfb8" stop-opacity=".18"/>
+      <stop offset=".48" stop-color="#44372b" stop-opacity=".24"/>
+      <stop offset=".6" stop-color="#ead8b1" stop-opacity=".2"/>
+      <stop offset=".71" stop-color="#4b3b29" stop-opacity=".27"/>
+      <stop offset=".83" stop-color="#ebd5a9" stop-opacity=".17"/>
+      <stop offset="1" stop-color="#241f1a" stop-opacity=".12"/>
+    </linearGradient>
+    <filter id="cloud-noise" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".006 .045" numOctaves="2" seed="17" stitchTiles="stitch"/>
+      <feColorMatrix values="1 0 0 0 .45  0 1 0 0 .38  0 0 1 0 .28  0 0 0 .18 0"/>
+    </filter>
+  </defs>
+  <rect width="2048" height="1024" fill="url(#atmosphere)"/>
+  <rect width="2048" height="1024" fill="url(#haze)"/>
+  <rect width="2048" height="1024" filter="url(#cloud-noise)" opacity=".32"/>
+</svg>

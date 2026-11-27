@@ -13,16 +13,14 @@ Scientific Visualization Studio.
 Saturn and Neptune intro textures
 
 Source imagery:
-- Saturn: NASA/JPL-Caltech/Space Science Institute, Cassini image PIA21047
-  https://images.nasa.gov/details/PIA21047
 - Neptune: NASA/JPL, Voyager 2 false-colour image PIA00057
   https://images.nasa.gov/details/PIA00057
 
-The local colour maps were generated from the planetary disks, resized to
-2048x1024, and extended over the unseen hemisphere for spherical mapping.
-The bump maps emphasize cloud contrast and are not topographic elevation data.
-Saturn's 512x512 ring map is a local procedural approximation of Cassini's
-observed ring bands. No network access is needed at runtime.
+Saturn uses a seamless 2048x1024 procedural equirectangular atmosphere map;
+its bands are artistic rather than source imagery. The Saturn ring map is a
+local polar texture strip with radial bands. Neptune's local colour and bump
+maps are extended over the unseen hemisphere for spherical mapping. No network
+access is needed at runtime.
 
 Three.js is bundled from https://threejs.org/ under the MIT License.
 See ../vendor/THREE-LICENSE.txt.
