@@ -1386,6 +1386,7 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .shooting-meteor { animation-duration: 10.4s !important; animation-delay: var(--meteor-reduced-delay) !important; animation-iteration-count: infinite !important; }
   .intro-scene { display: none; }
   .is-intro-running .welcome-content > * { opacity: 1; transform: none; transition-delay: 0s; }
 }

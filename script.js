@@ -1708,6 +1708,7 @@ const LOVE_STORY = {
       meteor.style.setProperty("--meteor-y", `${12 + index * 18}%`);
       meteor.style.setProperty("--meteor-angle", `${index % 2 ? -25 : -18}deg`);
       meteor.style.setProperty("--meteor-delay", `${-index * 1.04}s`);
+      meteor.style.setProperty("--meteor-reduced-delay", `${-index * 2.08}s`);
       meteorLayer.append(meteor);
     }
 
