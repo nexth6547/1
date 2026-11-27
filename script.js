@@ -1869,10 +1869,10 @@ const LOVE_STORY = {
     const stars = $(".astrolabe-stars");
     const dial = $(".astrolabe-dial");
     const feedback = $(".astrolabe-feedback");
+    const objective = $(".astrolabe-objective");
     const particles = $(".astrolabe-particles");
     const rotations = [...config.initialRotations];
     const step = 30;
-    let aligned = 0;
     let selected = 0;
 
     const particleDots = Array.from({ length: 22 }, (_, index) => {
@@ -1886,6 +1886,10 @@ const LOVE_STORY = {
 
     const targets = rotations.map((_, index) => index * 60);
     const alignmentAngles = [270, 90, 0, 180, 270, 90];
+    const normalizeAngle = (angle) => ((angle % 360) + 360) % 360;
+    const isAtAlignment = (index) => normalizeAngle(targets[index] + rotations[index])
+      === normalizeAngle(alignmentAngles[index]);
+    const alignedMarkers = new Set(rotations.map((_, index) => index).filter(isAtAlignment));
     const orbitRadii = [.52, .52, .52, .52, .87, .87];
     const markers = rotations.map((rotation, index) => {
       const marker = document.createElement("button");
@@ -1901,12 +1905,13 @@ const LOVE_STORY = {
     function updateMarker(index) {
       const marker = markers[index];
       const rotation = rotations[index];
-      const angle = ((targets[index] + rotation) % 360 + 360) % 360;
+      const angle = normalizeAngle(targets[index] + rotation);
       const radians = angle * Math.PI / 180;
       const radius = orbitRadii[index] * 50;
-      const alignedOnAxis = angle === alignmentAngles[index];
+      const alignedOnAxis = isAtAlignment(index);
       marker.style.left = `${50 + Math.sin(radians) * radius}%`;
       marker.style.top = `${50 - Math.cos(radians) * radius}%`;
+      marker.disabled = alignedMarkers.has(index);
       marker.classList.toggle("is-aligned", alignedOnAxis);
       marker.classList.toggle("is-selected", selected === index);
       marker.setAttribute("aria-pressed", alignedOnAxis ? "true" : "false");
@@ -1914,6 +1919,10 @@ const LOVE_STORY = {
         "aria-label",
         `Repère céleste ${index + 1}, ${alignedOnAxis ? "aligné" : "à aligner"} sur l’axe doré. Utilise les flèches gauche et droite pour tourner.`
       );
+    }
+
+    function updateObjective() {
+      objective.textContent = `Objectif : aligner les 6 lumières sur les axes dorés · ${alignedMarkers.size}/${markers.length}`;
     }
 
     function playAlignmentTone(index) {
@@ -1941,13 +1950,13 @@ const LOVE_STORY = {
     }
 
     function rotateMarker(index, direction) {
-      if (markers[index].classList.contains("is-aligned")) return;
+      if (alignedMarkers.has(index)) return;
       selected = index;
-      rotations[index] = (rotations[index] + direction * step + 360) % 360;
+      rotations[index] = normalizeAngle(rotations[index] + direction * step);
       updateMarker(index);
-      if (((targets[index] + rotations[index]) % 360 + 360) % 360 === alignmentAngles[index]) {
-        aligned += 1;
-        markers[index].disabled = true;
+      if (isAtAlignment(index)) {
+        alignedMarkers.add(index);
+        updateMarker(index);
         playAlignmentTone(index);
         markers[index].querySelector(".astrolabe-ring").animate(
           [{ opacity: .48, transform: "scale(.65)" }, { opacity: 1, transform: "scale(1.12)" }, { opacity: 1, transform: "scale(1)" }],
@@ -1957,9 +1966,9 @@ const LOVE_STORY = {
       } else {
         feedback.textContent = "Tourne encore cette étoile vers l’axe doré.";
       }
-      $(".astrolabe-objective").textContent = `Objectif : aligner les 6 lumières sur les axes dorés · ${aligned}/6`;
+      updateObjective();
 
-      if (aligned === markers.length) {
+      if (alignedMarkers.size === markers.length) {
         dial.classList.add("is-complete");
         $(".astrolabe-panel").classList.add("is-complete");
         $(".astrolabe-message").textContent = config.message;
@@ -1974,6 +1983,7 @@ const LOVE_STORY = {
       updateMarker(index);
       marker.addEventListener("click", () => rotateMarker(index, 1));
     });
+    updateObjective();
 
     dial.addEventListener("keydown", (event) => {
       if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
@@ -1991,6 +2001,7 @@ const LOVE_STORY = {
       marker.addEventListener("keydown", (event) => {
         if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
           event.preventDefault();
+          event.stopPropagation();
           rotateMarker(Number(marker.dataset.index), event.key === "ArrowRight" ? 1 : -1);
         }
       });

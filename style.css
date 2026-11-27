@@ -1072,7 +1072,7 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   text-align: center;
 }
 .astrolabe-feedback { margin-top: .35rem; }
-.astrolabe-finish { margin: 1rem auto 0; }
+.astrolabe-finish { width: fit-content; max-width: 100%; margin: 1rem auto 0; }
 .astrolabe-panel.is-complete { border-color: rgba(232,198,111,.22); }
 @keyframes astrolabe-particle {
   0%, 100% { opacity: 0; transform: translateY(8px) scale(.6); }
