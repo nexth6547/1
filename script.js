@@ -1668,12 +1668,13 @@ const LOVE_STORY = {
 
   function renderStars(config) {
     starFieldResizeObserver?.disconnect();
-    gameContent.innerHTML = `<div class="game-panel stars-panel"><p class="activity-kicker">La constellation attend son poème</p><p class="star-order-label">L'ordre à suivre</p><div class="star-order" aria-label="Séquence des six signes"></div><div class="shooting-star-field" role="group" aria-label="Étoiles filantes à cliquer dans l'ordre"><div class="starfield-nebula" aria-hidden="true"></div><div class="starfield-sparkles" aria-hidden="true"></div><svg class="star-constellation" aria-hidden="true" focusable="false"><path class="star-constellation-glow"></path><path class="star-constellation-line"></path><g class="star-constellation-nodes"></g></svg></div><p class="activity-feedback star-feedback" aria-live="polite">Repère les signes blancs et suis-les dans l'ordre de la constellation.</p><div class="star-progress" aria-label="Progression du poème"></div><div class="revealed-poem" hidden></div><button class="button button-primary game-finish-button star-finish" type="button" disabled>Garder ce poème ↗</button></div>`;
+    gameContent.innerHTML = `<div class="game-panel stars-panel"><p class="activity-kicker">La constellation attend son poème</p><p class="star-order-label">L'ordre à suivre</p><div class="star-order" aria-label="Séquence des six signes"></div><div class="shooting-star-field" role="group" aria-label="Étoiles filantes à cliquer dans l'ordre"><div class="starfield-nebula" aria-hidden="true"></div><div class="starfield-sparkles" aria-hidden="true"></div><div class="shooting-meteor-layer" aria-hidden="true"></div><svg class="star-constellation" aria-hidden="true" focusable="false"><path class="star-constellation-glow"></path><path class="star-constellation-line"></path><g class="star-constellation-nodes"></g></svg></div><p class="activity-feedback star-feedback" aria-live="polite">Repère les signes blancs et suis-les dans l'ordre de la constellation.</p><div class="star-progress" aria-label="Progression du poème"></div><div class="revealed-poem" hidden></div><button class="button button-primary game-finish-button star-finish" type="button" disabled>Garder ce poème ↗</button></div>`;
     const field = $(".shooting-star-field");
     const progress = $(".star-progress");
     const order = $(".star-order");
     const feedback = $(".star-feedback");
     const sparkleLayer = $(".starfield-sparkles");
+    const meteorLayer = $(".shooting-meteor-layer");
     const constellation = $(".star-constellation");
     const constellationGlow = $(".star-constellation-glow");
     const constellationLine = $(".star-constellation-line");
@@ -1681,14 +1682,14 @@ const LOVE_STORY = {
     const constellationPoints = [];
     const movingTargets = [];
     const decoyStars = [
-      { sign: "○", name: "anneau" },
-      { sign: "◇", name: "losange" },
-      { sign: "✛", name: "croix" },
-      { sign: "✧", name: "étoile fine" },
-      { sign: "⊙", name: "orbite" },
-      { sign: "✣", name: "étoile à quatre branches" },
-      { sign: "◇", name: "losange" },
-      { sign: "○", name: "anneau" }
+      { sign: "•", name: "point" },
+      { sign: "△", name: "triangle" },
+      { sign: "×", name: "croix fine" },
+      { sign: "☾", name: "croissant" },
+      { sign: "∞", name: "infini" },
+      { sign: "☆", name: "étoile vide" },
+      { sign: "≋", name: "vagues" },
+      { sign: "⊗", name: "cercle croisé" }
     ];
 
     for (let index = 0; index < 38; index += 1) {
@@ -1699,6 +1700,15 @@ const LOVE_STORY = {
       sparkle.style.setProperty("--sparkle-delay", `${(index % 9) * -.43}s`);
       sparkle.style.setProperty("--sparkle-size", `${index % 7 === 0 ? 3 : 1 + index % 2}px`);
       sparkleLayer.append(sparkle);
+    }
+
+    for (let index = 0; index < 5; index += 1) {
+      const meteor = document.createElement("span");
+      meteor.className = "shooting-meteor";
+      meteor.style.setProperty("--meteor-y", `${12 + index * 18}%`);
+      meteor.style.setProperty("--meteor-angle", `${index % 2 ? -25 : -18}deg`);
+      meteor.style.setProperty("--meteor-delay", `${-index * 1.04}s`);
+      meteorLayer.append(meteor);
     }
 
     function updateStarRoutes(width, height) {
@@ -1780,9 +1790,9 @@ const LOVE_STORY = {
       const isDecoy = sequenceIndex === null;
       const button = document.createElement("button");
       button.type = "button";
-      button.className = `shooting-target${isDecoy ? " is-decoy" : ""}`;
-      button.style.setProperty("--star-duration", `${14 + index % 4 * 1.6}s`);
-      button.style.setProperty("--star-delay", `${-index * 1.83}s`);
+      button.className = `shooting-target${isDecoy ? " is-decoy" : " is-sequence"}`;
+      button.style.setProperty("--star-duration", `${10 + index % 4 * 1.2}s`);
+      button.style.setProperty("--star-delay", `${-index * 1.25}s`);
       button.style.setProperty("--star-trail-duration", `${1.6 + index % 5 * .24}s`);
       button.setAttribute(
         "aria-label",

@@ -605,6 +605,40 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   opacity: .2;
   animation: star-twinkle 3s var(--sparkle-delay) ease-in-out infinite;
 }
+.shooting-meteor-layer {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.shooting-meteor {
+  position: absolute;
+  top: var(--meteor-y);
+  left: -18%;
+  width: clamp(11rem, 25vw, 20rem);
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(210,226,255,.18) 38%, rgba(244,248,255,.85) 88%, #fff 100%);
+  box-shadow: 0 0 8px rgba(219,232,255,.86), 0 0 20px rgba(175,203,255,.58);
+  opacity: 0;
+  transform-origin: right center;
+  animation: meteor-cross 5.2s linear infinite;
+  animation-delay: var(--meteor-delay);
+  will-change: transform, opacity;
+}
+.shooting-meteor::after {
+  position: absolute;
+  top: 50%;
+  right: -2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px 3px rgba(244,248,255,.95), 0 0 22px 8px rgba(184,210,255,.7);
+  content: "";
+  transform: translateY(-50%);
+}
 .star-constellation {
   position: absolute;
   z-index: 1;
@@ -668,15 +702,15 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   position: absolute;
   top: 27%;
   right: 52%;
-  width: clamp(7rem, 15vw, 12rem);
-  height: 2.7rem;
-  border-bottom: 1.5px solid rgba(255,249,237,.68);
+  width: clamp(9rem, 19vw, 15rem);
+  height: 3rem;
+  border-bottom: 2px solid rgba(255,252,242,.92);
   border-radius: 0 0 76% 54%;
-  background: radial-gradient(ellipse at 94% 84%, rgba(255,252,243,.48), rgba(232,239,250,.2) 38%, transparent 72%);
-  opacity: .88;
-  filter: blur(.4px) drop-shadow(0 0 7px rgba(255,248,231,.66));
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 62%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 18%, #000 62%, transparent);
+  background: radial-gradient(ellipse at 94% 84%, rgba(255,255,255,.8), rgba(232,239,250,.3) 38%, transparent 72%);
+  opacity: 1;
+  filter: blur(.2px) drop-shadow(0 0 10px rgba(255,250,231,.9));
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 76%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 76%, transparent);
   transform: rotate(var(--star-trail-angle, -16deg));
   transform-origin: right center;
   animation: star-tail-drift var(--star-trail-duration, 2s) ease-in-out infinite alternate;
@@ -713,14 +747,26 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   top: .48rem;
   right: .45rem;
   display: grid;
-  min-width: 1.25rem;
-  height: 1.25rem;
+  min-width: 1.4rem;
+  height: 1.4rem;
   place-items: center;
+  border: 1px solid rgba(255,255,255,.58);
+  border-radius: 50%;
+  background: rgba(5,9,20,.78);
   color: #fffdf7;
-  font-size: .88rem;
+  font-size: .98rem;
   line-height: 1;
   text-shadow: 0 0 6px #fff, 0 0 13px rgba(255,248,229,.92);
+  box-shadow: 0 0 10px rgba(255,248,229,.5);
   pointer-events: none;
+}
+.shooting-target.is-sequence .shooting-star-symbol {
+  min-width: 1.65rem;
+  height: 1.65rem;
+  border-color: rgba(255,244,211,.9);
+  background: rgba(8,12,22,.96);
+  font-size: 1.1rem;
+  box-shadow: 0 0 12px rgba(255,244,211,.72);
 }
 .shooting-star-particles {
   position: absolute;
@@ -771,6 +817,13 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   50% { transform: translate3d(var(--flight-x2), var(--flight-y2), 0) translate(-50%, -50%); }
   75% { transform: translate3d(var(--flight-x3), var(--flight-y3), 0) translate(-50%, -50%); }
   100% { transform: translate3d(var(--flight-x4), var(--flight-y4), 0) translate(-50%, -50%); }
+}
+@keyframes meteor-cross {
+  0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(var(--meteor-angle)) scaleX(.62); }
+  7% { opacity: 1; }
+  54% { opacity: .92; }
+  62% { opacity: 0; transform: translate3d(155vw, 0, 0) rotate(var(--meteor-angle)) scaleX(1); }
+  100% { opacity: 0; transform: translate3d(155vw, 0, 0) rotate(var(--meteor-angle)) scaleX(1); }
 }
 @keyframes star-tail-drift { from { opacity: .43; scale: .88 .78; } to { opacity: .88; scale: 1.05 1.08; } }
 @keyframes star-tail-particles { from { opacity: .22; transform: translate(-4px, 2px); } to { opacity: .9; transform: translate(3px, -2px); } }
