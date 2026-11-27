@@ -1157,7 +1157,7 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
 .polaroid-inner { position: relative; display: block; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 650ms cubic-bezier(.2,.7,.2,1); }
 .polaroid-card.is-flipped .polaroid-inner { transform: rotateY(180deg); }
 .polaroid-face { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.13); border-radius: .4rem; backface-visibility: hidden; }
-.polaroid-front { background: #e7e0d0; padding: .55rem .55rem .9rem; color: #302d2b; box-shadow: 0 8px 18px rgba(0,0,0,.24); }
+.polaroid-front { background: #05060a; padding: 0; color: #f8fafc; box-shadow: 0 8px 18px rgba(0,0,0,.24); }
 .polaroid-photo {
   position: relative;
   isolation: isolate;
@@ -1166,19 +1166,9 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   flex: 1;
   overflow: hidden;
   place-items: center;
-  border: 1px solid rgba(255,255,255,.075);
-  background:
-    radial-gradient(circle at 50% 48%, rgba(183,167,133,.13), transparent 34%),
-    repeating-linear-gradient(135deg, rgba(255,255,255,.018) 0 1px, transparent 1px 4px),
-    linear-gradient(145deg, #11131a, #08090e 70%, #15141a);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), inset 0 -18px 34px rgba(0,0,0,.4);
-}
-.polaroid-photo::before {
-  position: absolute;
-  inset: 9px;
-  border: 1px solid rgba(212,197,161,.075);
-  content: "";
-  pointer-events: none;
+  border: 0;
+  background: #05060a;
+  box-shadow: inset 0 0 26px rgba(0,0,0,.55);
 }
 .polaroid-moon {
   position: relative;
@@ -1207,7 +1197,6 @@ h1 em, h2 em { color: var(--pink); font-weight: 400; }
   background: linear-gradient(145deg, #11131a, #08090e 72%, #15141a);
   box-shadow: -2px 2px 5px rgba(0,0,0,.36);
 }
-.polaroid-caption { max-width: 100%; padding-top: .55rem; font-family: "Playfair Display", Georgia, serif; font-size: clamp(.65rem, 2.4vw, .9rem); }
 .polaroid-back { transform: rotateY(180deg); border-color: rgba(232,198,111,.23); background: linear-gradient(145deg, #332e29, #17181d); padding: .8rem; color: #eddfbd; font-family: "Playfair Display", Georgia, serif; font-size: clamp(.72rem, 2.5vw, .95rem); line-height: 1.65; }
 .polaroid-back-star { margin-bottom: .6rem; color: #e8c66f; }
 .quiz-panel { max-width: 560px; margin: 0 auto; }

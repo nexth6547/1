@@ -169,7 +169,7 @@ const LOVE_STORY = {
           { front: "Un souvenir rien qu'à nous", back: "La toute première fois où on l'a fait, c'était tout aussi bien, et je ne regrette absolument pas de te l'avoir donnée, à toi, la fille que j'aime." }
         ]
       },
-      personalMessage: "À venir."
+      personalMessage: ""
     },
     {
       title: "Le quiz complice",
@@ -2263,13 +2263,14 @@ const LOVE_STORY = {
       button.type = "button";
       button.className = `polaroid-card polaroid-${index + 1}`;
       button.setAttribute("aria-pressed", "false");
-      button.innerHTML = `<span class="polaroid-inner"><span class="polaroid-face polaroid-front"><span class="polaroid-photo"><span class="polaroid-moon" aria-hidden="true"></span></span><span class="polaroid-caption"></span></span><span class="polaroid-face polaroid-back"><span class="polaroid-back-star" aria-hidden="true">✦</span><span class="polaroid-message"></span></span></span>`;
-      button.querySelector(".polaroid-caption").textContent = card.front;
+      button.setAttribute("aria-label", `Souvenir ${index + 1} : ${card.front}. Retourner la carte.`);
+      button.innerHTML = `<span class="polaroid-inner"><span class="polaroid-face polaroid-front"><span class="polaroid-photo"><span class="polaroid-moon" aria-hidden="true"></span></span></span><span class="polaroid-face polaroid-back"><span class="polaroid-back-star" aria-hidden="true">✦</span><span class="polaroid-message"></span></span></span>`;
       button.querySelector(".polaroid-message").textContent = card.back;
       button.addEventListener("click", () => {
         if (button.classList.contains("is-flipped")) return;
         button.classList.add("is-flipped");
         button.setAttribute("aria-pressed", "true");
+        button.setAttribute("aria-label", card.back);
         matchedPairs.add(index);
         $(".activity-feedback").textContent = `${matchedPairs.size} sur ${config.cards.length} souvenirs retournés.`;
         if (matchedPairs.size === config.cards.length) {
