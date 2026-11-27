@@ -2667,8 +2667,8 @@ const LOVE_STORY = {
       const loader = new THREE.TextureLoader();
       loader.setCrossOrigin("anonymous");
       return Promise.all([
-        loadLocalTexture(THREE, loader, "assets/lunar-color.jpg", THREE.SRGBColorSpace, anisotropy),
-        loadLocalTexture(THREE, loader, "assets/lunar-height.jpg", THREE.NoColorSpace, anisotropy)
+        loadLocalTexture(THREE, loader, "lunar-color.jpg", THREE.SRGBColorSpace, anisotropy),
+        loadLocalTexture(THREE, loader, "lunar-height.jpg", THREE.NoColorSpace, anisotropy)
       ]).then(([diffuse, bump]) => ({ diffuse, bump }));
     };
 
@@ -2680,10 +2680,10 @@ const LOVE_STORY = {
           return null;
         });
       return Promise.all([
-        loadTexture("assets/neptune-color.jpg", THREE.SRGBColorSpace),
-        loadTexture("assets/neptune-bump.jpg", THREE.NoColorSpace),
-        loadTexture("assets/saturn-color.svg", THREE.SRGBColorSpace),
-        loadTexture("assets/saturn-rings.png", THREE.SRGBColorSpace)
+        loadTexture("neptune-color.jpg", THREE.SRGBColorSpace),
+        loadTexture("neptune-bump.jpg", THREE.NoColorSpace),
+        loadTexture("saturn-color.svg", THREE.SRGBColorSpace),
+        loadTexture("saturn-rings.png", THREE.SRGBColorSpace)
       ]).then(([neptuneColor, neptuneBump, saturnColor, saturnRings]) => ({
         neptune: { color: neptuneColor, bump: neptuneBump },
         saturn: { color: saturnColor },
@@ -2694,7 +2694,6 @@ const LOVE_STORY = {
     const createMoonScene = () => {
       const THREE = window.THREE;
       if (!THREE) {
-        document.body.classList.add("is-sky-fallback");
         console.error("Three.js n'a pas pu être chargé depuis les ressources locales.");
         return null;
       }
@@ -3356,7 +3355,6 @@ const LOVE_STORY = {
           }
         };
       } catch (error) {
-        document.body.classList.add("is-sky-fallback");
         console.error("Impossible d'initialiser le rendu WebGL de la lune.", error);
         return null;
       }
@@ -3437,13 +3435,5 @@ const LOVE_STORY = {
     startBackgroundAnimation();
   }
 
-  window.threeReady
-    .then(initializeCelestialScene)
-    .catch((error) => {
-      console.error("Impossible de démarrer la scène céleste.", error);
-      document.body.classList.add("is-sky-fallback");
-      document.body.classList.remove("is-intro-running");
-      $("#welcome-screen").inert = false;
-      $("#intro-scene").remove();
-    });
+  initializeCelestialScene();
 })();

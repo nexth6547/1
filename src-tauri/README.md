@@ -2,10 +2,9 @@
 
 L'interface est servie directement depuis `../index.html`, `../style.css` et
 `../script.js`. Aucun bundler JavaScript ni serveur de développement n'est requis
-pour créer l'application. Tauri embarque chaque fichier déclaré dans
-`frontendDist` sous son nom de fichier : l'interface essaie donc les chemins
-habituels (`vendor/`, `assets/`) puis leur nom aplati. Three.js et les textures
-sont ainsi chargés depuis les ressources locales, sans dépendance réseau.
+pour créer l'application. La liste `frontendDist` embarque chaque fichier à la
+racine des ressources. Three.js et les textures utilisent donc leurs noms de
+fichier seuls (`three.min.js`, `lunar-color.jpg`, etc.), sans dépendance réseau.
 
 ## Prérequis sur Windows
 
